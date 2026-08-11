@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"
+    />
+    <title>黑马点评</title>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="./css/element.css" />
+
+    <link href="./css/shop-list.css" rel="stylesheet" />
+    <link href="./css/main.css" rel="stylesheet" />
+    <link href="./css/glass.css" rel="stylesheet" />
+    <link href="./css/ai-assistant.css" rel="stylesheet" />
+
+    <style type="text/css"></style>
+  </head>
+  <body>
+    <div id="app">
+      <div class="header">
+        <div class="header-back-btn" @click="goBack">
+          <i class="el-icon-arrow-left"></i>
+        </div>
+        <div class="header-title">{{typeName}}</div>
+        <div class="header-search" @click="openSearch">
+          <i class="el-icon-search"></i>
+        </div>
+      </div>
+      <div class="sort-bar">
+        <div class="sort-item">{{typeName}}</div>
+        <div
+          class="sort-item sort-dropdown"
+          v-for="item in sortItems"
+          :key="item.field"
+          :class="{ 'sort-active': params.sortBy === item.field }"
+        >
+          <span class="sort-label" @click.stop="toggleSortMenu(item.field)">
+            {{item.label}}
+            <i
+              v-if="params.sortBy === item.field"
+              :class="params.isAsc ? 'el-icon-caret-top' : 'el-icon-caret-bottom'"
+            ></i>
+            <i v-else class="el-icon-arrow-down"></i>
+          </span>
+          <div class="sort-menu" v-if="openSort === item.field" @click.stop>
+            <div
+              class="sort-menu-item"
+              :class="{ 'sort-menu-active': params.sortBy === item.field && params.isAsc }"
+              @click="applySort(item.field, true)"
+            >
+              {{item.ascLabel}}
+            </div>
+            <div
+              class="sort-menu-item"
+              :class="{ 'sort-menu-active': params.sortBy === item.field && !params.isAsc }"
+              @click="applySort(item.field, false)"
+            >
+              {{item.descLabel}}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="shop-list" @scroll="onScroll">
+        <div
+          v-if="loaded && shops.length === 0"
+          style="text-align: center; color: #82848a; padding: 60px 0; font-size: 14px; width: 100%"
+        >
+          当前城市暂无相关商铺，换个城市或关键词试试吧
+        </div>
+        <div
+          class="shop-box"
+          v-for="s in shops"
+          :key="s.id"
+          @click="toDetail(s.id)"
+        >
+          <div class="shop-img"><img :src="s.images" alt="" /></div>
+          <div class="shop-info">
+            <div class="shop-title shop-item">{{s.name}}</div>
+            <div class="shop-rate shop-item">
+              <el-rate
+                disabled
+                :value="s.score/10"
+                text-color="#F63"
+                show-score
+              ></el-rate>
+              <span>{{s.comments}}条</span>
+            </div>
+            <div class="shop-area shop-item">
+              <span>{{s.area}}</span>
+              <span v-if="s.distance"
+                >{{s.distance &lt; 1000 ? s.distance.toFixed(1) + 'm' :
+                (s.distance/1000).toFixed(1) + 'km'}}</span
+              >
+            </div>
+            <div class="shop-avg shop-item">￥{{s.avgPrice}}/人</div>
+            <div class="shop-address shop-item">
+              <i class="el-icon-map-location"></i>
+              <span>{{s.address}}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="ai-launcher">
+      <a
+        class="ai-launcher-button"
+        href="./aiassistant.html"
+        title="打开AI顾问"
+      >
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <defs>
+            <linearGradient
+              id="ai-icon-gradient"
+              x1="0%"
+              y1="0%"
+              x2="100%"
+              y2="100%"
+            >
+              <stop offset="0%" stop-color="#60a5fa"></stop>
+              <stop offset="100%" stop-color="#a855f7"></stop>
+            </linearGradient>
+          </defs>
+          <circle cx="24" cy="24" r="18" fill="rgba(255,255,255,0.22)"></circle>
+          <path
+            d="M17 18c0-3.314 2.686-6 6-6h2c3.314 0 6 2.686 6 6 0 1.824-.82 3.453-2.108 4.551-.26.221-.26.675 0 .896C29.18 24.545 30 26.175 30 28c0 3.314-2.686 6-6 6h-2c-3.314 0-6-2.686-6-6 0-1.825.82-3.455 2.108-4.553.26-.221.26-.675 0-.896C17.82 21.454 17 19.824 17 18Z"
+            stroke="url(#ai-icon-gradient)"
+            stroke-width="2.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            fill="none"
+          ></path>
+          <circle
+            cx="20"
+            cy="18"
+            r="1.8"
+            fill="url(#ai-icon-gradient)"
+          ></circle>
+          <circle
+            cx="28"
+            cy="18"
+            r="1.8"
+            fill="url(#ai-icon-gradient)"
+          ></circle>
+          <path
+            d="M20 28h8"
+            stroke="url(#ai-icon-gradient)"
+            stroke-width="2.6"
+            stroke-linecap="round"
+          ></path>
+        </svg>
+      </a>
+    </div>
+    <script src="./js/vue.js"></script>
+    <script src="./js/axios.min.js"></script>
+    <!-- 引入组件库 -->
+    <script src="./js/element.js"></script>
+    <script src="./js/common.js"></script>
+    <script>
+      const app = new Vue({
+        el: "#app",
+        data: {
+          util,
+          isReachBottom: false,
+          shops: [], // 商店列表
+          loaded: false, // 首次查询是否完成（用于空态展示）
+          typeName: "",
+          openSort: "", // 当前展开的排序下拉项
+          sortItems: [
+            { field: "distance", label: "距离", ascLabel: "距离由近到远", descLabel: "距离由远到近" },
+            { field: "comments", label: "人气", ascLabel: "人气由低到高", descLabel: "人气由高到低" },
+            { field: "score", label: "评分", ascLabel: "评分由低到高", descLabel: "评分由高到低" },
+          ],
+          params: {
+            typeId: 0,
+            current: 1,
+            sortBy: "",
+            isAsc: true,
+            x: 120.149993, // 经度
+            y: 30.334229, // 纬度
+          },
+          searchKey: "", // 搜索关键词（非空时走名称搜索模式）
+        },
+        created() {
+          // 获取参数
+          this.params.typeId = util.getUrlParam("type");
+          this.searchKey = decodeURI(util.getUrlParam("search") || "");
+          if (this.searchKey) {
+            // 搜索模式：标题展示搜索词
+            this.typeName = "搜索：" + this.searchKey;
+          } else {
+            this.typeName = util.getUrlParam("name");
+          }
+          // 读取主页选择的城市
+          let city = localStorage.getItem("hmdp_city");
+          if (city && city !== "全部") {
+            this.params.city = city;
+          }
+          // 查询商店
+          this.queryShops();
+          // 点击页面空白处收起排序下拉
+          this._closeSortMenu = () => {
+            this.openSort = "";
+          };
+          document.addEventListener("click", this._closeSortMenu);
+        },
+        beforeDestroy() {
+          document.removeEventListener("click", this._closeSortMenu);
+        },
+        methods: {
+          queryShops() {
+            // 搜索模式走名称模糊搜索接口，否则按类型查询
+            let url = "/shop/of/type";
+            let params = this.params;
+            // 非距离排序不走GEO，不传坐标
+            if (this.params.sortBy && this.params.sortBy !== "distance") {
+              params = {
+                typeId: this.params.typeId,
+                current: this.params.current,
+                city: this.params.city,
+                sortBy: this.params.sortBy,
+                // 转字符串：common.js 的 paramsSerializer 会过滤 falsy 值
+                isAsc: String(this.params.isAsc),
+              };
+            }
+            if (this.searchKey) {
+              url = "/shop/of/name";
+              params = {
+                name: this.searchKey,
+                current: this.params.current,
+                city: this.params.city,
+                sortBy: this.params.sortBy === "distance" ? "" : this.params.sortBy,
+                isAsc: String(this.params.isAsc),
+              };
+            }
+            axios
+              .get(url, {
+                params: params,
+              })
+              .then(({ data }) => {
+                this.loaded = true;
+                if (!data) {
+                  return;
+                }
+                data.forEach((s) => (s.images = s.images.split(",")[0]));
+                this.shops = this.shops.concat(data);
+              })
+              .catch((err) => {
+                this.loaded = true;
+                console.log(err);
+                this.$message.error(err);
+              });
+          },
+          openSearch() {
+            // 顶部搜索入口：输入关键词后进入搜索模式
+            this.$prompt("搜索商户名、地点", "搜索", {
+              confirmButtonText: "搜索",
+              cancelButtonText: "取消",
+              inputValue: this.searchKey || "",
+            })
+              .then(({ value }) => {
+                if (value && value.trim()) {
+                  location.href = "/shop-list.html?search=" + encodeURI(value.trim());
+                }
+              })
+              .catch(() => {});
+          },
+          sortAndQuery(sortBy) {
+            this.params.sortBy = sortBy;
+            this.queryShops();
+          },
+          toggleSortMenu(field) {
+            this.openSort = this.openSort === field ? "" : field;
+          },
+          applySort(field, isAsc) {
+            // 切换排序后重新从第一页查询，并清空已有列表
+            this.params.sortBy = field;
+            this.params.isAsc = isAsc;
+            this.params.current = 1;
+            this.shops = [];
+            this.openSort = "";
+            this.isReachBottom = false;
+            this.queryShops();
+          },
+          goBack() {
+            history.back();
+          },
+          toDetail(id) {
+            location.href = "/shop-detail.html?id=" + id;
+          },
+          onScroll(e) {
+            let scrollTop = e.target.scrollTop;
+            let offsetHeight = e.target.offsetHeight;
+            let scrollHeight = e.target.scrollHeight;
+            if (
+              scrollTop + offsetHeight + 1 > scrollHeight &&
+              !this.isReachBottom
+            ) {
+              this.isReachBottom = true;
+              console.log("触底");
+              this.params.current++;
+              this.queryShops(this.params.current, 5);
+            } else {
+              this.isReachBottom = false;
+            }
+          },
+        },
+      });
+    </script>
+  </body>
+</html>

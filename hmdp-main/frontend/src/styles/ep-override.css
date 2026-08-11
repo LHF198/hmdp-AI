@@ -1,0 +1,22 @@
+/* Element Plus 兼容层：glass.css 的输入框样式基于 Element UI 结构（.el-input__inner），
+   Element Plus 输入框容器为 .el-input__wrapper（背景/边框/圆角在其上），
+   此处补充等价样式，保证玻璃拟态主题在 SPA 下与旧页面视觉一致。 */
+.el-input__wrapper {
+  background: rgba(214, 209, 203, 0.6) !important; /* --bg-base with alpha */
+  border: none !important;
+  box-shadow: var(--inner-shadow) !important;
+  border-radius: 18px !important;
+  padding: 1px 12px !important;
+  transition: box-shadow 0.2s ease, background 0.2s ease, transform 0.08s ease;
+}
+.el-input__wrapper.is-focus {
+  box-shadow: 0 0 0 3px rgba(34, 39, 43, 0.15), var(--inner-shadow) !important;
+  background: rgba(214, 209, 203, 0.7);
+}
+.el-input__inner {
+  background: transparent !important;
+  color: var(--text-strong) !important;
+}
+.el-input__inner::placeholder {
+  color: rgba(31, 45, 61, 0.5);
+}

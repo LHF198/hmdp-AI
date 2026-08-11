@@ -1,0 +1,258 @@
+/* ============================================================
+   BlogDetail 作用域收窄版（原 blog-detail.css 改写）
+   - 原文件含 .header/.basic/.logout-btn 等全局选择器，与 SPA 冲突
+   - 全部类加 .blog-detail-page 前缀，仅笔记详情页生效
+   - 头部/作者栏复用全局 .header/.basic/.logout-btn（info.css/shop-list.css）
+   ============================================================ */
+
+/* 图片轮播容器（触摸滑动） */
+.blog-detail-page .blog-info-box {
+  position: relative;
+  overflow: hidden;
+  height: 300px;
+  width: 100%;
+  background: #f0f0f0;
+}
+
+.blog-detail-page .blog-info-box.indicator {
+  position: absolute;
+  right: 3vw;
+  bottom: 3vw;
+  width: 10vw;
+  height: 10vw;
+  line-height: 10vw;
+  border-radius: 5vw;
+  text-align: center;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font-size: 14px;
+}
+
+.blog-detail-page .swiper-item {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.blog-detail-page .swiper-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 作者栏右侧时间样式 */
+.blog-detail-page .basic-info .time {
+  display: inline-block;
+  padding: 0 10px;
+  margin: 5px 0 10px;
+  border-radius: 2px;
+  opacity: 0.4;
+}
+
+/* 关联店铺卡片 */
+.blog-detail-page .shop-basic {
+  margin: 15px auto;
+  width: 90%;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px;
+  box-shadow: 0 4px 4px 2px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+}
+
+.blog-detail-page .shop-icon {
+  width: 50px;
+  height: 50px;
+  flex-shrink: 0;
+}
+
+.blog-detail-page .shop-icon img {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.blog-detail-page .shop-avg {
+  opacity: 0.4;
+}
+
+/* 点赞区 */
+.blog-detail-page .zan-box {
+  width: 90%;
+  margin: auto;
+  padding: 20px 0 10px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.blog-detail-page .zan-list {
+  width: 88%;
+  display: flex;
+  align-items: center;
+}
+
+.blog-detail-page .user-icon-mini {
+  margin-left: -5px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  padding: 1px;
+  background-color: #fff;
+  box-shadow: 0 0 3px 2px rgba(0, 0, 0, 0.07);
+}
+
+.blog-detail-page .user-icon-mini img {
+  border-radius: 50%;
+  width: 100%;
+  height: 100%;
+}
+
+/* 笔记正文 */
+.blog-detail-page .blog-text {
+  width: 90%;
+  padding: 5px 20px;
+  font-size: 15px;
+  line-height: 1.7;
+  color: #333;
+  word-break: break-word;
+}
+
+.blog-detail-page .blog-text img {
+  max-width: 100%;
+  border-radius: 8px;
+}
+
+/* 分割线 */
+.blog-detail-page .blog-divider {
+  height: 10px;
+  background-color: #f3f1f1;
+}
+
+/* 评论区 */
+.blog-detail-page .blog-comments {
+  padding: 10px;
+}
+
+.blog-detail-page .comments-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.blog-detail-page .comments-head span {
+  font-size: 12px;
+  font-weight: normal;
+  color: #82848a;
+}
+
+.blog-detail-page .comment-list {
+  margin-top: 15px;
+}
+
+.blog-detail-page .comment-box {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.blog-detail-page .comment-icon {
+  width: 55px;
+  flex-shrink: 0;
+}
+
+.blog-detail-page .comment-icon img {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.blog-detail-page .comment-info {
+  width: 80%;
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.blog-detail-page .comment-user {
+  font-size: 14px;
+  color: #446889;
+  font-weight: 600;
+}
+
+.blog-detail-page .comment-user span {
+  font-size: 10px;
+  padding: 0 10px;
+  border-radius: 8px;
+  background-color: #f7b253;
+  color: white;
+}
+
+.blog-detail-page .comment-images {
+  display: flex;
+  width: 100%;
+  overflow-x: scroll;
+  padding: 10px 0;
+}
+
+.blog-detail-page .comment-images img {
+  height: 94px;
+  width: 92px;
+  border-radius: 5px;
+  margin-right: 5px;
+}
+
+/* 头部右侧删除按钮（仅作者可见） */
+.blog-detail-page .header-delete {
+  font-size: 13px;
+  color: #ff6633;
+  border: 1px solid #ff6633;
+  border-radius: 14px;
+  padding: 3px 12px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+/* 底部栏：点赞 + 评论输入 + 发送 */
+.blog-detail-page .foot {
+  width: 100%;
+  height: 52px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 -1px 2px 1px rgba(0, 0, 0, 0.1);
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  z-index: 600;
+  padding: 0 12px;
+}
+
+.blog-detail-page .foot-box {
+  width: auto;
+  color: #82848a;
+  text-align: center;
+  cursor: pointer;
+  padding: 0 8px;
+}
+
+.blog-detail-page .foot-view {
+  font-size: 12px;
+  text-align: center;
+}
+
+.blog-detail-page .foot-view span {
+  font-size: 12px;
+}
+
+.blog-detail-page .liked {
+  color: #ff6633;
+}

@@ -1,0 +1,46 @@
+# ============ 生产环境（启动时显式指定 --spring.profiles.active=prod） ============
+# 所有敏感信息一律通过环境变量注入，禁止明文写入配置文件（缺省即启动失败，fail fast）
+# 必配环境变量：
+#   HMDP_DB_URL       JDBC 连接串，如 jdbc:mysql://db-host:3306/hmdp?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+#   HMDP_DB_USERNAME  数据库账号
+#   HMDP_DB_PASSWORD  数据库密码
+#   HMDP_REDIS_HOST   Redis 主机
+#   AI_API_KEY        AI 模型服务密钥（公共配置引用，缺失时仅 AI 功能不可用）
+# 可选：HMDP_REDIS_PORT（默认 6379）、HMDP_REDIS_PASSWORD（默认无）、HMDP_REDIS_DATABASE（默认 0）
+server:
+  port: 8081
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${HMDP_DB_URL}
+    username: ${HMDP_DB_USERNAME}
+    password: ${HMDP_DB_PASSWORD}
+  data:
+    redis:
+      host: ${HMDP_REDIS_HOST}
+      port: ${HMDP_REDIS_PORT:6379}
+      password: ${HMDP_REDIS_PASSWORD:}
+      database: ${HMDP_REDIS_DATABASE:0}
+      lettuce:
+        pool:
+          max-active: 10
+          max-idle: 10
+          min-idle: 1
+          time-between-eviction-runs: 10s
+
+logging:
+  level:
+    com.hmdp: info
+    com.hmdp.ai: info
+  pattern:
+    dateformat: yyyy-MM-dd HH:mm:ss.SSS
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info   # 生产环境仅暴露健康检查与应用信息，避免泄露内部端点
+  endpoint:
+    health:
+      show-details: never      # 不对外暴露健康检查细节（数据库/Redis 状态等）

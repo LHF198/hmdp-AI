@@ -1,0 +1,487 @@
+/* ============================================================
+   ShopDetail 作用域收窄版（原 shop-detail.css 改写）
+   - 原文件含 body/#app/.header/.el-rate 等全局选择器，与 SPA 冲突
+   - 全部类加 .shop-detail-page 前缀，仅店铺详情页生效
+   - 头部复用全局 .header（shop-list.css/info.css），故卡片不再为 fixed 头部留 70px 顶距
+   ============================================================ */
+
+/* 主内容卡片 */
+.shop-detail-page .shop-info-box,
+.shop-detail-page .shop-voucher,
+.shop-detail-page .shop-comments {
+  background: #ffffff;
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  margin: 12px auto;
+  max-width: 680px;
+  width: 95%;
+  padding: 20px;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.shop-detail-page .shop-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 12px 0;
+  color: #1a1a1a;
+  letter-spacing: -0.3px;
+}
+
+/* 商店评分区域 */
+.shop-detail-page .shop-rate {
+  margin: 10px 0;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 12px;
+}
+
+.shop-detail-page .shop-rate-info {
+  margin: 8px 0 10px 0;
+  color: #666;
+  font-size: 13px;
+}
+
+/* 商店排名区域 */
+.shop-detail-page .shop-rank {
+  margin: 12px 0;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  background: linear-gradient(135deg, #fff9f0 0%, #fff5e6 100%);
+  padding: 10px 12px;
+  border-radius: 12px;
+  gap: 8px;
+}
+
+.shop-detail-page .shop-rank span {
+  color: #d4380d;
+  font-size: 12px;
+  background: linear-gradient(135deg, #fff1e6 0%, #ffe7d1 100%);
+  border: 1px solid #ffcfa8;
+  border-radius: 8px;
+  height: 24px;
+  line-height: 24px;
+  padding: 0 10px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.shop-detail-page .shop-rank div {
+  color: #333;
+  font-size: 13px;
+  flex: 1;
+  text-align: left;
+  font-weight: 500;
+}
+
+/* 商店图片容器（横向滚动） */
+.shop-detail-page .shop-images {
+  display: flex;
+  overflow-x: auto;
+  padding: 16px 0;
+  gap: 12px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+.shop-detail-page .shop-images::-webkit-scrollbar {
+  height: 6px;
+}
+
+.shop-detail-page .shop-images::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.shop-detail-page .shop-images::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.shop-detail-page .shop-images img {
+  height: 110px;
+  width: 150px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  border: 1px solid #f0f0f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  object-fit: cover;
+}
+
+/* 商店地址 */
+.shop-detail-page .shop-address {
+  font-size: 13px;
+  color: #666;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  gap: 8px;
+  border-top: 1px solid #f5f5f5;
+  margin-top: 12px;
+}
+
+.shop-detail-page .shop-address i {
+  color: #1890ff;
+  font-size: 16px;
+}
+
+/* 商店服务区域 */
+.shop-detail-page .shop-service {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+}
+
+.shop-detail-page .shop-service div {
+  display: flex;
+  align-items: center;
+}
+
+/* 营业时间 */
+.shop-detail-page .shop-open-time {
+  display: flex;
+  align-items: center;
+  padding: 12px 0;
+  font-size: 13px;
+  border-top: 1px solid #f5f5f5;
+  margin-top: 8px;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.shop-detail-page .shop-open-time span,
+.shop-detail-page .shop-open-time div {
+  color: #333;
+}
+
+.shop-detail-page .shop-open-time i {
+  font-size: 16px;
+  color: #1890ff;
+}
+
+/* 右侧箭头 */
+.shop-detail-page .line-right {
+  flex: 1;
+  color: #5a5b5b;
+  font-size: 13px;
+  text-align: right;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  cursor: pointer;
+}
+
+/* 代金券标题区域 */
+.shop-detail-page .voucher-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.shop-detail-page .voucher-title-text {
+  font-weight: 700;
+  font-size: 16px;
+  color: #1a1a1a;
+}
+
+.shop-detail-page .voucher-icon {
+  display: inline-block;
+  line-height: 18px;
+  background: linear-gradient(135deg, #ff6b35 0%, #ff4d00 100%);
+  color: white;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 12px;
+  box-shadow: 0 2px 6px rgba(255, 107, 53, 0.25);
+}
+
+/* 代金券盒子 */
+.shop-detail-page .voucher-box {
+  background: linear-gradient(135deg, #fff8f8 0%, #fff5f5 100%);
+  border: 1px solid #ffe8e8;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px;
+  margin: 12px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* 代金券圆形装饰 */
+.shop-detail-page .voucher-circle {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  height: 90px;
+  gap: 8px;
+}
+
+.shop-detail-page .voucher-b {
+  height: 10px;
+  width: 10px;
+  background: #fff;
+  border: 2px solid #ffccc7;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.shop-detail-page .voucher-left {
+  flex: 1;
+  margin-left: 20px;
+}
+
+.shop-detail-page .voucher-right {
+  margin-right: 12px;
+}
+
+.shop-detail-page .voucher-title,
+.shop-detail-page .voucher-subtitle,
+.shop-detail-page .voucher-price {
+  padding: 6px 0;
+}
+
+.shop-detail-page .voucher-title {
+  font-weight: 700;
+  font-size: 15px;
+  color: #1a1a1a;
+}
+
+.shop-detail-page .voucher-subtitle {
+  color: #999;
+  font-size: 12px;
+}
+
+.shop-detail-page .voucher-price {
+  color: #ff4d4f;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.shop-detail-page .voucher-price div {
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.shop-detail-page .voucher-price span {
+  font-size: 11px;
+  padding: 2px 6px;
+  background: #fff0f0;
+  border: 1px solid #ffccc7;
+  border-radius: 6px;
+  font-weight: 500;
+  color: #ff4d4f;
+}
+
+/* 代金券按钮 */
+.shop-detail-page .voucher-btn {
+  background: linear-gradient(135deg, #ff6b35 0%, #ff4d00 100%);
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 34px;
+  min-width: 72px;
+  text-align: center;
+  border-radius: 17px;
+  box-shadow: 0 2px 8px rgba(255, 107, 53, 0.25);
+  cursor: pointer;
+  border: none;
+  padding: 0 14px;
+}
+
+/* 秒杀盒子 */
+.shop-detail-page .seckill-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-size: 12px;
+  gap: 6px;
+}
+
+.shop-detail-page .seckill-box div {
+  font-size: 12px;
+}
+
+/* 禁用按钮 */
+.shop-detail-page .disable-btn {
+  background: linear-gradient(135deg, #d9d9d9 0%, #bfbfbf 100%);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.shop-detail-page .seckill-time {
+  color: #ff4d4f;
+  font-weight: 500;
+  font-size: 11px;
+}
+
+.shop-detail-page .seckill-stock {
+  color: #999;
+  font-size: 11px;
+}
+
+.shop-detail-page .seckill-stock span {
+  background: #fff0f0;
+  color: #ff4d4f;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+/* 评论区头部 */
+.shop-detail-page .comments-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 10px;
+}
+
+.shop-detail-page .comments-head span {
+  font-size: 12px;
+  font-weight: 400;
+  color: #999;
+}
+
+/* 评论标签容器 */
+.shop-detail-page .comment-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 14px 0;
+}
+
+.shop-detail-page .comment-tags div {
+  border: 1px solid #d9d9d9;
+  background: #fafafa;
+  border-radius: 12px;
+  text-align: center;
+  color: #666;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* 评论列表 */
+.shop-detail-page .comment-list {
+  margin-top: 20px;
+}
+
+.shop-detail-page .comment-box {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f5f5f5;
+  width: 100%;
+}
+
+.shop-detail-page .comment-box:last-of-type {
+  border-bottom: none;
+}
+
+.shop-detail-page .comment-icon {
+  flex-shrink: 0;
+  width: 42px;
+}
+
+.shop-detail-page .comment-icon img {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid #f0f0f0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.shop-detail-page .comment-info {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.shop-detail-page .comment-user {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.shop-detail-page .comment-user span {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #ffd666 0%, #ffc53d 100%);
+  color: #8c5400;
+  font-weight: 600;
+  margin-left: 6px;
+  white-space: nowrap;
+}
+
+.shop-detail-page .comment-rate {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0;
+  font-size: 13px;
+  color: #666;
+}
+
+.shop-detail-page .comment-text {
+  padding: 8px 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #333;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.shop-detail-page .comment-images {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 12px 0;
+}
+
+.shop-detail-page .comment-images img {
+  height: 90px;
+  width: 90px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid #f0f0f0;
+}
+
+/* 评论统计信息 */
+.shop-detail-page .comment-stats {
+  display: flex;
+  gap: 16px;
+  padding-top: 8px;
+  font-size: 12px;
+  color: #999;
+}
+
+/* 底部版权信息 */
+.shop-detail-page .copyright {
+  color: rgba(0, 0, 0, 0.45);
+  margin: 20px auto 30px auto;
+  text-align: center;
+  font-size: 12px;
+  max-width: 680px;
+  padding: 0 20px;
+}

@@ -1,0 +1,28 @@
+# ============ 开发环境（默认 profile，本地开箱即用） ============
+# 数据库/Redis 均指向本机；AI 密钥仍建议通过环境变量 AI_API_KEY 注入
+spring:
+  # 业务库 hmdp（供业务接口 + AI 工具调用），请按本机实际账号修改
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/hmdp?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: ${HMDP_DB_PASSWORD:1234}
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      # password: 123456
+      database: 0
+      lettuce:
+        pool:
+          max-active: 10
+          max-idle: 10
+          min-idle: 1
+          time-between-eviction-runs: 10s
+
+logging:
+  level:
+    com.hmdp: debug
+    com.hmdp.ai: info
+  pattern:
+    dateformat: mm:ss.SSS

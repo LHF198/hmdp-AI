@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"
+    />
+    <title>黑马点评 - 地图找店</title>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="./css/element.css" />
+    <link href="./css/main.css" rel="stylesheet" />
+    <link href="./css/info.css" rel="stylesheet" />
+    <link href="./css/glass.css" rel="stylesheet" />
+
+    <style type="text/css">
+      /* 顶部类型选择条 */
+      .map-types {
+        display: flex;
+        gap: 8px;
+        padding: 10px 12px;
+        overflow-x: auto;
+        background: rgba(255, 255, 255, 0.85);
+        position: relative;
+        z-index: 5;
+      }
+      .map-types::-webkit-scrollbar {
+        display: none;
+      }
+      .map-type {
+        flex-shrink: 0;
+        padding: 5px 14px;
+        border-radius: 16px;
+        font-size: 13px;
+        color: #555;
+        background: #f5f5f5;
+        cursor: pointer;
+      }
+      .map-type.active {
+        background: #ff6633;
+        color: #fff;
+      }
+
+      /* 地图画布 */
+      .map-canvas {
+        position: relative;
+        height: calc(100vh - 190px);
+        overflow: hidden;
+        background: #e8e8e8;
+      }
+      .map-container {
+        width: 100%;
+        height: 100%;
+      }
+      .map-loading {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.9);
+        color: #999;
+        font-size: 14px;
+        z-index: 20;
+      }
+      .map-error {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(255, 255, 255, 0.97);
+        padding: 18px 26px;
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        color: #666;
+        font-size: 14px;
+        text-align: center;
+        z-index: 15;
+      }
+      .map-error-sub {
+        font-size: 12px;
+        color: #999;
+        margin-top: 8px;
+        line-height: 1.7;
+      }
+      .map-hint {
+        position: absolute;
+        top: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.45);
+        color: #fff;
+        font-size: 11px;
+        border-radius: 12px;
+        padding: 3px 12px;
+        z-index: 5;
+      }
+
+      /* 店铺信息卡 */
+      .shop-card {
+        position: absolute;
+        left: 12px;
+        right: 12px;
+        bottom: 14px;
+        z-index: 10;
+        background: rgba(255, 255, 255, 0.96);
+        border-radius: 14px;
+        padding: 14px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+      }
+      .shop-card .card-info {
+        flex: 1;
+        min-width: 0;
+      }
+      .shop-card .card-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #1a1a1a;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .shop-card .card-sub {
+        font-size: 12px;
+        color: #999;
+        margin-top: 3px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .shop-card .card-arrow {
+        color: #bbb;
+        font-size: 18px;
+      }
+      .shop-card .card-close {
+        position: absolute;
+        right: 8px;
+        top: 6px;
+        color: #ccc;
+        font-size: 14px;
+        cursor: pointer;
+        padding: 2px;
+      }
+      .map-empty {
+        text-align: center;
+        color: #999;
+        font-size: 14px;
+        padding: 80px 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="app">
+      <div class="header">
+        <div class="header-back-btn" @click="goBack">
+          <i class="el-icon-arrow-left"></i>
+        </div>
+        <div class="header-title">地图找店&nbsp;&nbsp;&nbsp;</div>
+      </div>
+
+      <div class="map-types">
+        <div
+          class="map-type"
+          style="display: flex; align-items: center; background: #ffe8e0; color: #ff6633"
+        >
+          <el-dropdown trigger="click" @command="selectCity">
+            <span style="color: #ff6633; font-size: 13px">
+              {{city}} <i class="el-icon-arrow-down"></i>
+            </span>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item command="全部">全部</el-dropdown-item>
+              <el-dropdown-item
+                v-for="c in cities"
+                :key="c"
+                :command="c"
+                >{{c}}</el-dropdown-item
+              >
+            </el-dropdown-menu>
+          </el-dropdown>
+        </div>
+        <div
+          class="map-type"
+          :class="{active: activeType === 0}"
+          @click="filterByType(0)"
+        >
+          全部
+        </div>
+        <div
+          v-for="t in types"
+          :key="t.id"
+          class="map-type"
+          :class="{active: activeType === t.id}"
+          @click="filterByType(t.id)"
+        >
+          {{t.name}}
+        </div>
+      </div>
+
+      <div class="map-canvas">
+        <!-- 百度地图容器 -->
+        <div class="map-container" id="mapContainer"></div>
+        <div class="map-hint">百度地图 · 拖拽/滚轮缩放 · 点击标记查看店铺</div>
+
+        <!-- 加载遮罩 -->
+        <div v-if="loading" class="map-loading">
+          <i class="el-icon-loading"></i>&nbsp;加载中...
+        </div>
+
+        <!-- AK 缺失 / 加载失败提示 -->
+        <div v-if="mapLoadError" class="map-error">
+          <i class="el-icon-warning-outline" style="font-size: 22px; color: #e6a23c"></i>
+          <div style="margin-top: 4px">{{mapLoadError}}</div>
+          <div class="map-error-sub">
+            请在 map.html 顶部配置百度地图 AK：<br />
+            https://lbsyun.baidu.com/apiconsole/key 申请（浏览器端），<br />
+            并把 Referer 白名单加上 127.0.0.1:8080/* 与 localhost:8080/*
+          </div>
+        </div>
+
+        <!-- 选中的店铺信息卡 -->
+        <div v-if="activeShop" class="shop-card" @click="toDetail(activeShop.id)">
+          <div class="card-close" @click.stop="activeShop = null">
+            <i class="el-icon-close"></i>
+          </div>
+          <div class="card-info">
+            <div class="card-title">{{activeShop.name}}</div>
+            <div class="card-sub">
+              均价￥{{activeShop.avgPrice || '-'}}/人 · 距观察点约{{distanceText}}
+            </div>
+            <div class="card-sub">
+              <i class="el-icon-map-location"></i>
+              {{activeShop.address}}
+            </div>
+          </div>
+          <div class="card-arrow">
+            <i class="el-icon-arrow-right"></i>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="!loading && shops.length === 0" class="map-empty">
+        <i class="el-icon-map-location" style="font-size: 48px; color: #ddd"></i
+        ><br />
+        该分类下暂无店铺
+      </div>
+
+      <foot-bar :active-btn="2"></foot-bar>
+    </div>
+    <script src="./js/vue.js"></script>
+    <script src="./js/axios.min.js"></script>
+    <script src="./js/element.js"></script>
+    <script src="./js/common.js"></script>
+    <script src="./js/footer.js"></script>
+    <script>
+      // ============================================================
+      // ★★ 百度地图 AK 配置（必填项，不填则地图无法加载）★★
+      //
+      // 申请步骤：
+      //   1. 打开 https://lbsyun.baidu.com/apiconsole/key
+      //   2. 登录百度账号，点击「创建应用」
+      //   3. 应用类型选择「浏览器端」
+      //   4. 安全设置中把 Referer 白名单添加两条：
+      //        127.0.0.1:8080/*
+      //        localhost:8080/*
+      //   5. 创建完成后，复制「访问应用（AK）」一栏的字符串
+      //
+      // 填写示例（格式如下，引号内换成你自己的 AK）：
+      //   var BAIDU_MAP_AK = "1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p";
+      // ============================================================
+      var BAIDU_MAP_AK = "Zvsh9Bo1IPj673vg707O9DFX6smMDYyA"; // ← 把你的 AK 填进这对引号里
+
+      // GCJ-02（高德/腾讯）→ BD-09（百度）坐标转换
+      function gcj02ToBd09(lng, lat) {
+        var xPi = (Math.PI * 3000.0) / 180.0;
+        var z =
+          Math.sqrt(lng * lng + lat * lat) + 0.00002 * Math.sin(lat * xPi);
+        var theta = Math.atan2(lat, lng) + 0.000003 * Math.cos(lng * xPi);
+        return {
+          lng: z * Math.cos(theta) + 0.0065,
+          lat: z * Math.sin(theta) + 0.006,
+        };
+      }
+
+      // 动态加载百度地图脚本（带回调）
+      function loadBMap(ak) {
+        return new Promise(function (resolve, reject) {
+          if (window.BMapGL) {
+            resolve();
+            return;
+          }
+          window.__onBMapLoaded = function () {
+            resolve();
+          };
+          var s = document.createElement("script");
+          // 2026年起百度已下线 v=3.0 旧版 JSAPI（错误码 8001），必须使用 GL 版（type=webgl），API 用法不变
+          s.src =
+            "https://api.map.baidu.com/api?v=1.0&type=webgl&ak=" +
+            ak +
+            "&callback=__onBMapLoaded";
+          s.onerror = function () {
+            reject(new Error("load failed"));
+          };
+          document.head.appendChild(s);
+        });
+      }
+
+      // 自定义橙色大头针图标
+      function makePinIcon() {
+        var svg =
+          '<svg xmlns="http://www.w3.org/2000/svg" width="30" height="42" viewBox="0 0 30 42">' +
+          '<path d="M15 0C6.7 0 0 6.7 0 15c0 11.2 15 27 15 27s15-15.8 15-27C30 6.7 23.3 0 15 0z" fill="#ff6633" stroke="#fff" stroke-width="2"/>' +
+          '<circle cx="15" cy="15" r="6" fill="#fff"/></svg>';
+        return new BMapGL.Icon(
+          "data:image/svg+xml," + encodeURIComponent(svg),
+          new BMapGL.Size(30, 42),
+          { anchor: new BMapGL.Size(15, 42) }
+        );
+      }
+
+      const app = new Vue({
+        el: "#app",
+        data: {
+          loading: true,
+          types: [],
+          allShops: [], // 全部店铺
+          shops: [], // 当前过滤后的店铺
+          activeType: 0,
+          activeShop: null,
+          city: "杭州",
+          cities: [],
+          map: null, // BMapGL 实例
+          mapReady: false,
+          mapLoadError: "",
+          // 默认观察点（杭州市区），用于计算距离
+          centerX: 120.15,
+          centerY: 30.32,
+        },
+        created() {
+          // 读取主页选择的城市
+          let c = localStorage.getItem("hmdp_city");
+          if (c) {
+            this.city = c;
+          }
+          // 供 InfoWindow 内"查看详情"跳转
+          window.__openShopDetail = (id) => {
+            location.href = "/shop-detail.html?id=" + id;
+          };
+          this.queryTypes();
+          this.queryShops();
+          this.queryCities();
+          // 加载百度地图
+          if (!BAIDU_MAP_AK) {
+            this.mapLoadError = "未配置百度地图 AK";
+          } else {
+            loadBMap(BAIDU_MAP_AK)
+              .then(() => this.initMap())
+              .catch(() => {
+                this.mapLoadError =
+                  "百度地图脚本加载失败，请检查网络或 AK 是否有效";
+              });
+          }
+        },
+        methods: {
+          initMap() {
+            const map = new BMapGL.Map("mapContainer");
+            map.centerAndZoom(new BMapGL.Point(120.15, 30.32), 13);
+            map.enableScrollWheelZoom(true);
+            map.addControl(new BMapGL.ZoomControl());
+            map.addControl(new BMapGL.ScaleControl());
+            this.map = map;
+            this.mapReady = true;
+            this.renderShops();
+          },
+          queryTypes() {
+            axios
+              .get("/shop-type/list")
+              .then(({ data }) => {
+                this.types = data || [];
+              })
+              .catch((err) => this.$message.error(err));
+          },
+          queryShops() {
+            axios
+              .get("/shop/map/list")
+              .then(({ data }) => {
+                this.allShops = data || [];
+                this.applyCity();
+              })
+              .catch((err) => {
+                this.$message.error(err);
+              })
+              .finally(() => {
+                this.loading = false;
+              });
+          },
+          queryCities() {
+            axios
+              .get("/shop/cities")
+              .then(({ data }) => (this.cities = data || []))
+              .catch(() => {});
+          },
+          selectCity(c) {
+            this.city = c;
+            localStorage.setItem("hmdp_city", c);
+            this.applyCity();
+          },
+          // 按当前城市过滤并重渲染地图
+          applyCity() {
+            this.activeShop = null;
+            this.shops =
+              this.city === "全部" || !this.city
+                ? this.allShops
+                : this.allShops.filter((s) => s.city === this.city);
+            this.renderShops();
+          },
+          filterByType(typeId) {
+            this.activeType = typeId;
+            this.activeShop = null;
+            let base =
+              this.city === "全部" || !this.city
+                ? this.allShops
+                : this.allShops.filter((s) => s.city === this.city);
+            this.shops = typeId
+              ? base.filter((s) => s.typeId === typeId)
+              : base;
+            this.renderShops();
+          },
+          // 把当前店铺列表渲染到百度地图上
+          renderShops() {
+            if (!this.mapReady) {
+              return;
+            }
+            const map = this.map;
+            map.clearOverlays();
+            const pts = [];
+            const icon = makePinIcon();
+            this.shops.forEach((s) => {
+              if (s.x == null || s.y == null || isNaN(s.x) || isNaN(s.y)) {
+                return;
+              }
+              // 高德坐标（GCJ-02）→ 百度坐标（BD-09）
+              const b = gcj02ToBd09(s.x, s.y);
+              const pt = new BMapGL.Point(b.lng, b.lat);
+              pts.push(pt);
+              const marker = new BMapGL.Marker(pt, { icon: icon });
+              const label = new BMapGL.Label(s.name, {
+                position: pt,
+                offset: new BMapGL.Size(20, -12),
+              });
+              label.setStyle({
+                color: "#333",
+                fontSize: "11px",
+                padding: "2px 6px",
+                background: "rgba(255,255,255,0.95)",
+                border: "1px solid #eee",
+                borderRadius: "4px",
+                boxShadow: "0 1px 4px rgba(0,0,0,0.15)",
+                whiteSpace: "nowrap",
+                maxWidth: "140px",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              });
+              marker.setLabel(label);
+              marker.addEventListener("click", () => this.openInfo(s, pt));
+              label.addEventListener("click", () => this.openInfo(s, pt));
+              map.addOverlay(marker);
+            });
+            // 视野自适应：1 家店放大聚焦，多家店自动框选
+            if (pts.length === 1) {
+              map.centerAndZoom(pts[0], 16);
+            } else if (pts.length > 1) {
+              map.setViewport(pts, { zoomFactor: 0.8, delay: 100 });
+            } else {
+              map.centerAndZoom(new BMapGL.Point(120.15, 30.32), 13);
+            }
+          },
+          // 点击标记：打开信息窗口 + 显示底部卡片
+          openInfo(s, pt) {
+            this.activeShop = s;
+            const html =
+              '<div style="min-width:200px;font-family:Microsoft YaHei,sans-serif">' +
+              '<div style="font-size:15px;font-weight:700;color:#1a1a1a;margin-bottom:4px">' +
+              s.name +
+              "</div>" +
+              '<div style="font-size:12px;color:#999">均价￥' +
+              (s.avgPrice || "-") +
+              "/人 · " +
+              (s.address || "") +
+              "</div>" +
+              '<div style="margin-top:8px;text-align:right">' +
+              '<span onclick="__openShopDetail(' +
+              s.id +
+              ')" style="color:#ff6633;font-size:13px;cursor:pointer">查看详情 ›</span>' +
+              "</div></div>";
+            const info = new BMapGL.InfoWindow(html, { width: 240 });
+            this.map.openInfoWindow(info, pt);
+          },
+          toDetail(id) {
+            location.href = "/shop-detail.html?id=" + id;
+          },
+          distanceText() {
+            if (!this.activeShop || this.activeShop.x == null) {
+              return "-";
+            }
+            // Haversine 近似计算与观察点的距离
+            let R = 6371000;
+            let dx =
+              (this.activeShop.x - this.centerX) *
+              (Math.PI / 180) *
+              Math.cos(this.centerY * (Math.PI / 180));
+            let dy = (this.activeShop.y - this.centerY) * (Math.PI / 180);
+            let d = Math.round(Math.sqrt(dx * dx + dy * dy) * R);
+            if (d < 1000) {
+              return d + "m";
+            }
+            return (d / 1000).toFixed(1) + "km";
+          },
+          goBack() {
+            history.back();
+          },
+        },
+      });
+    </script>
+  </body>
+</html>

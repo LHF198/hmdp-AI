@@ -1,0 +1,65 @@
+# ============ 公共配置（跨环境共享） ============
+# 环境隔离：默认激活 dev（本地开箱即用），生产环境启动时显式指定
+#   --spring.profiles.active=prod
+# 环境变量注入要求（均通过 Windows 用户级环境变量注入，setx 后需重启终端/IDE）：
+#   AI_API_KEY    AI 模型服务密钥（必配，否则 AI 问答接口返回 401/失败）
+server:
+  port: 8081
+
+spring:
+  application:
+    name: hmdp-backend
+  profiles:
+    default: dev
+  jackson:
+    default-property-inclusion: non_null # JSON处理时忽略非空字段
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 60MB
+  ai:
+    # 指定使用 OpenAI 协议兼容的 ChatModel（starter 为 spring-ai-starter-model-openai）
+    model:
+      chat: openai
+    openai:
+      # ============ 模型服务配置 ============
+      # 默认：阿里云百炼 DashScope（兼容 OpenAI 协议），对话 + 知识库嵌入一体
+      # 注册地址：https://bailian.console.aliyun.com
+      # 密钥通过环境变量 AI_API_KEY 注入（setx AI_API_KEY "sk-..."），禁止在配置文件中明文写入
+      # 未设置时应用可正常启动（Spring AI 不校验空 key），仅 AI 问答接口不可用
+      api-key: ${AI_API_KEY:}
+      # 注意：Spring AI 会自动拼接 /v1 路径，因此 base-url 不能包含 /v1 后缀，否则会请求到 /v1/v1/xxx 导致 404
+      base-url: https://dashscope.aliyuncs.com/compatible-mode
+      chat:
+        options:
+          model: qwen-flash
+          temperature: 0.7
+      embedding:
+        options:
+          model: text-embedding-v4
+      # ---------- 备选一：DeepSeek 对话 + DashScope 嵌入（聊天用 DeepSeek，知识库嵌入仍需 DashScope） ----------
+      # api-key: ${AI_API_KEY:sk-xxxx}
+      # base-url: ${AI_BASE_URL:https://api.deepseek.com}
+      # chat:
+      #   options:
+      #     model: ${AI_CHAT_MODEL:deepseek-chat}
+      # embedding:
+      #   base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
+      #   api-key: ${AI_EMBEDDING_API_KEY:sk-xxxx}
+      #   options:
+      #     model: ${AI_EMBEDDING_MODEL:text-embedding-v4}
+
+mybatis-plus:
+  type-aliases-package: com.hmdp.entity # 别名扫描包
+
+app:
+  ai:
+    memory:
+      type: redis        # 会话记忆实现：redis（默认，存 Redis，TTL 可配置）| memory（进程内存）
+      ttl-days: 1         # Redis 记忆保留天数（<=0 时回退为 1 天）
+    rate-limit:           # AI 接口限流（IP 维度 + Redis 固定窗口，Redis 异常时自动放行）
+      enabled: true       # 总开关
+      per-minute: 30      # 每 IP 每分钟最大请求数
+    rag:
+      store-path: data/ai-vector-store.json  # 知识库向量快照文件：重启免重复向量化（省 embedding 配额、加快启动）
+      rebuild: false      # 是否忽略快照强制重建（知识库文档更新后删除快照文件或改为 true 重建）
