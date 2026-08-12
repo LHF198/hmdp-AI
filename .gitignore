@@ -1,4 +1,4 @@
-# ==================== 运行/构建产物 ====================
+# ==================== 构建产物 ====================
 target/
 build/
 dist/
@@ -6,24 +6,25 @@ dist/
 *.war
 *.class
 
-# Redis 持久化文件
+# ==================== Redis 持久化文件 ====================
 dump.rdb
 
-# ==================== 日志与临时文件 ====================
+# ==================== 日志与运行临时文件 ====================
+logs/
 *.log
 backend*.log
 smoke_run*.log
 mvn_run*.log
-hmdp-main/backend.out.log
-hmdp-main/backend.err.log
-hmdp-main/smoke_run2.log
-hmdp-main/frontend/logs/
-hmdp-main/frontend/temp/
+frontend/logs/
+frontend/temp/
 
 # ==================== 前端 ====================
-hmdp-main/frontend/node_modules/
-hmdp-main/frontend/html/dist/
-hmdp-main/frontend/package-lock.json
+frontend/node_modules/
+frontend/html/dist/
+frontend/package-lock.json
+
+# ==================== 数据产物 ====================
+data/redis/
 
 # ==================== IDE ====================
 .vscode/
@@ -32,7 +33,7 @@ hmdp-main/frontend/package-lock.json
 *.iml
 *.ipr
 
-# ==================== 测试截图/调试产物 ====================
+# ==================== 测试截图/测试产物 ====================
 *_final_state.png
 *_verify_final.png
 map_page_*.png
