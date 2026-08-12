@@ -17,19 +17,38 @@
     </div>
 
     <div style="padding-bottom: 70px">
-      <!-- 图片轮播（触摸滑动） -->
+      <!-- 图片轮播（触摸滑动 + 鼠标拖拽） -->
       <div
         class="blog-info-box"
         ref="swiper"
         @touchstart="moveStart"
         @touchmove="moving"
         @touchend="moveEnd"
+        @mousedown="mouseDown"
+        @mousemove="mouseMoving"
+        @mouseup="mouseEnd"
+        @mouseleave="mouseEnd"
       >
         <div class="swiper-item" v-for="(img, i) in blog.images" :key="i">
-          <img :src="img" alt="" />
+          <img :src="img" alt="" draggable="false" />
         </div>
         <div class="indicator-dot" v-if="blog.images && blog.images.length > 1">
           {{ active + 1 }}/{{ blog.images.length }}
+        </div>
+        <!-- 左右切换箭头（多张图时显示） -->
+        <div
+          v-if="blog.images && blog.images.length > 1"
+          class="swiper-arrow swiper-prev"
+          @click.stop="prevSlide"
+        >
+          <el-icon :size="20"><ArrowLeft /></el-icon>
+        </div>
+        <div
+          v-if="blog.images && blog.images.length > 1"
+          class="swiper-arrow swiper-next"
+          @click.stop="nextSlide"
+        >
+          <el-icon :size="20"><ArrowRight /></el-icon>
         </div>
       </div>
 
@@ -142,44 +161,47 @@
       <div class="blog-divider"></div>
     </div>
 
-    <!-- 底部栏：点赞 + 评论输入 -->
-    <div class="foot">
-      <div class="foot-box">
-        <div class="foot-view" @click="addLike">
-          <svg
-            t="1646634642977"
-            class="icon"
-            viewBox="0 0 1024 1024"
-            version="1.1"
-            xmlns="http://www.w3.org/2000/svg"
-            width="26"
-            height="26"
+    <!-- 底部栏：点赞 + 评论输入（Teleport 到 body：#app 的 backdrop-filter 会成为
+         fixed 元素的包含块，导致底栏随内容滚动而非贴底） -->
+    <Teleport to="body">
+      <div class="foot blog-detail-foot">
+        <div class="foot-box">
+          <div class="foot-view" @click="addLike">
+            <svg
+              t="1646634642977"
+              class="icon"
+              viewBox="0 0 1024 1024"
+              version="1.1"
+              xmlns="http://www.w3.org/2000/svg"
+              width="26"
+              height="26"
+            >
+              <path
+                d="M160 944c0 8.8-7.2 16-16 16h-32c-26.5 0-48-21.5-48-48V528c0-26.5 21.5-48 48-48h32c8.8 0 16 7.2 16 16v448zM96 416c-53 0-96 43-96 96v416c0 53 43 96 96 96h96c17.7 0 32-14.3 32-32V448c0-17.7-14.3-32-32-32H96zM505.6 64c16.2 0 26.4 8.7 31 13.9 4.6 5.2 12.1 16.3 10.3 32.4l-23.5 203.4c-4.9 42.2 8.6 84.6 36.8 116.4 28.3 31.7 68.9 49.9 111.4 49.9h271.2c6.6 0 10.8 3.3 13.2 6.1s5 7.5 4 14l-48 303.4c-6.9 43.6-29.1 83.4-62.7 112C815.8 944.2 773 960 728.9 960h-317c-33.1 0-59.9-26.8-59.9-59.9v-455c0-6.1 1.7-12 5-17.1 69.5-109 106.4-234.2 107-364h41.6z m0-64h-44.9C427.2 0 400 27.2 400 60.7c0 127.1-39.1 251.2-112 355.3v484.1c0 68.4 55.5 123.9 123.9 123.9h317c122.7 0 227.2-89.3 246.3-210.5l47.9-303.4c7.8-49.4-30.4-94.1-80.4-94.1H671.6c-50.9 0-90.5-44.4-84.6-95l23.5-203.4C617.7 55 568.7 0 505.6 0z"
+                :fill="blog.isLike ? '#ff6633' : '#82848a'"
+              ></path>
+            </svg>
+            <span :class="{ liked: blog.isLike }">{{ blog.liked }}</span>
+          </div>
+        </div>
+        <div style="width: 10%"></div>
+        <div style="flex: 1; display: flex; align-items: center">
+          <input
+            style="flex: 1; border: 1px solid #eee; border-radius: 16px; padding: 6px 12px; font-size: 13px; outline: none; background: rgba(255, 255, 255, 0.9)"
+            v-model="commentContent"
+            placeholder="说点什么，温柔一点～"
+            @keyup.enter="sendComment"
+          />
+          <div
+            class="foot-view"
+            style="margin-left: 8px; cursor: pointer; color: #ff6633"
+            @click="sendComment"
           >
-            <path
-              d="M160 944c0 8.8-7.2 16-16 16h-32c-26.5 0-48-21.5-48-48V528c0-26.5 21.5-48 48-48h32c8.8 0 16 7.2 16 16v448zM96 416c-53 0-96 43-96 96v416c0 53 43 96 96 96h96c17.7 0 32-14.3 32-32V448c0-17.7-14.3-32-32-32H96zM505.6 64c16.2 0 26.4 8.7 31 13.9 4.6 5.2 12.1 16.3 10.3 32.4l-23.5 203.4c-4.9 42.2 8.6 84.6 36.8 116.4 28.3 31.7 68.9 49.9 111.4 49.9h271.2c6.6 0 10.8 3.3 13.2 6.1s5 7.5 4 14l-48 303.4c-6.9 43.6-29.1 83.4-62.7 112C815.8 944.2 773 960 728.9 960h-317c-33.1 0-59.9-26.8-59.9-59.9v-455c0-6.1 1.7-12 5-17.1 69.5-109 106.4-234.2 107-364h41.6z m0-64h-44.9C427.2 0 400 27.2 400 60.7c0 127.1-39.1 251.2-112 355.3v484.1c0 68.4 55.5 123.9 123.9 123.9h317c122.7 0 227.2-89.3 246.3-210.5l47.9-303.4c7.8-49.4-30.4-94.1-80.4-94.1H671.6c-50.9 0-90.5-44.4-84.6-95l23.5-203.4C617.7 55 568.7 0 505.6 0z"
-              :fill="blog.isLike ? '#ff6633' : '#82848a'"
-            ></path>
-          </svg>
-          <span :class="{ liked: blog.isLike }">{{ blog.liked }}</span>
+            发送
+          </div>
         </div>
       </div>
-      <div style="width: 10%"></div>
-      <div style="flex: 1; display: flex; align-items: center">
-        <input
-          style="flex: 1; border: 1px solid #eee; border-radius: 16px; padding: 6px 12px; font-size: 13px; outline: none; background: rgba(255, 255, 255, 0.9)"
-          v-model="commentContent"
-          placeholder="说点什么，温柔一点～"
-          @keyup.enter="sendComment"
-        />
-        <div
-          class="foot-view"
-          style="margin-left: 8px; cursor: pointer; color: #ff6633"
-          @click="sendComment"
-        >
-          发送
-        </div>
-      </div>
-    </div>
+    </Teleport>
   </div>
 </template>
 
@@ -221,6 +243,7 @@ const resistance = 0.3
 const start = { x: 0, y: 0 }
 const move = { x: 0, y: 0 }
 let isMoving = false
+let isMouseDragging = false
 
 onMounted(() => {
   queryBlogById(route.params.id)
@@ -232,7 +255,11 @@ watch(
   () => blog.value.images,
   (imgs) => {
     if (imgs && imgs.length) {
-      nextTick(initSwiper)
+      nextTick(() => {
+        initSwiper()
+        // 延迟再次初始化，确保 DOM 渲染完成（解决首次 _width 为 0 的问题）
+        setTimeout(() => initSwiper(), 100)
+      })
     }
   }
 )
@@ -275,7 +302,8 @@ function shareFallback(url, notify) {
 }
 
 function toOtherInfo() {
-  if (blog.value.userId === user.value.id) {
+  // 未登录时 user.value.id 为 undefined，不能与 blog.userId 相等判断
+  if (user.value.id && blog.value.userId === user.value.id) {
     router.push('/profile')
   } else {
     router.push('/user/' + blog.value.userId)
@@ -472,7 +500,12 @@ function deleteBlog() {
 function initSwiper() {
   if (!swiper.value) return
   items.value = swiper.value.querySelectorAll('.swiper-item')
-  _width.value = swiper.value.offsetWidth || document.documentElement.offsetWidth
+  const w = swiper.value.offsetWidth || document.documentElement.offsetWidth
+  if (w > 0) {
+    _width.value = w
+  }
+  // 如果 _width 仍为 0，无法正确布局，直接返回等下次重试
+  if (_width.value <= 0) return
   setTransform()
   setTransition('none')
 }
@@ -542,6 +575,50 @@ function moveEnd(e) {
   }
 }
 
+// 鼠标拖拽支持（桌面端）
+function mouseDown(e) {
+  if (e.button !== 0) return // 仅左键
+  isMouseDragging = true
+  start.x = e.pageX
+  start.y = e.pageY
+  setTransition('none')
+}
+
+function mouseMoving(e) {
+  if (!isMouseDragging) return
+  const distanceX = e.pageX - start.x
+  const distanceY = e.pageY - start.y
+  if (Math.abs(distanceX) > Math.abs(distanceY)) {
+    e.preventDefault()
+    move.x = e.pageX
+    move.y = e.pageY
+    let dx = distanceX
+    if (
+      (active.value === 0 && distanceX > 0) ||
+      (active.value === items.value.length - 1 && distanceX < 0)
+    ) {
+      dx = distanceX * resistance
+    }
+    setTransform(dx)
+  }
+}
+
+function mouseEnd(e) {
+  if (!isMouseDragging) return
+  isMouseDragging = false
+  const distance = move.x - start.x
+  if (Math.abs(distance) > sensitivity) {
+    if (distance < 0) {
+      nextSlide()
+    } else {
+      prevSlide()
+    }
+  } else {
+    back()
+  }
+  reset()
+}
+
 function nextSlide() {
   go(active.value + 1)
 }
@@ -586,6 +663,33 @@ function go(index) {
   color: #fff;
   font-size: 12px;
   z-index: 2;
+}
+/* 轮播左右切换箭头 */
+.blog-detail-page .swiper-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 3;
+  transition: background 0.2s ease;
+  user-select: none;
+}
+.blog-detail-page .swiper-arrow:hover {
+  background: rgba(0, 0, 0, 0.55);
+}
+.blog-detail-page .swiper-prev {
+  left: 10px;
+}
+.blog-detail-page .swiper-next {
+  right: 10px;
 }
 /* 头部右侧分享按钮（覆盖全局 .header-share 的 10% 宽度） */
 .blog-detail-page .header-share {

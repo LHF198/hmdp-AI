@@ -138,8 +138,10 @@
   background-color: var(--accent);
 }
 
-/* --- 笔记列表项 --- */
-.blog-item {
+/* --- 笔记列表项 ---
+ * 注意：.blog-img/.blog-title/.blog-comments 等类名与首页瀑布流、笔记详情页共用，
+ * 必须收窄到 .info-page（个人主页/他人主页根节点）下，否则会泄漏覆盖首页布局 */
+.info-page .blog-item {
   display: flex !important;
   flex-direction: row !important;
   align-items: flex-start !important;
@@ -156,21 +158,21 @@
   box-sizing: border-box;
 }
 
-.blog-img {
+.info-page .blog-img {
   width: 80px !important;
   height: 200px;
   margin-right: 12px;
   flex-shrink: 0 !important; /* 防止图片被压缩 */
   flex-grow: 0 !important;
 }
-.blog-img img {
+.info-page .blog-img img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   border-radius: var(--radius-md); /* 统一圆角 */
 }
 
-.blog-info {
+.info-page .blog-info {
   flex: 1 !important; /* 占据剩余空间 */
   width: auto !important; /* 明确设置为 auto，防止被覆盖 */
   min-width: 0 !important; /* 防止 flex 子元素溢出 */
@@ -181,7 +183,7 @@
   justify-content: center; /* 垂直居中内容 */
   overflow: hidden; /* 防止内容溢出 */
 }
-.blog-title {
+.info-page .blog-title {
   line-height: 1.4;
   color: var(--text-strong);
   margin-bottom: 8px;
@@ -189,25 +191,25 @@
   word-wrap: break-word;
   overflow-wrap: break-word;
 }
-.blog-liked,
-.blog-comments {
+.info-page .blog-liked,
+.info-page .blog-comments {
   display: inline-flex;
   align-items: center;
   font-size: 12px;
   margin-right: 15px;
 }
-.blog-liked img {
+.info-page .blog-liked img {
   width: 14px;
   height: 14px;
   margin-right: 4px;
 }
-.blog-comments i {
+.info-page .blog-comments i {
   font-size: 14px;
   margin-right: 4px;
 }
 
-/* --- 关注Tab里的卡片样式 (沿用首页风格) --- */
-.blog-list {
+/* --- 关注Tab里的卡片样式 (沿用首页风格，同样收窄在 .info-page 内) --- */
+.info-page .blog-list {
   height: 100%;
   width: 100%;
   display: flex;
@@ -215,7 +217,7 @@
   justify-content: space-around;
   overflow-y: auto;
 }
-.blog-box {
+.info-page .blog-box {
   width: 95%; /* 调整宽度以适应内边距 */
   background: rgba(255, 255, 255, 0.18) !important;
   -webkit-backdrop-filter: blur(8px);
@@ -226,7 +228,7 @@
   margin: 5px 0;
   overflow: hidden;
 }
-.blog-img2 img {
+.info-page .blog-img2 img {
   width: 100%;
   height: 200px;
   border-radius: var(--radius-lg) var(--radius-lg) 0 0; /* 图片顶部圆角 */
@@ -235,26 +237,26 @@
   border-bottom-right-radius: var(--radius-lg);
   object-fit: cover;
 }
-.blog-foot {
+.info-page .blog-foot {
   display: flex;
   align-items: center;
   margin: 10px 0 5px 0;
   padding: 0 10px;
 }
-.blog-user-icon {
+.info-page .blog-user-icon {
   width: 24px;
   height: 24px;
 }
-.blog-user-icon img {
+.info-page .blog-user-icon img {
   width: 100%;
   border-radius: 50%;
 }
-.blog-user-name {
+.info-page .blog-user-name {
   padding-left: 8px;
   color: var(--text-weak);
   font-size: 12px;
 }
-.blog-liked {
+.info-page .blog-foot .blog-liked {
   /* margin-left: auto; 推到最右边 */
   /* 推到最左边 */
   margin-right: auto;

@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="info-page">
     <!-- 页面头部 -->
     <div class="header">
       <div class="header-back-btn" @click="goBack">
@@ -339,10 +339,15 @@ function toBlogDetail(b) {
 }
 
 function addLike(b) {
+  // 乐观更新：立即翻转状态，失败时回退
+  b.isLike = !b.isLike
+  b.liked += b.isLike ? 1 : -1
   blogApi
     .like(b.id)
     .then(() => queryBlogById(b))
     .catch((err) => {
+      b.isLike = !b.isLike
+      b.liked += b.isLike ? 1 : -1
       ElMessage.error(err)
     })
 }
@@ -354,10 +359,7 @@ function queryBlogById(b) {
       b.liked = data.liked
       b.isLike = data.isLike
     })
-    .catch(() => {
-      // 刷新失败时本地先 +1，避免点赞状态丢失
-      b.liked++
-    })
+    .catch(() => {})
 }
 
 function onScroll(e) {
@@ -380,3 +382,13 @@ function firstImage(images) {
   return (images || '').split(',')[0]
 }
 </script>
+
+<style>
+/* Profile 页的 .blog-list（关注 Tab）不走内部滚动，随页面自然滚动 */
+.info-page .blog-list {
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+  padding-bottom: 80px;
+}
+</style>

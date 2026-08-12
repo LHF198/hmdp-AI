@@ -3,7 +3,7 @@ package com.hmdp.service.impl;
 import com.hmdp.entity.SeckillVoucher;
 import com.hmdp.mapper.SeckillVoucherMapper;
 import com.hmdp.service.ISeckillVoucherService;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
 import com.hmdp.service.IVoucherOrderService;
 import com.hmdp.service.IVoucherService;
 import org.springframework.stereotype.Service;

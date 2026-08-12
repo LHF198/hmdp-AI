@@ -1,14 +1,16 @@
 <template>
   <div class="blog-edit-page">
-    <div class="header">
-      <div class="header-cancel-btn" @click="goBack">取消</div>
-      <div class="header-title">
-        &nbsp;&nbsp;发笔记<el-icon :size="16"><InfoFilled /></el-icon>
-      </div>
-      <div class="header-commit">
+    <!-- 顶部导航 Teleport 到 body：
+         1. glass.css 给 #app 加了 backdrop-filter，会成为 fixed 定位的包含块，
+            导致 header 宽度/位置与卡片错位；Teleport 后相对视口定位
+         2. 改用 blog-edit-header 类名，绕开 info.css/login.css/glass.css 全局 .header 规则泄漏 -->
+    <Teleport to="body">
+      <div class="blog-edit-header">
+        <div class="header-cancel-btn" @click="goBack">取消</div>
+        <div class="header-title">发笔记<el-icon :size="16"><InfoFilled /></el-icon></div>
         <div class="header-commit-btn" @click="submitBlog">发布</div>
       </div>
-    </div>
+    </Teleport>
 
     <div class="page-wrapper">
       <div class="content-card upload-box">
@@ -103,8 +105,8 @@ import { blogApi } from '@/api/blog'
 import { shopApi } from '@/api/shop'
 import { userApi } from '@/api/user'
 import AiLauncher from '@/components/AiLauncher.vue'
-// 副作用导入：window.CITY_DATA 城市数据（与旧 MPA 共用）
-import '../../html/hmdp/js/cities.js'
+// 副作用导入：cities.js 以 ES 模块形式导出全国省→市数据
+import { CITY_DATA } from '@/utils/cities'
 
 const router = useRouter()
 
@@ -125,7 +127,7 @@ onMounted(() => {
     city.value = c
   }
   // 加载完整城市列表（全国省→市数据，去掉省维度后平铺）
-  cities.value = (window.CITY_DATA || []).reduce((acc, p) => acc.concat(p.cities), [])
+  cities.value = CITY_DATA.reduce((acc, p) => acc.concat(p.cities), [])
   checkLogin()
   queryShops()
 })

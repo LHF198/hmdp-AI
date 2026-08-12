@@ -6,9 +6,8 @@ body {
   margin: 0;
 }
 html,
-body,
-#app {
-  height: 100%;
+body {
+  min-height: 100%;
 }
 
 .el-tabs__item {

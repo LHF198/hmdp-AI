@@ -106,9 +106,12 @@ function sendCode() {
   // 禁用按钮
   disabled.value = true
   // 按钮倒计时
-  let i = 60
-  codeBtnMsg.value = i-- + '秒后可重发'
-  countdownTask = setInterval(() => (codeBtnMsg.value = i-- + '秒后可重发'), 1000)
+  let i = 59
+  codeBtnMsg.value = i + '秒后可重发'
+  countdownTask = setInterval(() => {
+    i--
+    codeBtnMsg.value = i + '秒后可重发'
+  }, 1000)
   setTimeout(() => {
     disabled.value = false
     clearInterval(countdownTask)

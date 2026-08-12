@@ -50,7 +50,7 @@
       </div>
       <div class="search-input">
         <el-input
-          size="mini"
+          size="small"
           placeholder="请输入商户名、地点"
           v-model="searchKey"
           @keyup.enter="doSearch"
@@ -115,8 +115,8 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { shopApi } from '@/api/shop'
 import { blogApi } from '@/api/blog'
-// 副作用导入：cities.js 以 window.CITY_DATA 形式暴露全国省→市数据（与旧 MPA 共用同一份数据源）
-import '../../html/hmdp/js/cities.js'
+// 副作用导入：cities.js 以 ES 模块形式导出全国省→市数据
+import { CITY_DATA } from '@/utils/cities'
 
 const router = useRouter()
 
@@ -138,7 +138,7 @@ const curCities = computed(() => {
 
 onMounted(() => {
   // 加载全国省→市数据
-  provinces.value = (window.CITY_DATA || []).map((p) => ({ name: p.name, cities: p.cities }))
+  provinces.value = CITY_DATA.map((p) => ({ name: p.name, cities: p.cities }))
   curProvince.value = provinces.value.length ? provinces.value[0].name : ''
   queryTypes()
   queryHotBlogsScroll()
@@ -165,19 +165,28 @@ function queryHotBlogsScroll() {
   blogApi
     .hot(current.value)
     .then(({ data }) => {
-      data.forEach((b) => (b.img = b.images.split(',')[0]))
+      data.forEach((b) => (b.img = (b.images || '').split(',')[0]))
       blogs.value = blogs.value.concat(data)
     })
     .catch((err) => ElMessage.error(err))
 }
 
 function addLike(b) {
+  // 乐观更新：立即翻转状态，失败时回退
+  b.isLike = !b.isLike
+  b.liked += b.isLike ? 1 : -1
   blogApi
     .like(b.id)
     .then(() => {
+      // 服务端确认：刷新真实状态
       queryBlogById(b)
     })
-    .catch((err) => ElMessage.error(err))
+    .catch((err) => {
+      // 失败回退
+      b.isLike = !b.isLike
+      b.liked += b.isLike ? 1 : -1
+      ElMessage.error(err)
+    })
 }
 
 function queryBlogById(b) {
@@ -187,10 +196,7 @@ function queryBlogById(b) {
       b.liked = data.liked
       b.isLike = data.isLike
     })
-    .catch(() => {
-      // 刷新失败时本地先 +1，避免点赞状态丢失
-      b.liked++
-    })
+    .catch(() => {})
 }
 
 function onScroll(e) {

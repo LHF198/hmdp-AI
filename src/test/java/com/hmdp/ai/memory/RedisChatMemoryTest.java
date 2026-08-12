@@ -15,7 +15,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
-import org.springframework.ai.chat.messages.ToolResponseMessage;
+import org.springframework.ai.chat.messages.MessageType;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -88,9 +88,12 @@ class RedisChatMemoryTest {
         when(template.opsForValue()).thenReturn(mock(ValueOperations.class));
         RedisChatMemory memory = newMemory(template);
 
+        // ToolResponseMessage 构造器在 Spring AI 1.1+ 中为 protected，改用 mock 模拟工具消息（仅验证过滤行为）
+        Message toolMessage = mock(Message.class);
+        when(toolMessage.getMessageType()).thenReturn(MessageType.TOOL);
         memory.add("s1", List.of(
                 new UserMessage("推荐一家美食店"),
-                new ToolResponseMessage(List.of(), Map.of()),
+                toolMessage,
                 new AssistantMessage("好的，为您找到：川味观")
         ));
 

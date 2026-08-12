@@ -219,9 +219,12 @@
   background: rgba(255, 255, 255, 0.9);
 }
 
-/* 底部栏：点赞 + 评论输入 + 发送 */
-.blog-detail-page .foot {
-  width: 100%;
+/* 底部栏：点赞 + 评论输入 + 发送
+ * 底栏已 Teleport 到 body（避开 #app backdrop-filter 对 fixed 的包含块影响），
+ * 选择器不再依赖 .blog-detail-page 前缀，宽度对齐 #app 手机卡片 */
+.blog-detail-foot {
+  max-width: 480px;
+  width: calc(100% - 24px);
   height: 52px;
   display: flex;
   justify-content: center;
@@ -229,14 +232,17 @@
   box-shadow: 0 -1px 2px 1px rgba(0, 0, 0, 0.1);
   position: fixed;
   bottom: 0;
-  left: 0;
+  left: 50%;
+  transform: translateX(-50%);
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(10px);
   z-index: 600;
   padding: 0 12px;
+  box-sizing: border-box;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 
-.blog-detail-page .foot-box {
+.blog-detail-foot .foot-box {
   width: auto;
   color: #82848a;
   text-align: center;
@@ -244,15 +250,15 @@
   padding: 0 8px;
 }
 
-.blog-detail-page .foot-view {
+.blog-detail-foot .foot-view {
   font-size: 12px;
   text-align: center;
 }
 
-.blog-detail-page .foot-view span {
+.blog-detail-foot .foot-view span {
   font-size: 12px;
 }
 
-.blog-detail-page .liked {
+.blog-detail-foot .liked {
   color: #ff6633;
 }

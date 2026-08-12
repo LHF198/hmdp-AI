@@ -16,11 +16,10 @@ const http = axios.create({
 http.interceptors.request.use(
   (config) => {
     const token = sessionStorage.getItem('token')
-    if (token) config.headers['authorization'] = token
+    if (token) config.headers['Authorization'] = token
     return config
   },
   (error) => {
-    console.log(error)
     return Promise.reject(error)
   },
 )
@@ -36,7 +35,6 @@ http.interceptors.response.use(
   },
   function (error) {
     // 一般是服务端异常或者网络异常
-    console.log(error)
     // 请求超时
     if (error.code === 'ECONNABORTED' || /^timeout of /.test(error.message || '')) {
       return Promise.reject('请求超时，请检查网络后重试')
@@ -76,15 +74,16 @@ http.interceptors.response.use(
   },
 )
 
-// 与旧 common.js 一致的 params 序列化：过滤空值参数
+// 与旧 common.js 一致的 params 序列化：过滤空值参数，值做 URL 编码防止特殊字符截断
 http.defaults.paramsSerializer = function (params) {
-  let p = ''
+  const parts = []
   Object.keys(params).forEach((k) => {
-    if (params[k]) {
-      p = p + '&' + k + '=' + params[k]
+    const v = params[k]
+    if (v !== null && v !== undefined && v !== '') {
+      parts.push(encodeURIComponent(k) + '=' + encodeURIComponent(v))
     }
   })
-  return p
+  return parts.join('&')
 }
 
 export default http

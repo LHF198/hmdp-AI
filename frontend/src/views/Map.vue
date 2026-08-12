@@ -356,7 +356,8 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .map-page {
-  height: 100%;
+  height: 100vh; /* 固定视口高度：flex 布局内部消化，保证子项百分比/flex 高度可解析 */
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -402,10 +403,13 @@ onBeforeUnmount(() => {
   gap: 2px;
 }
 
-/* 地图画布：flex 占满剩余高度，底部留 8vh 给悬浮 FootBar（与全局 .foot height: 8% 对齐） */
+/* 地图画布：flex 占满剩余高度，底部留 8vh 给悬浮 FootBar（与全局 .foot height: 8% 对齐）
+ * flex-basis: 0 + flex-grow 可让本元素获得“确定高度”，
+ * 从而子元素 .map-container 的 height: 100% 能正确解析（仅 flex: 1 时会塔陷为 0） */
 .map-canvas {
   position: relative;
-  flex: 1;
+  flex: 1 1 0;
+  min-height: 0;
   margin-bottom: 8vh;
   overflow: hidden;
   background: #e8e8e8;

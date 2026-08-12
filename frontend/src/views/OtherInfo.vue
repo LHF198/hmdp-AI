@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="info-page">
     <div class="header">
       <div class="header-back-btn" @click="goBack">
         <el-icon :size="22"><ArrowLeft /></el-icon>

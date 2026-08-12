@@ -20,7 +20,7 @@
           <div class="info-label">昵称</div>
           <div class="info-btn">
             <el-input
-              size="mini"
+              size="small"
               v-model="user.nickName"
               maxlength="20"
               style="width: 150px; text-align: right"
@@ -32,7 +32,7 @@
           <div class="info-label">个人介绍</div>
           <div class="info-btn">
             <el-input
-              size="mini"
+              size="small"
               v-model="info.introduce"
               maxlength="128"
               placeholder="介绍一下自己"
@@ -45,7 +45,7 @@
         <div class="info-item">
           <div class="info-label">性别</div>
           <div class="info-btn">
-            <el-select size="mini" v-model="info.gender" placeholder="选择">
+            <el-select size="small" v-model="info.gender" placeholder="选择">
               <el-option :value="false" label="男"></el-option>
               <el-option :value="true" label="女"></el-option>
             </el-select>
@@ -56,7 +56,7 @@
           <div class="info-label">城市</div>
           <div class="info-btn">
             <el-select
-              size="mini"
+              size="small"
               v-model="info.city"
               filterable
               allow-create
@@ -72,10 +72,10 @@
           <div class="info-label">生日</div>
           <div class="info-btn">
             <el-date-picker
-              size="mini"
+              size="small"
               v-model="info.birthday"
               type="date"
-              value-format="yyyy-MM-dd"
+              value-format="YYYY-MM-DD"
               placeholder="添加"
             ></el-date-picker>
           </div>
@@ -260,5 +260,11 @@ function save() {
 .divider {
   height: 1px;
   background: rgba(31, 45, 61, 0.08);
+}
+/* 保存按钮：glass.css 的 .el-button { background: var(--accent) !important } 会把内联样式压成深色，
+   此处用更高优先级选择器恢复主题橙 */
+.edit-container .el-button--primary {
+  background: #ff6633 !important;
+  border-color: #ff6633 !important;
 }
 </style>

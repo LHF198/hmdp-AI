@@ -95,7 +95,7 @@
     font-weight: 600;
 }
 .shop-list{
-    height: 87%;
+    height: 87vh;
     background-color: #f1f1f1;
     overflow-y: auto;
 }

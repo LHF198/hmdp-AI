@@ -81,7 +81,6 @@ body::after {
   border: 1px solid var(--card-border);
   border-radius: var(--radius-xl);
   box-shadow: var(--glass-shadow);
-  overflow: hidden;
 }
 
 /* Make inner sections feel like segments floating within the card */
@@ -276,7 +275,7 @@ body::after {
   justify-content: space-around;
 
   /* 关键修复：恢复固定高度以支持滚动 */
-  height: 60% !important;
+  height: 60vh !important;
   box-sizing: border-box;
 }
 .blog-box {
