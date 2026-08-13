@@ -21,14 +21,14 @@ import com.hmdp.entity.UserInfo;
 import com.hmdp.mapper.UserMapper;
 import com.hmdp.service.IUserInfoService;
 import com.hmdp.service.IUserService;
-import com.hmdp.utils.RegexUtils;
-import com.hmdp.utils.UserHolder;
 import static com.hmdp.utils.RedisConstants.LOGIN_CODE_KEY;
 import static com.hmdp.utils.RedisConstants.LOGIN_CODE_TTL;
 import static com.hmdp.utils.RedisConstants.LOGIN_USER_KEY;
 import static com.hmdp.utils.RedisConstants.LOGIN_USER_TTL;
 import static com.hmdp.utils.RedisConstants.USER_SIGN_KEY;
+import com.hmdp.utils.RegexUtils;
 import static com.hmdp.utils.SystemConstants.USER_NICK_NAME_PREFIX;
+import com.hmdp.utils.UserHolder;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.copier.CopyOptions;

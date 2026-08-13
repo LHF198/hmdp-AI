@@ -243,6 +243,8 @@ const start = { x: 0, y: 0 }
 const move = { x: 0, y: 0 }
 let isMoving = false
 let isMouseDragging = false
+let mouseMoved = false // 鼠标是否真实拖动过（区分点击与拖拽）
+let lastTouchTime = 0 // 触屏点击会合成鼠标事件，用于去重
 
 onMounted(() => {
   queryBlogById(route.params.id)
@@ -529,6 +531,9 @@ function setTransition(d) {
 }
 
 function moveStart(e) {
+  // 点在箭头按钮上时不进入拖拽逻辑，交给箭头的 click 处理
+  if (e.target.closest && e.target.closest('.swiper-arrow')) return
+  lastTouchTime = Date.now()
   start.x = e.changedTouches[0].pageX
   start.y = e.changedTouches[0].pageY
   setTransition('none')
@@ -577,7 +582,12 @@ function moveEnd(e) {
 // 鼠标拖拽支持（桌面端）
 function mouseDown(e) {
   if (e.button !== 0) return // 仅左键
+  // 点在箭头按钮上时不启动拖拽，避免 mouseup 误判为滑动导致跳页
+  if (e.target.closest && e.target.closest('.swiper-arrow')) return
+  // 触摸操作后的合成鼠标事件跳过，防止一次手势触发两次切换
+  if (Date.now() - lastTouchTime < 500) return
   isMouseDragging = true
+  mouseMoved = false
   start.x = e.pageX
   start.y = e.pageY
   setTransition('none')
@@ -589,6 +599,7 @@ function mouseMoving(e) {
   const distanceY = e.pageY - start.y
   if (Math.abs(distanceX) > Math.abs(distanceY)) {
     e.preventDefault()
+    mouseMoved = true
     move.x = e.pageX
     move.y = e.pageY
     let dx = distanceX
@@ -605,6 +616,11 @@ function mouseMoving(e) {
 function mouseEnd(e) {
   if (!isMouseDragging) return
   isMouseDragging = false
+  // 未发生真实位移（纯点击/误触）只做回弹，避免把点击误判为滑动
+  if (!mouseMoved) {
+    back()
+    return
+  }
   const distance = move.x - start.x
   if (Math.abs(distance) > sensitivity) {
     if (distance < 0) {

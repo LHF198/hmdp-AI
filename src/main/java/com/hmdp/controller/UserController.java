@@ -20,8 +20,8 @@ import com.hmdp.entity.User;
 import com.hmdp.entity.UserInfo;
 import com.hmdp.service.IUserInfoService;
 import com.hmdp.service.IUserService;
-import com.hmdp.utils.UserHolder;
 import static com.hmdp.utils.RedisConstants.LOGIN_USER_KEY;
+import com.hmdp.utils.UserHolder;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
