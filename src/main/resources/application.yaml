@@ -62,5 +62,12 @@ app:
       enabled: true       # 总开关
       per-minute: 30      # 每 IP 每分钟最大请求数
     rag:
-      store-path: data/ai-vector-store.json  # 知识库向量快照文件：重启免重复向量化（省 embedding 配额、加快启动）
+      # 向量快照存储介质：simple（本地 JSON 文件，默认）| redis（普通 Redis 字符串，生产推荐）
+      # 检索始终在内存 SimpleVectorStore 完成（实测 3 条向量 0.14ms），快照仅作持久化：
+      #   simple = 本地 JSON 文件（store-path）；redis = 普通 Redis 字符串（redis-key），
+      #   无需 RediSearch/Redis Stack，多实例共享、重启不丢、不依赖工作目录
+      store: simple
+      store-path: data/ai-vector-store.json  # simple 模式快照文件：重启免重复向量化（省 embedding 配额、加快启动）
+                                            # 支持绝对路径；生产 java -jar 启动建议配绝对路径以规避工作目录差异
+      redis-key: ai:vector:snapshot         # redis 模式快照键
       rebuild: false      # 是否忽略快照强制重建（知识库文档更新后删除快照文件或改为 true 重建）

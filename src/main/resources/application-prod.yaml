@@ -44,3 +44,10 @@ management:
   endpoint:
     health:
       show-details: never      # 不对外暴露健康检查细节（数据库/Redis 状态等）
+
+app:
+  ai:
+    rag:
+      # 生产：向量快照持久化到普通 Redis（无需 RediSearch/Redis Stack），
+      # 解决文件快照依赖工作目录、容器重建/发版丢失、多实例不一致三个问题
+      store: redis
