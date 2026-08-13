@@ -7,7 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -17,7 +17,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import com.baomidou.mybatisplus.extension.conditions.update.UpdateChainWrapper;
+import com.baomidou.mybatisplus.extension.conditions.update.LambdaUpdateChainWrapper;
 import com.hmdp.dto.Result;
 import com.hmdp.dto.UserDTO;
 import com.hmdp.entity.VoucherOrder;
@@ -33,18 +33,18 @@ class VoucherOrderServiceImplTest {
     private VoucherOrderServiceImpl service;
     private StringRedisTemplate stringRedisTemplate;
     private RedisIdWorker redisIdWorker;
-    private UpdateChainWrapper<VoucherOrder> updateChain;
+    private LambdaUpdateChainWrapper<VoucherOrder> updateChain;
 
     @BeforeEach
     void setUp() {
         service = spy(new VoucherOrderServiceImpl());
         stringRedisTemplate = mock(StringRedisTemplate.class);
         redisIdWorker = mock(RedisIdWorker.class);
-        updateChain = mock(UpdateChainWrapper.class);
-        when(updateChain.set(anyString(), any())).thenReturn(updateChain);
-        when(updateChain.eq(anyString(), any())).thenReturn(updateChain);
+        updateChain = mock(LambdaUpdateChainWrapper.class);
+        when(updateChain.set(any(), any())).thenReturn(updateChain);
+        when(updateChain.eq(any(), any())).thenReturn(updateChain);
         when(updateChain.update()).thenReturn(true);
-        doReturn(updateChain).when(service).update();
+        doReturn(updateChain).when(service).lambdaUpdate();
         ReflectionTestUtils.setField(service, "stringRedisTemplate", stringRedisTemplate);
         ReflectionTestUtils.setField(service, "redisIdWorker", redisIdWorker);
 
@@ -150,7 +150,7 @@ class VoucherOrderServiceImplTest {
 
         assertTrue(r.getSuccess());
         // 更新条件必须带上 status=1，防止并发下重复支付
-        verify(updateChain).eq("status", 1);
+        verify(updateChain).eq(any(), eq(1));
     }
 
     @Test

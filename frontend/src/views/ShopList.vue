@@ -43,10 +43,7 @@
       </div>
     </div>
     <div class="shop-list" @scroll="onScroll">
-      <div
-        v-if="loaded && shops.length === 0"
-        style="text-align: center; color: #82848a; padding: 60px 0; font-size: 14px; width: 100%"
-      >
+      <div v-if="loaded && shops.length === 0" class="shop-empty">
         当前城市暂无相关商铺，换个城市或关键词试试吧
       </div>
       <div class="shop-box" v-for="s in shops" :key="s.id" @click="toDetail(s.id)">
@@ -246,3 +243,14 @@ function onScroll(e) {
   }
 }
 </script>
+
+<style scoped>
+/* 空列表提示：与全局玻璃拟态主题一致的次级文字色 */
+.shop-empty {
+  text-align: center;
+  color: #82848a;
+  padding: 60px 0;
+  font-size: 14px;
+  width: 100%;
+}
+</style>
