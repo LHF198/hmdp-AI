@@ -6,7 +6,7 @@
         <el-icon :size="22"><ArrowLeft /></el-icon>
       </div>
       <div class="header-title"></div>
-      <div class="header-share" style="font-size: 13px; cursor: pointer" @click="showOrders">
+      <div class="header-share header-order-btn" @click="showOrders">
         订单
       </div>
       <div class="header-share" title="复制店铺链接分享" @click="share">...</div>
@@ -17,7 +17,7 @@
       <div class="shop-title">{{ shop.name || '店铺名称' }}</div>
 
       <div class="shop-rate" v-if="shop.score">
-        <el-rate disabled :model-value="shop.score / 10" text-color="#F63" show-score></el-rate>
+        <el-rate disabled :model-value="shop.score / 10" :text-color="RATE_TEXT_COLOR" show-score></el-rate>
         <span>{{ shop.comments || 0 }}条</span>
       </div>
 
@@ -38,14 +38,14 @@
       </div>
 
       <div class="shop-address" v-if="shop.address">
-        <div><el-icon :size="16" color="#1890ff"><Location /></el-icon></div>
+        <div><el-icon :size="16" :color="INFO_ICON_COLOR"><Location /></el-icon></div>
         <span>{{ shop.address }}</span>
       </div>
 
       <!-- 商店服务标签（静态演示图标） -->
       <div class="shop-service">
-        <div style="color: #5a5b5b">|</div>
-        <div style="margin: 0 5px">
+        <div class="shop-service-sep">|</div>
+        <div class="shop-service-icon">
           <img
             src="https://p0.meituan.net/travelcube/bf684aa196c870810655e45b1e52ce843484.png@24w_16h_40q"
             alt=""
@@ -61,7 +61,7 @@
 
       <!-- 营业时间 -->
       <div class="shop-open-time" v-if="shop.openHours">
-        <span><el-icon :size="16" color="#1890ff"><Watch /></el-icon></span>
+        <span><el-icon :size="16" :color="INFO_ICON_COLOR"><Watch /></el-icon></span>
         <div>营业时间</div>
         <div>{{ shop.openHours }}</div>
         <span class="line-right" @click="shopDetailVisible = true"
@@ -115,7 +115,7 @@
       <div class="comments-head">
         <div>网友评价 <span>（0）</span></div>
       </div>
-      <div style="text-align: center; color: #82848a; padding: 20px 0; font-size: 14px">
+      <div class="comments-empty">
         暂无评价，去笔记里看看大家的探店体验吧
       </div>
     </div>
@@ -124,7 +124,7 @@
 
     <!-- 店铺详情弹窗 -->
     <el-dialog title="店铺详情" v-model="shopDetailVisible" width="90%" append-to-body>
-      <div style="font-size: 14px; line-height: 2; color: #333">
+      <div class="dialog-detail">
         <div>店铺名称：{{ shop.name || '-' }}</div>
         <div v-if="shop.area">商圈：{{ shop.area }}</div>
         <div v-if="shop.address">地址：{{ shop.address }}</div>
@@ -138,26 +138,26 @@
 
     <!-- 我的秒杀订单弹窗 -->
     <el-dialog title="我的秒杀订单" v-model="ordersVisible" width="90%" append-to-body>
-      <div v-if="orders.length === 0" style="text-align: center; color: #82848a; padding: 10px 0">
+      <div v-if="orders.length === 0" class="orders-empty">
         暂无订单
       </div>
       <div
         v-for="o in orders"
         :key="o.id"
-        style="border-bottom: 1px solid #eee; padding: 10px 0"
+        class="order-item"
       >
-        <div style="font-size: 14px; color: #222">
+        <div class="order-title">
           {{ o.voucherTitle || '代金券 ' + o.voucherId }}
         </div>
-        <div style="font-size: 12px; color: #82848a; margin-top: 4px">
+        <div class="order-meta">
           订单号：{{ o.id }}
           <span v-if="o.payValue"> | ￥{{ formatPrice(o.payValue) }}</span>
           | {{ orderStatus(o.status) }}
         </div>
-        <div style="font-size: 12px; color: #82848a; margin-top: 2px">
+        <div class="order-time">
           下单时间：{{ formatTime(o.createTime) }}
         </div>
-        <div style="margin-top: 6px">
+        <div class="order-actions">
           <el-button
             v-if="o.status === ORDER_STATUS.UNPAID"
             size="small"
@@ -167,7 +167,7 @@
           >模拟支付</el-button>
           <span
             v-if="o.status === ORDER_STATUS.PAID || o.status === ORDER_STATUS.USED"
-            style="font-size: 12px; color: #ff6633"
+            class="order-code"
           >核销码：{{ o.id }}</span>
         </div>
       </div>
@@ -186,6 +186,7 @@ import { ElMessage } from 'element-plus'
 import { shopApi } from '@/api/shop'
 import { voucherApi } from '@/api/voucher'
 import { ORDER_STATUS, ORDER_STATUS_TEXT } from '@/utils/order-status'
+import { INFO_ICON_COLOR, RATE_TEXT_COLOR } from '@/utils/colors'
 import { useUserStore } from '@/stores/user'
 import AiLauncher from '@/components/AiLauncher.vue'
 import bdImg from '../../html/hmdp/imgs/bd.png'
@@ -453,5 +454,60 @@ function seckill(v) {
 }
 .shop-detail-page .header-back-btn {
   flex-shrink: 0;
+}
+/* 订单入口按钮（覆盖 .header-share 的 18px，与旧布局一致） */
+.shop-detail-page .header-order-btn {
+  font-size: 13px;
+}
+/* 店铺服务标签分隔符/图标 */
+.shop-detail-page .shop-service-sep {
+  color: #5a5b5b;
+}
+.shop-detail-page .shop-service-icon {
+  margin: 0 5px;
+}
+/* 评论空态 */
+.shop-detail-page .comments-empty {
+  text-align: center;
+  color: #82848a;
+  padding: 20px 0;
+  font-size: 14px;
+}
+/* 店铺详情弹窗正文 */
+.shop-detail-page .dialog-detail {
+  font-size: 14px;
+  line-height: 2;
+  color: #333;
+}
+/* 秒杀订单弹窗 */
+.shop-detail-page .orders-empty {
+  text-align: center;
+  color: #82848a;
+  padding: 10px 0;
+}
+.shop-detail-page .order-item {
+  border-bottom: 1px solid #eee;
+  padding: 10px 0;
+}
+.shop-detail-page .order-title {
+  font-size: 14px;
+  color: #222;
+}
+.shop-detail-page .order-meta {
+  font-size: 12px;
+  color: #82848a;
+  margin-top: 4px;
+}
+.shop-detail-page .order-time {
+  font-size: 12px;
+  color: #82848a;
+  margin-top: 2px;
+}
+.shop-detail-page .order-actions {
+  margin-top: 6px;
+}
+.shop-detail-page .order-code {
+  font-size: 12px;
+  color: #ff6633;
 }
 </style>

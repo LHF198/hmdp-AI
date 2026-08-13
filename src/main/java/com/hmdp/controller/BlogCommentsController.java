@@ -136,7 +136,7 @@ public class BlogCommentsController {
             return Result.fail("评论失败");
         }
         // 同步笔记评论数（与点赞计数同样的 DB 计数模式）
-        blogService.update().setSql("comments=comments+1").eq("id", blogId).update();
+        blogService.incrCommentCount(blogId);
         return Result.ok(comment.getId());
     }
 
@@ -167,10 +167,7 @@ public class BlogCommentsController {
                 .eq(BlogComments::getParentId, id));
         // 同步笔记评论数（GREATEST 保底防止负数）
         long removed = 1 + replyCount;
-        blogService.update()
-                .setSql("comments=GREATEST(comments-" + removed + ",0)")
-                .eq("id", comment.getBlogId())
-                .update();
+        blogService.decrCommentCount(comment.getBlogId(), removed);
         return Result.ok();
     }
 }

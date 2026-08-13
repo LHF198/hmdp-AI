@@ -20,8 +20,8 @@ import com.hmdp.entity.User;
 import com.hmdp.entity.UserInfo;
 import com.hmdp.service.IUserInfoService;
 import com.hmdp.service.IUserService;
-import static com.hmdp.utils.RedisConstants.LOGIN_USER_KEY;
 import com.hmdp.utils.UserHolder;
+import static com.hmdp.utils.RedisConstants.LOGIN_USER_KEY;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
@@ -117,19 +117,11 @@ public class UserController {
         // 1.修改昵称、头像（tb_user表），并同步Redis登录态，保证 /user/me 立即生效
         String token = request.getHeader("authorization");
         Object nickName = body.get("nickName");
-        if (nickName != null && StrUtil.isNotBlank(nickName.toString())) {
-            userService.update().set("nick_name", nickName.toString()).eq("id", userId).update();
-            if (StrUtil.isNotBlank(token)) {
-                stringRedisTemplate.opsForHash().put(LOGIN_USER_KEY + token, "nickName", nickName.toString());
-            }
-        }
         Object icon = body.get("icon");
-        if (icon != null && StrUtil.isNotBlank(icon.toString())) {
-            userService.update().set("icon", icon.toString()).eq("id", userId).update();
-            if (StrUtil.isNotBlank(token)) {
-                stringRedisTemplate.opsForHash().put(LOGIN_USER_KEY + token, "icon", icon.toString());
-            }
-        }
+        userService.updateProfile(userId,
+                nickName == null ? null : nickName.toString(),
+                icon == null ? null : icon.toString(),
+                token);
         // 2.修改个人资料（tb_user_info表），强制绑定当前登录用户，防止越权修改
         UserInfo info = BeanUtil.toBean(body, UserInfo.class);
         info.setUserId(userId);

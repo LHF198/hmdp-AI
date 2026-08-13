@@ -25,4 +25,14 @@ public interface IUserService extends IService<User> {
 
     Result signCount();
 
+    /**
+     * 修改昵称/头像（非空字段才更新），并同步 Redis 登录态缓存保证 /user/me 立即生效
+     *
+     * @param userId   当前登录用户id
+     * @param nickName 新昵称，可为 null
+     * @param icon     新头像，可为 null
+     * @param token    登录 token（可能为空，为空时跳过 Redis 同步）
+     */
+    void updateProfile(Long userId, String nickName, String icon, String token);
+
 }

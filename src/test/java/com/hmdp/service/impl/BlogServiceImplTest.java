@@ -20,7 +20,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import com.baomidou.mybatisplus.extension.conditions.update.UpdateChainWrapper;
+import com.baomidou.mybatisplus.extension.conditions.update.LambdaUpdateChainWrapper;
 import com.hmdp.dto.Result;
 import com.hmdp.dto.UserDTO;
 import com.hmdp.entity.Blog;
@@ -30,7 +30,7 @@ import com.hmdp.utils.UserHolder;
 
 /**
  * BlogServiceImpl 单元测试：覆盖点赞/取消点赞（含 Redis 失败回滚）与笔记详情查询。 通过 Mockito 隔离 Redis /
- * 数据库依赖（spy 替换 update() 链式调用）。
+ * 数据库依赖（spy 替换 lambdaUpdate() 链式调用）。
  */
 class BlogServiceImplTest {
 
@@ -39,7 +39,7 @@ class BlogServiceImplTest {
     private BlogServiceImpl blogService;
     private StringRedisTemplate stringRedisTemplate;
     private ZSetOperations<String, String> zSetOperations;
-    private UpdateChainWrapper<Blog> updateChain;
+    private LambdaUpdateChainWrapper<Blog> updateChain;
 
     @BeforeEach
     void setUp() {
@@ -47,11 +47,11 @@ class BlogServiceImplTest {
         stringRedisTemplate = mock(StringRedisTemplate.class);
         zSetOperations = mock(ZSetOperations.class);
         when(stringRedisTemplate.opsForZSet()).thenReturn(zSetOperations);
-        updateChain = mock(UpdateChainWrapper.class);
+        updateChain = mock(LambdaUpdateChainWrapper.class);
         when(updateChain.setSql(anyString())).thenReturn(updateChain);
-        when(updateChain.eq(anyString(), any())).thenReturn(updateChain);
+        when(updateChain.eq(any(), any())).thenReturn(updateChain);
         when(updateChain.update()).thenReturn(true);
-        doReturn(updateChain).when(blogService).update();
+        doReturn(updateChain).when(blogService).lambdaUpdate();
         ReflectionTestUtils.setField(blogService, "stringRedisTemplate", stringRedisTemplate);
 
         IUserService userService = mock(IUserService.class);

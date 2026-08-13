@@ -9,7 +9,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
 import com.hmdp.dto.Result;
 import com.hmdp.dto.UserDTO;
@@ -65,8 +65,8 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
             }
         } else {
             // 3.取关，删除 delete from tb_follow where user_id = ? and follow_user_id = ?
-            boolean isSuccess = remove(new QueryWrapper<Follow>()
-                    .eq("user_id", userId).eq("follow_user_id", followUserId));
+            boolean isSuccess = remove(new LambdaQueryWrapper<Follow>()
+                    .eq(Follow::getUserId, userId).eq(Follow::getFollowUserId, followUserId));
             if (isSuccess) {
                 // 把关注用户的id从Redis集合中移除
                 stringRedisTemplate.opsForSet().remove(key, followUserId.toString());
@@ -80,7 +80,7 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
         // 1.获取登录用户
         Long userId = UserHolder.getUser().getId();
         // 2.查询是否关注 select count(*) from tb_follow where user_id = ? and follow_user_id = ?
-        Long count = query().eq("user_id", userId).eq("follow_user_id", followUserId).count();
+        Long count = lambdaQuery().eq(Follow::getUserId, userId).eq(Follow::getFollowUserId, followUserId).count();
         // 3.判断
         return Result.ok(count > 0);
     }

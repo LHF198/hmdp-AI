@@ -42,7 +42,7 @@
             </div>
           </div>
           <template #reference>
-            <span class="el-dropdown-link" style="color: #fff; font-size: 14px">
+            <span class="el-dropdown-link city-dropdown">
               {{ city }} <el-icon :size="12"><ArrowDown /></el-icon>
             </span>
           </template>
@@ -56,7 +56,7 @@
           @keyup.enter="doSearch"
         >
           <template #prefix>
-            <el-icon class="el-input__icon" style="cursor: pointer" @click="doSearch"><Search /></el-icon>
+            <el-icon class="el-input__icon search-icon" @click="doSearch"><Search /></el-icon>
           </template>
         </el-input>
       </div>
@@ -95,7 +95,7 @@
               <path
                 d="M160 944c0 8.8-7.2 16-16 16h-32c-26.5 0-48-21.5-48-48V528c0-26.5 21.5-48 48-48h32c8.8 0 16 7.2 16 16v448zM96 416c-53 0-96 43-96 96v416c0 53 43 96 96 96h96c17.7 0 32-14.3 32-32V448c0-17.7-14.3-32-32-32H96zM505.6 64c16.2 0 26.4 8.7 31 13.9 4.6 5.2 12.1 16.3 10.3 32.4l-23.5 203.4c-4.9 42.2 8.6 84.6 36.8 116.4 28.3 31.7 68.9 49.9 111.4 49.9h271.2c6.6 0 10.8 3.3 13.2 6.1s5 7.5 4 14l-48 303.4c-6.9 43.6-29.1 83.4-62.7 112C815.8 944.2 773 960 728.9 960h-317c-33.1 0-59.9-26.8-59.9-59.9v-455c0-6.1 1.7-12 5-17.1 69.5-109 106.4-234.2 107-364h41.6z m0-64h-44.9C427.2 0 400 27.2 400 60.7c0 127.1-39.1 251.2-112 355.3v484.1c0 68.4 55.5 123.9 123.9 123.9h317c122.7 0 227.2-89.3 246.3-210.5l47.9-303.4c7.8-49.4-30.4-94.1-80.4-94.1H671.6c-50.9 0-90.5-44.4-84.6-95l23.5-203.4C617.7 55 568.7 0 505.6 0z"
                 p-id="2188"
-                :fill="b.isLike ? '#ff6633' : '#82848a'"
+                :fill="b.isLike ? BRAND_COLOR : TEXT_SECONDARY"
               ></path>
             </svg>
             {{ b.liked }}
@@ -117,6 +117,7 @@ import { shopApi } from '@/api/shop'
 import { blogApi } from '@/api/blog'
 // 副作用导入：cities.js 以 ES 模块形式导出全国省→市数据
 import { CITY_DATA } from '@/utils/cities'
+import { BRAND_COLOR, TEXT_SECONDARY } from '@/utils/colors'
 
 const router = useRouter()
 
@@ -287,6 +288,15 @@ function toPage(i) {
 .city-picker-hot-item.active {
   background: #fff0eb;
   color: #ff6633;
+}
+/* 城市下拉触发按钮（头部导航） */
+.city-dropdown {
+  color: #fff;
+  font-size: 14px;
+}
+/* 搜索图标按钮 */
+.search-icon {
+  cursor: pointer;
 }
 .city-picker-cols {
   display: flex;

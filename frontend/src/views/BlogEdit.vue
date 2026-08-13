@@ -21,7 +21,7 @@
           </div>
           <div class="section-pill" v-if="fileList.length">{{ fileList.length }} 张</div>
         </div>
-        <input type="file" @change="fileSelected" name="file" ref="fileInput" style="display: none" />
+        <input type="file" @change="fileSelected" name="file" ref="fileInput" class="file-input-hidden" />
         <div class="upload-btn" @click="openFileDialog">
           <el-icon :size="24"><Camera /></el-icon>
           <div class="upload-tip">上传照片</div>
@@ -67,7 +67,7 @@
         <div class="search-bar">
           <div class="city-select">
             <el-dropdown trigger="click" @command="selectCity">
-              <span class="el-dropdown-link" style="font-size: 13px">
+              <span class="el-dropdown-link city-dropdown">
                 {{ city }} <el-icon :size="12"><ArrowDown /></el-icon>
               </span>
               <template #dropdown>
@@ -197,3 +197,14 @@ function goBack() {
   router.back()
 }
 </script>
+
+<style scoped>
+/* 隐藏原生文件选择框（点击上传按钮触发） */
+.file-input-hidden {
+  display: none;
+}
+/* 城市下拉触发按钮 */
+.city-dropdown {
+  font-size: 13px;
+}
+</style>

@@ -34,9 +34,9 @@ public class ShopTypeServiceImpl extends ServiceImpl<ShopTypeMapper, ShopType> i
     @Override
     public Result getTypeList() {
         String typeKey = RedisConstants.CACHE_TYPE_KEY;
-        //1.获取缓存数据
+        // 1.获取缓存数据
         Long size = stringRedisTemplate.opsForList().size(typeKey);
-        //2.缓存数据存在
+        // 2.缓存数据存在
         if (size != null && size != 0) {
             // 历史写入的缓存可能未设置过期时间（永久驻留），命中时补齐 TTL，避免类型变更后长期脏读
             Long ttl = stringRedisTemplate.getExpire(typeKey, TimeUnit.HOURS);
@@ -50,19 +50,19 @@ public class ShopTypeServiceImpl extends ServiceImpl<ShopTypeMapper, ShopType> i
             }
             return Result.ok(shopTypes);
         }
-        //3.缓存数据不存在
-        List<ShopType> shopTypes = query().orderByAsc("sort").list();
+        // 3.缓存数据不存在
+        List<ShopType> shopTypes = lambdaQuery().orderByAsc(ShopType::getSort).list();
         if (shopTypes == null) {
-            //4.不存在，返回错误
+            // 4.不存在，返回错误
             return Result.fail("店铺类型不存在");
         }
-        //5.存在，写入缓存
+        // 5.存在，写入缓存
         List<String> typeList = new ArrayList<>();
         for (ShopType shopType : shopTypes) {
             typeList.add(JSONUtil.toJsonStr(shopType));
         }
         stringRedisTemplate.opsForList().rightPushAll(typeKey, typeList);
-        //6.设置过期时间，类型数据变更后最坏 24 小时自动失效重建
+        // 6.设置过期时间，类型数据变更后最坏 24 小时自动失效重建
         stringRedisTemplate.expire(typeKey, RedisConstants.CACHE_TYPE_TTL, TimeUnit.HOURS);
         return Result.ok(shopTypes);
     }

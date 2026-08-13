@@ -16,6 +16,16 @@ public interface IBlogService extends IService<Blog> {
 
     Result queryHotBlog(Integer current);
 
+    /**
+     * 分页查询当前登录用户的笔记
+     */
+    Result queryMyBlog(Integer current);
+
+    /**
+     * 分页查询指定用户的笔记
+     */
+    Result queryBlogByUserId(Long id, Integer current);
+
     Result queryBlogById(Long id);
 
     Result likeBlog(Long id);
@@ -27,5 +37,15 @@ public interface IBlogService extends IService<Blog> {
     Result queryBlogOfFollow(Long max, Integer offset);
 
     Result deleteBlog(Long id);
+
+    /**
+     * 笔记评论数 +1（发布评论后同步）
+     */
+    void incrCommentCount(Long blogId);
+
+    /**
+     * 笔记评论数 -count（删除评论后同步，GREATEST 保底防止负数）
+     */
+    void decrCommentCount(Long blogId, long count);
 
 }

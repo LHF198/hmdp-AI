@@ -7,7 +7,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
 import com.hmdp.dto.Result;
 import com.hmdp.entity.SeckillVoucher;
@@ -64,7 +64,7 @@ public class VoucherServiceImpl extends ServiceImpl<VoucherMapper, Voucher> impl
                 // 已下单用户集合缺失时从订单表恢复
                 if (Boolean.FALSE.equals(stringRedisTemplate.hasKey(SECKILL_ORDER_KEY + voucherId))) {
                     List<Object> userIds = voucherOrderMapper.selectObjs(
-                            new QueryWrapper<VoucherOrder>().select("user_id").eq("voucher_id", voucherId));
+                            new LambdaQueryWrapper<VoucherOrder>().select(VoucherOrder::getUserId).eq(VoucherOrder::getVoucherId, voucherId));
                     if (!userIds.isEmpty()) {
                         String[] ids = userIds.stream().map(String::valueOf).toArray(String[]::new);
                         stringRedisTemplate.opsForSet().add(SECKILL_ORDER_KEY + voucherId, ids);

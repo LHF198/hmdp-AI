@@ -21,19 +21,20 @@ import com.hmdp.entity.UserInfo;
 import com.hmdp.mapper.UserMapper;
 import com.hmdp.service.IUserInfoService;
 import com.hmdp.service.IUserService;
+import com.hmdp.utils.RegexUtils;
+import com.hmdp.utils.UserHolder;
 import static com.hmdp.utils.RedisConstants.LOGIN_CODE_KEY;
 import static com.hmdp.utils.RedisConstants.LOGIN_CODE_TTL;
 import static com.hmdp.utils.RedisConstants.LOGIN_USER_KEY;
 import static com.hmdp.utils.RedisConstants.LOGIN_USER_TTL;
 import static com.hmdp.utils.RedisConstants.USER_SIGN_KEY;
-import com.hmdp.utils.RegexUtils;
 import static com.hmdp.utils.SystemConstants.USER_NICK_NAME_PREFIX;
-import com.hmdp.utils.UserHolder;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.StrUtil;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
@@ -93,7 +94,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         }
 
         // 4.一致，根据手机号查询用户 select * from tb_user where phone = ?
-        User user = query().eq("phone", phone).one();
+        User user = lambdaQuery().eq(User::getPhone, phone).one();
 
         // 5.判断用户是否存在
         if (user == null) {
@@ -188,7 +189,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             save(user);
         } catch (DuplicateKeyException e) {
             log.info("手机号已注册，复用已有账号: {}", phone);
-            return query().eq("phone", phone).one();
+            return lambdaQuery().eq(User::getPhone, phone).one();
         }
         // 3.同步初始化个人资料记录（保证编辑资料时走 update 而非 insert）
         UserInfo info = new UserInfo();
@@ -198,5 +199,23 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         info.setGender(false);
         userInfoService.save(info);
         return user;
+    }
+
+    @Override
+    public void updateProfile(Long userId, String nickName, String icon, String token) {
+        // 1.修改昵称（tb_user），并同步 Redis 登录态，保证 /user/me 立即生效
+        if (nickName != null && StrUtil.isNotBlank(nickName)) {
+            lambdaUpdate().set(User::getNickName, nickName).eq(User::getId, userId).update();
+            if (StrUtil.isNotBlank(token)) {
+                stringRedisTemplate.opsForHash().put(LOGIN_USER_KEY + token, "nickName", nickName);
+            }
+        }
+        // 2.修改头像（tb_user），并同步 Redis 登录态
+        if (icon != null && StrUtil.isNotBlank(icon)) {
+            lambdaUpdate().set(User::getIcon, icon).eq(User::getId, userId).update();
+            if (StrUtil.isNotBlank(token)) {
+                stringRedisTemplate.opsForHash().put(LOGIN_USER_KEY + token, "icon", icon);
+            }
+        }
     }
 }

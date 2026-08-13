@@ -16,7 +16,7 @@
       <div class="header-share" v-else title="复制笔记链接分享" @click="share">...</div>
     </div>
 
-    <div style="padding-bottom: 70px">
+    <div class="detail-body">
       <!-- 图片轮播（触摸滑动 + 鼠标拖拽） -->
       <div
         class="blog-info-box"
@@ -61,12 +61,11 @@
           <div class="name">{{ blog.name }}</div>
           <span class="time">{{ formatTime(new Date(blog.createTime)) }}</span>
         </div>
-        <div style="width: 20%">
+        <div class="basic-follow-col">
           <div
             class="logout-btn"
             @click="follow"
             v-show="!user || user.id !== blog.userId"
-            style="width: auto; padding: 0 8px; text-align: center"
           >
             {{ followed ? '取消关注' : '关注' }}
           </div>
@@ -81,7 +80,7 @@
         <div class="shop-icon">
           <img :src="shop.image" alt="" />
         </div>
-        <div style="width: 80%">
+        <div class="shop-card-info">
           <div class="name">{{ shop.name }}</div>
           <div>
             <el-rate disabled :model-value="shop.score / 10"> </el-rate>
@@ -104,7 +103,7 @@
           >
             <path
               d="M160 944c0 8.8-7.2 16-16 16h-32c-26.5 0-48-21.5-48-48V528c0-26.5 21.5-48 48-48h32c8.8 0 16 7.2 16 16v448zM96 416c-53 0-96 43-96 96v416c0 53 43 96 96 96h96c17.7 0 32-14.3 32-32V448c0-17.7-14.3-32-32-32H96zM505.6 64c16.2 0 26.4 8.7 31 13.9 4.6 5.2 12.1 16.3 10.3 32.4l-23.5 203.4c-4.9 42.2 8.6 84.6 36.8 116.4 28.3 31.7 68.9 49.9 111.4 49.9h271.2c6.6 0 10.8 3.3 13.2 6.1s5 7.5 4 14l-48 303.4c-6.9 43.6-29.1 83.4-62.7 112C815.8 944.2 773 960 728.9 960h-317c-33.1 0-59.9-26.8-59.9-59.9v-455c0-6.1 1.7-12 5-17.1 69.5-109 106.4-234.2 107-364h41.6z m0-64h-44.9C427.2 0 400 27.2 400 60.7c0 127.1-39.1 251.2-112 355.3v484.1c0 68.4 55.5 123.9 123.9 123.9h317c122.7 0 227.2-89.3 246.3-210.5l47.9-303.4c7.8-49.4-30.4-94.1-80.4-94.1H671.6c-50.9 0-90.5-44.4-84.6-95l23.5-203.4C617.7 55 568.7 0 505.6 0z"
-              :fill="blog.isLike ? '#ff6633' : '#82848a'"
+              :fill="blog.isLike ? BRAND_COLOR : TEXT_SECONDARY"
             ></path>
           </svg>
         </div>
@@ -112,7 +111,7 @@
           <div class="user-icon-mini" v-for="u in likes" :key="u.id">
             <img :src="u.icon || defaultIcon" alt="" />
           </div>
-          <div style="margin-left: 10px; text-align: center; line-height: 24px">
+          <div class="zan-count">
             {{ blog.liked }}人点赞
           </div>
         </div>
@@ -128,7 +127,7 @@
         <div class="comment-list">
           <div
             v-if="comments.length === 0"
-            style="text-align: center; color: #82848a; padding: 20px 0; font-size: 14px"
+            class="comments-empty"
           >
             暂无评价，快来抢沙发～
           </div>
@@ -138,12 +137,12 @@
             </div>
             <div class="comment-info">
               <div class="comment-user">{{ c.user_nick_name }}</div>
-              <div style="padding: 5px 0; font-size: 14px">{{ c.content }}</div>
-              <div style="font-size: 12px; color: #82848a">
+              <div class="comment-content">{{ c.content }}</div>
+              <div class="comment-meta">
                 {{ formatCommentTime(c.create_time) }}
                 <span
                   v-if="user && user.id === c.user_id"
-                  style="color: #ff6633; margin-left: 10px; cursor: pointer"
+                  class="comment-delete"
                   @click="deleteComment(c)"
                 >删除</span>
               </div>
@@ -151,7 +150,7 @@
           </div>
           <div
             v-if="comments.length < commentTotal"
-            style="display: flex; justify-content: center; padding: 15px 0; border-top: 1px solid #f1f1f1; margin-top: 10px; color: #82848a; cursor: pointer"
+            class="load-more"
             @click="loadMoreComments"
           >
             加载更多评价
@@ -178,23 +177,22 @@
             >
               <path
                 d="M160 944c0 8.8-7.2 16-16 16h-32c-26.5 0-48-21.5-48-48V528c0-26.5 21.5-48 48-48h32c8.8 0 16 7.2 16 16v448zM96 416c-53 0-96 43-96 96v416c0 53 43 96 96 96h96c17.7 0 32-14.3 32-32V448c0-17.7-14.3-32-32-32H96zM505.6 64c16.2 0 26.4 8.7 31 13.9 4.6 5.2 12.1 16.3 10.3 32.4l-23.5 203.4c-4.9 42.2 8.6 84.6 36.8 116.4 28.3 31.7 68.9 49.9 111.4 49.9h271.2c6.6 0 10.8 3.3 13.2 6.1s5 7.5 4 14l-48 303.4c-6.9 43.6-29.1 83.4-62.7 112C815.8 944.2 773 960 728.9 960h-317c-33.1 0-59.9-26.8-59.9-59.9v-455c0-6.1 1.7-12 5-17.1 69.5-109 106.4-234.2 107-364h41.6z m0-64h-44.9C427.2 0 400 27.2 400 60.7c0 127.1-39.1 251.2-112 355.3v484.1c0 68.4 55.5 123.9 123.9 123.9h317c122.7 0 227.2-89.3 246.3-210.5l47.9-303.4c7.8-49.4-30.4-94.1-80.4-94.1H671.6c-50.9 0-90.5-44.4-84.6-95l23.5-203.4C617.7 55 568.7 0 505.6 0z"
-                :fill="blog.isLike ? '#ff6633' : '#82848a'"
+                :fill="blog.isLike ? BRAND_COLOR : TEXT_SECONDARY"
               ></path>
             </svg>
             <span :class="{ liked: blog.isLike }">{{ blog.liked }}</span>
           </div>
         </div>
-        <div style="width: 10%"></div>
-        <div style="flex: 1; display: flex; align-items: center">
+        <div class="foot-gap"></div>
+        <div class="comment-input-row">
           <input
-            style="flex: 1; border: 1px solid #eee; border-radius: 16px; padding: 6px 12px; font-size: 13px; outline: none; background: rgba(255, 255, 255, 0.9)"
+            class="comment-input"
             v-model="commentContent"
             placeholder="说点什么，温柔一点～"
             @keyup.enter="sendComment"
           />
           <div
-            class="foot-view"
-            style="margin-left: 8px; cursor: pointer; color: #ff6633"
+            class="foot-view send-btn"
             @click="sendComment"
           >
             发送
@@ -215,6 +213,7 @@ import { blogApi, commentApi } from '@/api/blog'
 import { shopApi } from '@/api/shop'
 import { userApi } from '@/api/user'
 import { followApi } from '@/api/follow'
+import { BRAND_COLOR, TEXT_SECONDARY } from '@/utils/colors'
 import { useUserStore } from '@/stores/user'
 import defaultIcon from '../../html/hmdp/imgs/icons/default-icon.png'
 
@@ -700,5 +699,82 @@ function go(index) {
   color: #ff6633;
   font-weight: bold;
   cursor: pointer;
+}
+/* 正文容器（底部留白避免遮挡底部导航） */
+.blog-detail-page .detail-body {
+  padding-bottom: 70px;
+}
+/* 作者栏关注按钮列 */
+.blog-detail-page .basic-follow-col {
+  width: 20%;
+}
+.blog-detail-page .logout-btn {
+  width: auto;
+  padding: 0 8px;
+  text-align: center;
+}
+/* 关联店铺卡片信息列 */
+.blog-detail-page .shop-card-info {
+  width: 80%;
+}
+/* 点赞数文案 */
+.blog-detail-page .zan-count {
+  margin-left: 10px;
+  text-align: center;
+  line-height: 24px;
+}
+/* 评论空态 */
+.blog-detail-page .comments-empty {
+  text-align: center;
+  color: #82848a;
+  padding: 20px 0;
+  font-size: 14px;
+}
+/* 评论内容/元信息/删除 */
+.blog-detail-page .comment-content {
+  padding: 5px 0;
+  font-size: 14px;
+}
+.blog-detail-page .comment-meta {
+  font-size: 12px;
+  color: #82848a;
+}
+.blog-detail-page .comment-delete {
+  color: #ff6633;
+  margin-left: 10px;
+  cursor: pointer;
+}
+/* 加载更多评价 */
+.blog-detail-page .load-more {
+  display: flex;
+  justify-content: center;
+  padding: 15px 0;
+  border-top: 1px solid #f1f1f1;
+  margin-top: 10px;
+  color: #82848a;
+  cursor: pointer;
+}
+/* 底部栏：点赞计数列占位与评论输入区 */
+.blog-detail-page .foot-gap {
+  width: 10%;
+}
+.blog-detail-page .comment-input-row {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+.blog-detail-page .comment-input {
+  flex: 1;
+  border: 1px solid #eee;
+  border-radius: 16px;
+  padding: 6px 12px;
+  font-size: 13px;
+  outline: none;
+  background: rgba(255, 255, 255, 0.9);
+}
+.blog-detail-page .send-btn {
+  margin-left: 8px;
+  cursor: pointer;
+  color: #ff6633;
 }
 </style>

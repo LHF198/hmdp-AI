@@ -8,18 +8,18 @@
     </div>
     <div class="content">
       <div class="login-form">
-        <div style="display: flex; justify-content: space-between">
-          <el-input style="width: 60%" placeholder="请输入手机号" v-model="form.phone"> </el-input>
-          <el-button style="width: 38%" @click="sendCode" type="success" :disabled="disabled">{{ codeBtnMsg }}</el-button>
+        <div class="form-row">
+          <el-input class="phone-input" placeholder="请输入手机号" v-model="form.phone"> </el-input>
+          <el-button class="code-btn" @click="sendCode" type="success" :disabled="disabled">{{ codeBtnMsg }}</el-button>
         </div>
 
-        <div style="height: 5px"></div>
+        <div class="form-gap"></div>
         <el-input placeholder="请输入验证码" v-model="form.code"> </el-input>
-        <div style="text-align: center; color: #8c939d; margin: 5px 0">未注册的手机号码验证后自动创建账户</div>
-        <el-button @click="login" style="width: 100%; background-color: rgb(255, 255, 255); color: #fff !important">
+        <div class="form-tip">未注册的手机号码验证后自动创建账户</div>
+        <el-button class="login-btn" @click="login">
           登录
         </el-button>
-        <div style="text-align: right; color: #333333; margin: 5px 0">
+        <div class="form-right">
           <a href="/app/login2" @click.prevent="goPassword">密码登录</a>
         </div>
       </div>
@@ -124,3 +124,35 @@ onUnmounted(() => {
   if (countdownTask) clearInterval(countdownTask)
 })
 </script>
+
+<style scoped>
+/* 登录表单：手机号+验证码行布局 */
+.form-row {
+  display: flex;
+  justify-content: space-between;
+}
+.phone-input {
+  width: 60%;
+}
+.code-btn {
+  width: 38%;
+}
+.form-gap {
+  height: 5px;
+}
+.form-tip {
+  text-align: center;
+  color: #8c939d;
+  margin: 5px 0;
+}
+.login-btn {
+  width: 100%;
+  background-color: rgb(255, 255, 255);
+  color: #fff !important;
+}
+.form-right {
+  text-align: right;
+  color: #333333;
+  margin: 5px 0;
+}
+</style>

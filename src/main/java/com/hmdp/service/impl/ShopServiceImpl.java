@@ -19,15 +19,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
+import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.hmdp.dto.Result;
 import com.hmdp.entity.Shop;
 import com.hmdp.mapper.ShopMapper;
 import com.hmdp.service.IShopService;
 import com.hmdp.utils.CacheClient;
+import com.hmdp.utils.SystemConstants;
 import static com.hmdp.utils.RedisConstants.CACHE_SHOP_KEY;
 import static com.hmdp.utils.RedisConstants.CACHE_SHOP_TTL;
 import static com.hmdp.utils.RedisConstants.SHOP_GEO_KEY;
-import com.hmdp.utils.SystemConstants;
 
 import cn.hutool.core.util.StrUtil;
 import jakarta.annotation.PostConstruct;
@@ -133,11 +134,12 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         // 1.判断是否需要根据坐标查询；人气/评分排序不走GEO，直接数据库排序
         boolean dbSort = "comments".equals(sortBy) || "score".equals(sortBy);
         if (x == null || y == null || dbSort) {
-            // 不需要坐标查询，按数据库查询
-            Page<Shop> page = query()
-                    .eq("type_id", typeId)
-                    .eq(StrUtil.isNotBlank(city), "city", city)
-                    .orderBy(dbSort, !Boolean.FALSE.equals(isAsc), sortBy)
+            // 不需要坐标查询，按数据库查询（动态排序列名映射为强类型 SFunction）
+            SFunction<Shop, ?> orderColumn = "score".equals(sortBy) ? Shop::getScore : Shop::getComments;
+            Page<Shop> page = lambdaQuery()
+                    .eq(Shop::getTypeId, typeId)
+                    .eq(StrUtil.isNotBlank(city), Shop::getCity, city)
+                    .orderBy(dbSort, !Boolean.FALSE.equals(isAsc), orderColumn)
                     .page(new Page<>(current, SystemConstants.DEFAULT_PAGE_SIZE));
             // 返回数据
             return Result.ok(page.getRecords());
@@ -163,9 +165,9 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         List<GeoResult<RedisGeoCommands.GeoLocation<String>>> list = results.getContent();
         if (list.isEmpty()) {
             // 4.0.GEO缓存缺失/被清空时回退数据库查询，避免店铺列表空白（按类型+城市分页）
-            Page<Shop> fallback = query()
-                    .eq("type_id", typeId)
-                    .eq(StrUtil.isNotBlank(city), "city", city)
+            Page<Shop> fallback = lambdaQuery()
+                    .eq(Shop::getTypeId, typeId)
+                    .eq(StrUtil.isNotBlank(city), Shop::getCity, city)
                     .page(new Page<>(current, SystemConstants.DEFAULT_PAGE_SIZE));
             return Result.ok(fallback.getRecords());
         }
@@ -188,9 +190,10 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         if (Boolean.FALSE.equals(isAsc)) {
             Collections.reverse(ids);
         }
-        // 5.根据id查询Shop
+        // 5.根据id查询Shop（FIELD 排序无法用方法引用表达，保留 SQL）
         String idStr = StrUtil.join(",", ids);
-        List<Shop> shops = query().in("id", ids).eq(StrUtil.isNotBlank(city), "city", city).last("ORDER BY FIELD(id," + idStr + ")").list();
+        List<Shop> shops = lambdaQuery().in(Shop::getId, ids).eq(StrUtil.isNotBlank(city), Shop::getCity, city)
+                .last("ORDER BY FIELD(id," + idStr + ")").list();
         for (Shop shop : shops) {
             shop.setDistance(distanceMap.get(shop.getId().toString()).getValue());
         }
