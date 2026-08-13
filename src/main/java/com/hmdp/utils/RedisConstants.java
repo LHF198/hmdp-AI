@@ -86,4 +86,8 @@ public class RedisConstants {
      * 用户签到 bitMap key 前缀，完整键：sign:{userId}:{yyyyMM}
      */
     public static final String USER_SIGN_KEY = "sign:";
+    /**
+     * 秒杀下单分布式锁 key 前缀，完整键：lock:order:{userId}（Redisson，见 VoucherOrderServiceImpl）
+     */
+    public static final String LOCK_ORDER_KEY = "lock:order:";
 }

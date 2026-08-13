@@ -1,8 +1,10 @@
 package com.hmdp.dto;
 
-import lombok.Data;
-
 import java.time.LocalDateTime;
+
+import com.hmdp.enums.OrderStatusEnum;
+
+import lombok.Data;
 
 /**
  * 秒杀订单展示对象，包含代金券信息
@@ -31,7 +33,9 @@ public class OrderVO {
     private Long payValue;
 
     /**
-     * 订单状态，1：未支付；2：已支付；3：已核销；4：已取消；5：退款中；6：已退款
+     * 订单状态：1 未支付、2 已支付、3 已核销、4 已取消、5 退款中、6 已退款
+     *
+     * @see OrderStatusEnum
      */
     private Integer status;
 

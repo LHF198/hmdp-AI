@@ -18,6 +18,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.hmdp.dto.Result;
 import com.hmdp.dto.UserDTO;
 import com.hmdp.entity.BlogComments;
+import com.hmdp.enums.CommentStatusEnum;
 import com.hmdp.service.IBlogCommentsService;
 import com.hmdp.service.IBlogService;
 import com.hmdp.utils.UserHolder;
@@ -129,7 +130,7 @@ public class BlogCommentsController {
         comment.setParentId(body.get("parentId") == null ? 0L : Long.valueOf(body.get("parentId").toString()));
         comment.setAnswerId(body.get("answerId") == null ? 0L : Long.valueOf(body.get("answerId").toString()));
         comment.setLiked(0);
-        comment.setStatus(false);
+        comment.setStatus(CommentStatusEnum.NORMAL.getCode());
         boolean isSuccess = blogCommentsService.save(comment);
         if (!isSuccess) {
             return Result.fail("评论失败");

@@ -6,6 +6,8 @@ import java.time.LocalDateTime;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.hmdp.enums.OrderStatusEnum;
+import com.hmdp.enums.PayTypeEnum;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -44,12 +46,16 @@ public class VoucherOrder implements Serializable {
     private Long voucherId;
 
     /**
-     * 支付方式 1：余额支付；2：支付宝；3：微信
+     * 支付方式：1 余额支付、2 支付宝、3 微信
+     *
+     * @see PayTypeEnum
      */
     private Integer payType;
 
     /**
-     * 订单状态，1：未支付；2：已支付；3：已核销；4：已取消；5：退款中；6：已退款
+     * 订单状态：1 未支付、2 已支付、3 已核销、4 已取消、5 退款中、6 已退款
+     *
+     * @see OrderStatusEnum
      */
     private Integer status;
 

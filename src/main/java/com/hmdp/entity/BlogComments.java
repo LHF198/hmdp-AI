@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.hmdp.enums.CommentStatusEnum;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -64,9 +65,11 @@ public class BlogComments implements Serializable {
     private Integer liked;
 
     /**
-     * 状态，0：正常，1：被举报，2：禁止查看
+     * 状态：0 正常、1 被举报、2 禁止查看（三态，勿用 Boolean）
+     *
+     * @see CommentStatusEnum
      */
-    private Boolean status;
+    private Integer status;
 
     /**
      * 创建时间

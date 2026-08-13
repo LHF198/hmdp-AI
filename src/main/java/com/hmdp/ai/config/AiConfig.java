@@ -35,6 +35,12 @@ public class AiConfig {
 
     private final AiRateLimitInterceptor aiRateLimitInterceptor;
 
+    /**
+     * CORS 预检请求缓存时长（秒），可通过 app.cors.max-age 覆盖
+     */
+    @Value("${app.cors.max-age:3600}")
+    private long corsMaxAge;
+
     public AiConfig(AiRateLimitInterceptor aiRateLimitInterceptor) {
         this.aiRateLimitInterceptor = aiRateLimitInterceptor;
     }
@@ -94,7 +100,7 @@ public class AiConfig {
                         .allowedOriginPatterns("*")
                         .allowedMethods("GET", "POST", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
-                        .maxAge(3600);
+                        .maxAge(corsMaxAge);
             }
 
             @Override

@@ -159,14 +159,14 @@
         </div>
         <div style="margin-top: 6px">
           <el-button
-            v-if="o.status === 1"
+            v-if="o.status === ORDER_STATUS.UNPAID"
             size="small"
             type="danger"
             round
             @click="payOrder(o)"
           >模拟支付</el-button>
           <span
-            v-if="o.status === 2 || o.status === 3"
+            v-if="o.status === ORDER_STATUS.PAID || o.status === ORDER_STATUS.USED"
             style="font-size: 12px; color: #ff6633"
           >核销码：{{ o.id }}</span>
         </div>
@@ -185,6 +185,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { shopApi } from '@/api/shop'
 import { voucherApi } from '@/api/voucher'
+import { ORDER_STATUS, ORDER_STATUS_TEXT } from '@/utils/order-status'
 import { useUserStore } from '@/stores/user'
 import AiLauncher from '@/components/AiLauncher.vue'
 import bdImg from '../../html/hmdp/imgs/bd.png'
@@ -388,15 +389,7 @@ function showOrders() {
 }
 
 function orderStatus(s) {
-  const map = {
-    1: '未支付',
-    2: '已支付',
-    3: '已核销',
-    4: '已取消',
-    5: '退款中',
-    6: '已退款',
-  }
-  return map[s] || '未知'
+  return ORDER_STATUS_TEXT[s] || '未知'
 }
 
 function payOrder(o) {

@@ -1,14 +1,17 @@
 package com.hmdp.ai.tool;
 
-import com.hmdp.ai.tool.vo.ShopVO;
-import com.hmdp.ai.tool.vo.VoucherVO;
+import java.util.Collections;
+import java.util.List;
+
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.List;
+import com.hmdp.ai.tool.vo.ShopVO;
+import com.hmdp.ai.tool.vo.VoucherVO;
+import com.hmdp.enums.VoucherStatusEnum;
+import com.hmdp.utils.MoneyUtils;
 
 /**
  * 业务查询工具（Function Calling）：
@@ -18,6 +21,11 @@ import java.util.List;
  */
 @Component
 public class ShopQueryTool {
+
+    /**
+     * 店铺评分存储精度：tb_shop.score 以 0.1 分精度存储（如 45 表示 4.5 分），展示时除以 10
+     */
+    private static final double SCORE_SCALE = 10.0;
 
     private static final String SHOP_SQL = """
             SELECT s.id, s.name, t.name AS type_name, s.area, s.address,
@@ -34,7 +42,7 @@ public class ShopQueryTool {
     private static final String VOUCHER_SQL = """
             SELECT id, shop_id, title, sub_title, pay_value, actual_value, type, status
             FROM tb_voucher
-            WHERE shop_id = ? AND status = 1
+            WHERE shop_id = ? AND status = ?
             LIMIT 20
             """;
 
@@ -63,7 +71,7 @@ public class ShopQueryTool {
                 rs.getInt("avg_price"),
                 rs.getInt("sold"),
                 rs.getInt("comments"),
-                rs.getDouble("score") / 10.0,
+                rs.getDouble("score") / SCORE_SCALE,
                 rs.getString("open_hours")
         ), like, like, like);
     }
@@ -82,10 +90,10 @@ public class ShopQueryTool {
                 rs.getLong("shop_id"),
                 rs.getString("title"),
                 rs.getString("sub_title"),
-                rs.getDouble("pay_value") / 100.0,
-                rs.getDouble("actual_value") / 100.0,
+                MoneyUtils.fenToYuan(rs.getDouble("pay_value")),
+                MoneyUtils.fenToYuan(rs.getDouble("actual_value")),
                 rs.getInt("type"),
                 rs.getInt("status")
-        ), shopId);
+        ), shopId, VoucherStatusEnum.ON_SALE.getCode());
     }
 }

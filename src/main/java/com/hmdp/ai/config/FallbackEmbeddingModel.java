@@ -23,6 +23,11 @@ import org.springframework.lang.NonNull;
 public class FallbackEmbeddingModel implements EmbeddingModel {
 
     /**
+     * 固定向量维度：对齐 text-embedding-v4
+     */
+    private static final int EMBEDDING_DIMENSION = 1024;
+
+    /**
      * 固定向量：维度对齐 text-embedding-v4（1024）。 值取非零（全 1.0）而非零向量：SimpleVectorStore
      * 的余弦相似度计算要求范数非零， 否则检索快照中的真实向量时抛 "Vectors cannot have zero norm"； 全 1
      * 向量与真实向量余弦≈0，低于相似度阈值，RAG 检索结果为空（降级模式不注入知识库上下文）。
@@ -32,7 +37,7 @@ public class FallbackEmbeddingModel implements EmbeddingModel {
 
     @NonNull
     private static float[] createFallbackVector() {
-        float[] vector = new float[1024];
+        float[] vector = new float[EMBEDDING_DIMENSION];
         Arrays.fill(vector, 1.0f);
         return vector;
     }

@@ -31,10 +31,12 @@ import com.hmdp.dto.Result;
 import com.hmdp.entity.SeckillVoucher;
 import com.hmdp.entity.Voucher;
 import com.hmdp.entity.VoucherOrder;
+import com.hmdp.enums.OrderStatusEnum;
 import com.hmdp.mapper.VoucherMapper;
 import com.hmdp.mapper.VoucherOrderMapper;
 import com.hmdp.service.ISeckillVoucherService;
 import com.hmdp.service.IVoucherOrderService;
+import com.hmdp.utils.RedisConstants;
 import com.hmdp.utils.RedisIdWorker;
 import com.hmdp.utils.SeckillConstants;
 import com.hmdp.utils.UserHolder;
@@ -126,14 +128,14 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
             return Result.fail("订单不存在");
         }
         // 3.仅未支付订单可支付
-        if (order.getStatus() != 1) {
+        if (order.getStatus() != OrderStatusEnum.UNPAID.getCode()) {
             return Result.fail("当前订单状态不可支付");
         }
         // 4.更新状态为已支付
         boolean isSuccess = lambdaUpdate()
-                .set(VoucherOrder::getStatus, 2)
+                .set(VoucherOrder::getStatus, OrderStatusEnum.PAID.getCode())
                 .eq(VoucherOrder::getId, orderId)
-                .eq(VoucherOrder::getStatus, 1)
+                .eq(VoucherOrder::getStatus, OrderStatusEnum.UNPAID.getCode())
                 .update();
         if (!isSuccess) {
             return Result.fail("支付失败，请重试");
@@ -310,7 +312,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         Long userId = voucherOrder.getUserId();
         Long voucherId = voucherOrder.getVoucherId();
         // 创建锁对象
-        RLock redisLock = redissonClient.getLock("lock:order:" + userId);
+        RLock redisLock = redissonClient.getLock(RedisConstants.LOCK_ORDER_KEY + userId);
         // 尝试获取锁（显式等待超时，避免单条消息无限阻塞消费流水线）
         boolean isLock;
         try {

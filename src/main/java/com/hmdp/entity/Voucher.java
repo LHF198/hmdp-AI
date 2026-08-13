@@ -7,6 +7,8 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.hmdp.enums.VoucherStatusEnum;
+import com.hmdp.enums.VoucherTypeEnum;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -65,12 +67,16 @@ public class Voucher implements Serializable {
     private Long actualValue;
 
     /**
-     * 优惠券类型
+     * 优惠券类型：0 普通券、1 秒杀券
+     *
+     * @see VoucherTypeEnum
      */
     private Integer type;
 
     /**
-     * 优惠券类型
+     * 优惠券状态：1 上架、2 下架、3 过期
+     *
+     * @see VoucherStatusEnum
      */
     private Integer status;
     /**
