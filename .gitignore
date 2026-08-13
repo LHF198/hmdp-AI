@@ -46,3 +46,9 @@ icon_backup/
 # ==================== 备份文件 ====================
 *.exe.bak
 frontend/backup-pre-upgrade/
+
+# ==================== Agent 专属资产（非项目代码，不入库） ====================
+# 整个 .qoder 目录：rules/hooks/repowiki/better-harness 等均为 Agent 本地资产
+.qoder/
+# Agent 导航文件
+AGENTS.md
