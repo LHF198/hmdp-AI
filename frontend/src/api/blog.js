@@ -18,8 +18,8 @@ export const blogApi = {
     fd.append('file', file)
     return http.post('/upload/blog', fd, { timeout: 60000 })
   },
-  // 删除已上传但未使用的图片（name 为完整 /imgs 前缀路径）
-  deleteImage: (name) => http.get('/upload/blog/delete', { params: { name } }),
+  // 删除已上传但未使用的图片（name 为完整 /imgs 前缀路径；后端为 DELETE 语义）
+  deleteImage: (name) => http.delete('/upload/blog/delete', { params: { name } }),
   // 点赞用户列表（笔记详情页）
   likes: (id) => http.get('/blog/likes/' + id),
   // 我的笔记（个人主页）

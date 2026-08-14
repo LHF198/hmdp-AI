@@ -35,7 +35,11 @@ if ($conns) {
     Write-Host "[CLEAN] port 8081 is free, no cleanup needed"
 }
 
-$p = Start-Process -FilePath $java -ArgumentList @('-jar', $jar) -WorkingDirectory (Join-Path $PSScriptRoot '..\target') -RedirectStandardOutput $out -RedirectStandardError $err -WindowStyle Hidden -PassThru
+# 工作目录必须为项目根（与 restart_backend.ps1 一致）：
+# app.upload-dir 默认相对路径（frontend/html/hmdp/imgs/）按工作目录解析，
+# 若以 target/ 为工作目录会解析成 target/frontend/html/hmdp/imgs/，
+# 与 nginx /imgs/ alias（frontend/html/hmdp/imgs/）不一致导致上传图片 404
+$p = Start-Process -FilePath $java -ArgumentList @('-jar', $jar) -WorkingDirectory (Join-Path $PSScriptRoot '..') -RedirectStandardOutput $out -RedirectStandardError $err -WindowStyle Hidden -PassThru
 Write-Host ("[INFO] started pid=" + $p.Id)
 Start-Sleep -Seconds 25
 $c = Get-NetTCPConnection -State Listen -LocalPort 8081 -ErrorAction SilentlyContinue

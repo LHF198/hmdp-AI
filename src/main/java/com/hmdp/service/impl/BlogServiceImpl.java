@@ -8,6 +8,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
@@ -52,6 +53,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IBlogService {
+
+    /**
+     * 图片上传根目录（配置项 app.upload-dir，删除笔记时同步清理图片文件）
+     */
+    @Value("${app.upload-dir:frontend/html/hmdp/imgs/}")
+    private String uploadDir;
 
     @Resource
     private IUserService userService;
@@ -285,7 +292,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
                     continue;
                 }
                 try {
-                    FileUtil.del(SystemConstants.IMAGE_UPLOAD_DIR + StrUtil.removePrefix(img, "/imgs/"));
+                    FileUtil.del(uploadDir + StrUtil.removePrefix(img, "/imgs/"));
                 } catch (Exception e) {
                     log.error("删除笔记图片失败: {}", img, e);
                 }

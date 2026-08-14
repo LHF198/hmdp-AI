@@ -78,17 +78,11 @@ public class AiRateLimitInterceptor implements HandlerInterceptor {
     }
 
     /**
-     * 解析客户端 IP：优先取代理透传头，其次取直连地址
+     * 解析客户端 IP：只信任可信代理（nginx）注入的 X-Real-IP，否则取直连地址。
+     * 不读取客户端可伪造的 X-Forwarded-For——nginx 已在代理层统一覆写 X-Real-IP，
+     * 后端直接暴露时 remoteAddr 即真实来源。
      */
     private String resolveClientIp(HttpServletRequest request) {
-        String forwarded = request.getHeader("X-Forwarded-For");
-        if (StringUtils.hasText(forwarded)) {
-            int comma = forwarded.indexOf(',');
-            String first = (comma > 0 ? forwarded.substring(0, comma) : forwarded).trim();
-            if (StringUtils.hasText(first)) {
-                return first;
-            }
-        }
         String real = request.getHeader("X-Real-IP");
         if (StringUtils.hasText(real)) {
             return real.trim();

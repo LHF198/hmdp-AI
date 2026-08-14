@@ -1,5 +1,9 @@
 # ============ 开发环境（默认 profile，本地开箱即用） ============
 # 数据库/Redis 均指向本机；AI 密钥仍建议通过环境变量 AI_API_KEY 注入
+app:
+  demo:
+    # 演示环境无短信通道：验证码回显给前端展示（生产 profile 未配置该开关，默认不回显）
+    echo-code: true
 spring:
   # 业务库 hmdp（供业务接口 + AI 工具调用），请按本机实际账号修改
   datasource:

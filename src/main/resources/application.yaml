@@ -54,6 +54,14 @@ mybatis-plus:
   type-aliases-package: com.hmdp.entity # 别名扫描包
 
 app:
+  # 图片上传目录：默认相对项目根（frontend/html/hmdp/imgs/），nginx 已通过
+  # location /imgs/ alias 直连该目录（见 frontend/conf/nginx.conf），新上传图片立即可见；
+  # 注意：相对路径按 JVM 工作目录解析（start_backend.ps1 / restart_backend.ps1 均以项目根启动），
+  # 生产环境建议用环境变量 HMDP_UPLOAD_DIR 指定绝对路径，并同步修改 nginx alias
+  upload-dir: ${HMDP_UPLOAD_DIR:frontend/html/hmdp/imgs/}
+  demo:
+    # 演示环境无短信通道：置 true 时验证码直接回显给前端（仅限开发 profile，生产禁止开启）
+    echo-code: false
   ai:
     memory:
       type: redis        # 会话记忆实现：redis（默认，存 Redis，TTL 可配置）| memory（进程内存）
