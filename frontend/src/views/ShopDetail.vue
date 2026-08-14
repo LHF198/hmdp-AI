@@ -96,10 +96,10 @@
           <div v-if="v.type" class="seckill-box">
             <div
               class="voucher-btn"
-              :class="{ 'disable-btn': isNotBegin(v) || v.stock < 1 }"
+              :class="{ 'disable-btn': isNotBegin(v) || v.stock < 1 || seckilling }"
               @click="seckill(v)"
             >
-              限时抢购
+              {{ seckilling ? '抢购中...' : '限时抢购' }}
             </div>
             <div class="seckill-stock">剩余 <span>{{ v.stock }}</span> 张</div>
             <div class="seckill-time">{{ countdownText(v) }}</div>
@@ -201,6 +201,7 @@ const orders = ref([])
 const ordersVisible = ref(false)
 const shopDetailVisible = ref(false) // 店铺详情弹窗开关
 const nowTs = ref(Date.now()) // 当前时间戳，每秒刷新，驱动秒杀倒计时
+const seckilling = ref(false) // 秒杀请求在途标记：防快速连点重复下单
 
 let timer = null
 
@@ -405,6 +406,9 @@ function payOrder(o) {
 }
 
 function seckill(v) {
+  // 请求在途时忽略重复点击（防并发重复下单）
+  if (seckilling.value) return
+
   if (!userStore.isLoggedIn) {
     ElMessage.error('请先登录')
     setTimeout(() => {
@@ -429,6 +433,7 @@ function seckill(v) {
     return
   }
 
+  seckilling.value = true
   voucherApi
     .seckill(v.id)
     .then(({ data }) => {
@@ -437,6 +442,9 @@ function seckill(v) {
       showOrders()
     })
     .catch((err) => ElMessage.error(err))
+    .finally(() => {
+      seckilling.value = false
+    })
 }
 </script>
 

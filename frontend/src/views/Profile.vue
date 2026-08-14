@@ -47,7 +47,7 @@
               <img :src="firstImage(b.images)" alt="" />
             </div>
             <div class="blog-info">
-              <div class="blog-title" v-html="b.title"></div>
+              <div class="blog-title">{{ b.title }}</div>
               <div class="blog-liked">
                 <img :src="thumbup" alt="" /> {{ b.liked }}
               </div>
@@ -150,6 +150,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { userApi } from '@/api/user'
 import { blogApi, commentApi } from '@/api/blog'
+import { useUserStore } from '@/stores/user'
 import { messageApi } from '@/api/message'
 import { relativeTime } from '@/utils/date'
 import { BRAND_COLOR, TEXT_SECONDARY } from '@/utils/colors'
@@ -291,8 +292,8 @@ function logout() {
   userApi
     .logout()
     .then(() => {
-      // 清理 session 并回首页
-      sessionStorage.removeItem('token')
+      // 统一走 store 清理（token + 登录态），避免 store 与 sessionStorage 不同步
+      useUserStore().logout()
       router.push('/')
     })
     .catch((err) => ElMessage.error(err))

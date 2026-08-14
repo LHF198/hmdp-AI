@@ -44,22 +44,23 @@ http.interceptors.response.use(
       return Promise.reject('网络异常，无法连接服务器')
     }
     const status = error.response.status
-    // 优先透出后端返回的具体错误信息
-    try {
-      const data = error.response.data
-      // 有明确 errorMsg 的是具体业务/接口错误，直接展示；无 errorMsg 的 401 才是未登录
-      if (data && data.errorMsg) {
-        return Promise.reject(data.errorMsg)
-      }
-    } catch (e) {}
-    // 未登录，记录来源页后跳转（登录成功后可返回原页面，对齐主流 App 体验）
+    // 未登录：必须先于 errorMsg 判断（否则后端 401 带 errorMsg 时登录跳转被短路），
+    // 记录来源页后跳转（登录成功后可返回原页面），并清理失效 token
     if (status === 401) {
+      sessionStorage.removeItem('token')
       sessionStorage.setItem('login_from', location.pathname + location.search)
       setTimeout(() => {
         if (_router) _router.push('/login')
       }, 200)
       return Promise.reject('请先登录')
     }
+    // 其余错误优先透出后端返回的具体错误信息
+    try {
+      const data = error.response.data
+      if (data && data.errorMsg) {
+        return Promise.reject(data.errorMsg)
+      }
+    } catch (e) {}
     // 按状态码给出具体提示
     const statusMsg = {
       400: '请求参数错误',

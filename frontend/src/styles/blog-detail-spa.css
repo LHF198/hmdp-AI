@@ -121,6 +121,8 @@
   line-height: 1.7;
   color: #333;
   word-break: break-word;
+  /* 插值渲染后保留用户输入换行（替代原 v-html 的文本直出） */
+  white-space: pre-wrap;
 }
 
 .blog-detail-page .blog-text img {

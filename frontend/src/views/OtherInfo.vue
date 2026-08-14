@@ -30,7 +30,7 @@
               <img :src="b.images.split(',')[0]" alt="" />
             </div>
             <div class="blog-info">
-              <div class="blog-title" v-html="b.title"></div>
+              <div class="blog-title">{{ b.title }}</div>
               <div class="blog-liked">
                 <img :src="thumbup" alt="" /> {{ b.liked }}
               </div>

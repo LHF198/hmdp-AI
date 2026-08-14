@@ -72,8 +72,8 @@
         </div>
       </div>
 
-      <!-- 笔记正文 -->
-      <div class="blog-text" v-html="blog.content"></div>
+      <!-- 笔记正文：插值渲染（v-html 渲染用户输入存在存储型 XSS 风险，已移除；pre-wrap 保留换行） -->
+      <div class="blog-text">{{ blog.content }}</div>
 
       <!-- 关联店铺卡片 -->
       <div class="shop-basic" @click="toShopDetail" title="点击查看商铺详情" v-if="shop.id">
