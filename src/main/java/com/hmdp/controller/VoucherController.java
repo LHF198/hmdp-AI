@@ -1,6 +1,7 @@
 package com.hmdp.controller;
 
 
+import com.hmdp.annotation.Anonymous;
 import com.hmdp.dto.Result;
 import com.hmdp.entity.Voucher;
 import com.hmdp.service.IVoucherService;
@@ -50,6 +51,7 @@ public class VoucherController {
      * @param shopId 店铺id
      * @return 优惠券列表
      */
+    @Anonymous
     @GetMapping("/list/{shopId}")
     public Result queryVoucherOfShop(@PathVariable("shopId") Long shopId) {
        return voucherService.queryVoucherOfShop(shopId);

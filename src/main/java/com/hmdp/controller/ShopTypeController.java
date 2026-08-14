@@ -1,6 +1,7 @@
 package com.hmdp.controller;
 
 
+import com.hmdp.annotation.Anonymous;
 import com.hmdp.dto.Result;
 import com.hmdp.entity.ShopType;
 import com.hmdp.service.IShopTypeService;
@@ -18,6 +19,7 @@ import java.util.List;
  *
  * @author 虎哥
  */
+@Anonymous
 @RestController
 @RequestMapping("/shop-type")
 public class ShopTypeController {

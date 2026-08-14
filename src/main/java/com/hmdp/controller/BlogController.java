@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.hmdp.annotation.Anonymous;
 import com.hmdp.dto.Result;
 import com.hmdp.entity.Blog;
 import com.hmdp.service.IBlogService;
@@ -55,16 +56,19 @@ public class BlogController {
         return blogService.queryMyBlog(current);
     }
 
+    @Anonymous
     @GetMapping("/hot")
     public Result queryHotBlog(@RequestParam(value = "current", defaultValue = "1") Integer current) {
         return blogService.queryHotBlog(current);
     }
 
+    @Anonymous
     @GetMapping("/{id}")
     public Result queryBlogById(@PathVariable("id") Long id) {
         return blogService.queryBlogById(id);
     }
 
+    @Anonymous
     @GetMapping("/likes/{id}")
     public Result queryBlogLikes(@PathVariable("id") Long id) {
         return blogService.queryBlogLikes(id);

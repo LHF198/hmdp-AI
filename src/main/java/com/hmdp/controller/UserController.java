@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.hmdp.annotation.Anonymous;
 import com.hmdp.dto.LoginFormDTO;
 import com.hmdp.dto.Result;
 import com.hmdp.dto.UserDTO;
@@ -55,6 +56,7 @@ public class UserController {
     /**
      * 发送手机验证码
      */
+    @Anonymous
     @PostMapping("code")
     public Result sendCode(@RequestParam("phone") String phone, HttpSession session) {
         // 发送短信验证码并保存验证码
@@ -65,6 +67,7 @@ public class UserController {
      * 登录功能
      * @param loginForm 登录参数，包含手机号、验证码；或者手机号、密码
      */
+    @Anonymous
     @PostMapping("/login")
     public Result login(@Valid @RequestBody LoginFormDTO loginForm, HttpSession session){
         // 实现登录功能

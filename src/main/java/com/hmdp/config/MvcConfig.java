@@ -18,23 +18,14 @@ public class MvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        // 登录拦截器
+        // token 刷新拦截器（order=0 先执行）：解析请求头 token 到 ThreadLocal，供登录拦截器判断
+        registry.addInterceptor(new RefreshTokenInterceptor(stringRedisTemplate))
+                .addPathPatterns("/**")
+                .order(0);
+        // 登录拦截器（order=1 后执行）：基于 @Anonymous 注解的「默认拒绝 + 显式放行」鉴权，
+        // 不再使用 excludePathPatterns 路径列表，鉴权语义由各 Controller 方法上的注解显式表达
         registry.addInterceptor(new LoginInterceptor())
-                .excludePathPatterns(
-                        "/shop/**",
-                        "/voucher/**",
-                        "/shop-type/**",
-                        "/blog/hot",
-                        // 笔记详情/点赞列表/评论列表支持免登录浏览（对齐主流App：内容公开浏览、互动才需登录）
-                        // 写操作（删除笔记/发评论）在 Controller 内做 UserHolder 空值校验兜底
-                        "/blog/*",
-                        "/blog/likes/**",
-                        "/blog-comments/**",
-                        "/user/code",
-                        "/user/login",
-                        "/api/ai/**"
-                ).order(1);
-        // token刷新的拦截器
-        registry.addInterceptor(new RefreshTokenInterceptor(stringRedisTemplate)).addPathPatterns("/**").order(0);
+                .addPathPatterns("/**")
+                .order(1);
     }
 }

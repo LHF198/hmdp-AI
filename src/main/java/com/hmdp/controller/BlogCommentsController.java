@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.hmdp.annotation.Anonymous;
 import com.hmdp.dto.Result;
 import com.hmdp.dto.UserDTO;
 import com.hmdp.entity.BlogComments;
@@ -78,6 +79,7 @@ public class BlogCommentsController {
      * @param current 页码
      * @return records（评论列表）+ total（总数）
      */
+    @Anonymous
     @GetMapping("/{blogId}")
     public Result list(@PathVariable("blogId") Long blogId,
                        @RequestParam(value = "current", defaultValue = "1") Integer current) {

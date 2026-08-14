@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.hmdp.annotation.Anonymous;
 import com.hmdp.ai.dto.ChatRequest;
 import com.hmdp.ai.dto.ChatResponse;
 import com.hmdp.ai.service.AssistantService;
@@ -33,6 +34,7 @@ import reactor.core.publisher.Flux;
  *  GET  /api/ai/health          健康检查
  * </pre>
  */
+@Anonymous
 @Validated
 @RestController
 @RequestMapping("/api/ai")

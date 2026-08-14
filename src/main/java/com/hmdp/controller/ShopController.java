@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.hmdp.annotation.Anonymous;
 import com.hmdp.dto.Result;
 import com.hmdp.entity.Shop;
 import com.hmdp.service.IShopService;
@@ -40,6 +41,7 @@ public class ShopController {
      * @param id 商铺id
      * @return 商铺详情数据
      */
+    @Anonymous
     @GetMapping("/{id}")
     public Result queryShopById(@PathVariable("id") Long id) {
         return shopService.queryById(id);
@@ -75,6 +77,7 @@ public class ShopController {
      * @param current 页码
      * @return 商铺列表
      */
+    @Anonymous
     @GetMapping("/of/type")
     public Result queryShopByType(
             @RequestParam("typeId") Integer typeId,
@@ -92,6 +95,7 @@ public class ShopController {
      * 全部城市列表（供主页地区选择器使用，数据驱动）
      * @return 城市名列表
      */
+    @Anonymous
     @GetMapping("/cities")
     public Result queryCities() {
         // 常用城市保底，避免演示数据仅覆盖单城时下拉只有一项；与店铺数据取并集去重
@@ -115,6 +119,7 @@ public class ShopController {
      * 地图页：返回全部商铺（含经纬度），供前端按类型过滤并投影渲染
      * @return 全部商铺列表
      */
+    @Anonymous
     @GetMapping("/map/list")
     public Result queryAllForMap() {
         List<Shop> shops = shopService.query().select("id", "name", "type_id", "city", "area", "address", "x", "y", "avg_price", "sold", "comments", "score").list();
@@ -127,6 +132,7 @@ public class ShopController {
      * @param current 页码
      * @return 商铺列表
      */
+    @Anonymous
     @GetMapping("/of/name")
     public Result queryShopByName(
             @RequestParam(value = "name", required = false) String name,
