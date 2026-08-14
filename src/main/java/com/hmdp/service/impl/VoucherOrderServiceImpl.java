@@ -320,13 +320,15 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             log.error("获取分布式锁被中断, userId={}, voucherId={}", userId, voucherId, e);
-            return;
+            // 中断（应用关闭）时抛异常：消息不 ACK 留在 pending，重启后重新投递，保证不丢单
+            throw new IllegalStateException("获取分布式锁被中断，消息等待重新投递", e);
         }
         // 判断
         if (!isLock) {
-            // 获取锁失败（锁被其他请求持有），消息按处理完成确认，避免进入 pending 重试
-            log.error("不允许重复下单！userId={}, voucherId={}", userId, voucherId);
-            return;
+            // 获取锁失败（锁被其他请求短暂持有）：抛异常使消息进入 pending 重试，
+            // 超过上限移入死信队列告警，而不是静默 ACK 丢弃导致订单丢失
+            log.error("获取分布式锁失败，消息进入重试: userId={}, voucherId={}", userId, voucherId);
+            throw new IllegalStateException("获取分布式锁失败，等待重试: userId=" + userId + ", voucherId=" + voucherId);
         }
 
         try {

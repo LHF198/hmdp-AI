@@ -16,6 +16,8 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.domain.geo.GeoReference;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -98,12 +100,26 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         }
         // 1.更新数据库
         updateById(shop);
-        // 2.删除缓存（失败重试3次，避免旧数据长期驻留）
-        deleteCacheWithRetry(CACHE_SHOP_KEY + id);
-        // 3.坐标变更时同步更新 GEO 缓存，保证附近/距离排序与 DB 一致
-        if (shop.getX() != null && shop.getY() != null && shop.getTypeId() != null) {
-            stringRedisTemplate.opsForGeo().add(SHOP_GEO_KEY + shop.getTypeId(),
-                    new Point(shop.getX(), shop.getY()), id.toString());
+        // 2.缓存失效与 GEO 更新延后到事务提交后执行：
+        //   避免“删缓存-提交”窗口内并发读回填旧数据导致脏读（提交后新数据立即可见，删缓存才安全）
+        Runnable afterCommitTask = () -> {
+            deleteCacheWithRetry(CACHE_SHOP_KEY + id);
+            // 坐标变更时同步更新 GEO 缓存，保证附近/距离排序与 DB 一致
+            if (shop.getX() != null && shop.getY() != null && shop.getTypeId() != null) {
+                stringRedisTemplate.opsForGeo().add(SHOP_GEO_KEY + shop.getTypeId(),
+                        new Point(shop.getX(), shop.getY()), id.toString());
+            }
+        };
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    afterCommitTask.run();
+                }
+            });
+        } else {
+            // 无事务上下文（如测试直调）时同步执行
+            afterCommitTask.run();
         }
         return Result.ok();
     }
