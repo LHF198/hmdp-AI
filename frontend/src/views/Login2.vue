@@ -12,7 +12,7 @@
         <div style="height: 5px"></div>
         <el-input placeholder="请输入密码" v-model="form.password"> </el-input>
         <div style="text-align: center; color: #8c939d; margin: 5px 0">
-          <a href="javascript:void(0)">忘记密码</a>
+          <a href="javascript:void(0)" @click="goCode">忘记密码？用验证码登录</a>
         </div>
         <el-button @click="login" style="width: 100%; background-color: #f63; color: #fff">登录</el-button>
         <div style="text-align: right; color: #333333; margin: 5px 0">
@@ -36,7 +36,8 @@
 </template>
 
 <script setup>
-// 简化登录页：仅手机号+验证码快速登录（旧 MPA 页面 login2.html 的 SPA 迁移版，供简化入口使用）
+// 密码登录页（旧 MPA 页面 login2.html 的 SPA 迁移版）：手机号 + 密码登录，
+// 密码通过「我的-修改密码」或注册后设置；未设置密码的账号会提示先验证码登录
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'

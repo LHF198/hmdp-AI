@@ -27,6 +27,7 @@
         >
           {{ signedToday ? '已签到(' + signCount + '天)' : '签到' }}
         </div>
+        <div class="logout-btn" @click="pwdDialogVisible = true" title="设置/修改登录密码">修改密码</div>
         <div class="logout-btn" @click="logout">退出登录</div>
       </div>
       <div class="introduce" @click="toEdit" title="点击编辑简介" style="cursor: pointer">
@@ -139,6 +140,29 @@
     </div>
 
     <FootBar :active-btn="4" />
+
+    <!-- 设置/修改密码弹窗 -->
+    <el-dialog v-model="pwdDialogVisible" title="设置 / 修改密码" width="320px">
+      <el-input
+        v-model="pwdForm.oldPassword"
+        type="password"
+        show-password
+        placeholder="原密码（未设置过密码可留空）"
+        style="margin-bottom: 10px"
+      />
+      <el-input
+        v-model="pwdForm.newPassword"
+        type="password"
+        show-password
+        placeholder="新密码（4~32位字母、数字或下划线）"
+        style="margin-bottom: 10px"
+      />
+      <el-input v-model="pwdForm.confirmPassword" type="password" show-password placeholder="确认新密码" />
+      <template #footer>
+        <el-button @click="pwdDialogVisible = false">取消</el-button>
+        <el-button type="primary" style="background: #f63; border-color: #f63" @click="submitPassword">确定</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -170,6 +194,8 @@ const signCount = ref(0) // 本月连续签到天数
 const signedToday = ref(false) // 今日是否已签到
 const params = ref({ minTime: 0, offset: 0 }) // 关注 feed 游标
 const isReachBottom = ref(false)
+const pwdDialogVisible = ref(false) // 修改密码弹窗开关
+const pwdForm = ref({ oldPassword: '', newPassword: '', confirmPassword: '' }) // 修改密码表单
 
 onMounted(() => {
   queryUser()
@@ -295,6 +321,27 @@ function logout() {
       // 统一走 store 清理（token + 登录态），避免 store 与 sessionStorage 不同步
       useUserStore().logout()
       router.push('/')
+    })
+    .catch((err) => ElMessage.error(err))
+}
+
+function submitPassword() {
+  const { oldPassword, newPassword, confirmPassword } = pwdForm.value
+  // 前端先做格式校验，避免无效请求
+  if (!newPassword || !/^\w{4,32}$/.test(newPassword)) {
+    ElMessage.error('新密码格式不正确（4~32位字母、数字或下划线）')
+    return
+  }
+  if (newPassword !== confirmPassword) {
+    ElMessage.error('两次输入的密码不一致')
+    return
+  }
+  userApi
+    .setPassword({ oldPassword: oldPassword || '', newPassword })
+    .then(() => {
+      ElMessage.success('密码设置成功，下次登录可使用密码登录')
+      pwdDialogVisible.value = false
+      pwdForm.value = { oldPassword: '', newPassword: '', confirmPassword: '' }
     })
     .catch((err) => ElMessage.error(err))
 }

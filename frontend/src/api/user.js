@@ -17,4 +17,6 @@ export const userApi = {
   sign: () => http.post('/user/sign'),
   signCount: () => http.get('/user/sign/count'),
   updateInfo: (data) => http.put('/user/info', data),
+  // 设置/修改密码（{ oldPassword?, newPassword }，未设置过密码可省略 oldPassword）
+  setPassword: (data) => http.put('/user/password', data),
 }

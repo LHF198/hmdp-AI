@@ -35,4 +35,13 @@ public interface IUserService extends IService<User> {
      */
     void updateProfile(Long userId, String nickName, String icon, String token);
 
+    /**
+     * 设置/修改当前登录用户的密码（首次设置无需旧密码；已有密码时必须校验旧密码）
+     *
+     * @param oldPassword 原密码（账号未设置过密码时可传 null/空）
+     * @param newPassword 新密码（4~32 位字母、数字或下划线）
+     * @return 操作结果
+     */
+    Result setPassword(String oldPassword, String newPassword);
+
 }

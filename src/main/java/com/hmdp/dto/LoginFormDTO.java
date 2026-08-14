@@ -14,10 +14,9 @@ public class LoginFormDTO {
     @Pattern(regexp = RegexPatterns.PHONE_REGEX, message = "手机号格式不正确")
     private String phone;
 
-    /** 验证码（短信登录方式） */
-    @NotBlank(message = "验证码不能为空")
+    /** 验证码（短信登录方式；密码登录时无需填写） */
     private String code;
 
-    /** 密码（密码登录方式；短信登录时无需填写，故不做必填校验） */
+    /** 密码（密码登录方式；短信登录时无需填写） */
     private String password;
 }

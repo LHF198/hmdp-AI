@@ -24,6 +24,15 @@ public class RedisConstants {
     public static final Long LOGIN_USER_TTL = 36000L;
 
     /**
+     * 密码登录失败计数 key 前缀，完整键：login:fail:{phone}（String，防暴力破解）
+     */
+    public static final String LOGIN_FAIL_KEY = "login:fail:";
+    /**
+     * 密码登录失败锁定窗口：10 分钟
+     */
+    public static final Long LOGIN_FAIL_TTL = 10L;
+
+    /**
      * 空值占位缓存的有效期：2 分钟（防缓存穿透）
      */
     public static final Long CACHE_NULL_TTL = 2L;

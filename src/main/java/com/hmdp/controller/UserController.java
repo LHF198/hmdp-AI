@@ -111,6 +111,19 @@ public class UserController {
     }
 
     /**
+     * 设置/修改当前登录用户的密码（需登录；已有密码时必须携带原密码）
+     * @param body { oldPassword?, newPassword }
+     */
+    @PutMapping("/password")
+    public Result updatePassword(@RequestBody Map<String, Object> body) {
+        Object oldPassword = body.get("oldPassword");
+        Object newPassword = body.get("newPassword");
+        return userService.setPassword(
+                oldPassword == null ? null : oldPassword.toString(),
+                newPassword == null ? null : newPassword.toString());
+    }
+
+    /**
      * 修改当前登录用户的个人资料
      * @param body 待修改的资料，支持昵称、城市、介绍、性别、生日
      */

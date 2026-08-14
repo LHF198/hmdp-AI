@@ -24,9 +24,13 @@ import com.hmdp.service.IUserInfoService;
 import com.hmdp.service.IUserService;
 import static com.hmdp.utils.RedisConstants.LOGIN_CODE_KEY;
 import static com.hmdp.utils.RedisConstants.LOGIN_CODE_TTL;
+import static com.hmdp.utils.RedisConstants.LOGIN_FAIL_KEY;
+import static com.hmdp.utils.RedisConstants.LOGIN_FAIL_TTL;
 import static com.hmdp.utils.RedisConstants.LOGIN_USER_KEY;
 import static com.hmdp.utils.RedisConstants.LOGIN_USER_TTL;
 import static com.hmdp.utils.RedisConstants.USER_SIGN_KEY;
+import com.hmdp.utils.PasswordEncoder;
+import com.hmdp.utils.RegexPatterns;
 import com.hmdp.utils.RegexUtils;
 import static com.hmdp.utils.SystemConstants.USER_NICK_NAME_PREFIX;
 import com.hmdp.utils.UserHolder;
@@ -89,6 +93,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         return Result.ok();
     }
 
+    /**
+     * 密码登录连续失败次数上限，达到后锁定 {@link RedisConstants#LOGIN_FAIL_TTL} 分钟
+     */
+    private static final int MAX_PASSWORD_FAIL_TIMES = 5;
+
     @Override
     public Result login(LoginFormDTO loginForm, HttpSession session) {
         // 1.校验手机号
@@ -97,9 +106,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             // 2.如果不符合，返回错误信息
             return Result.fail("手机号格式错误！");
         }
-        // 3.从redis获取验证码并校验
+        // 3.双模式登录：验证码 / 密码二选一（都为空视为参数缺失）
+        if (StrUtil.isNotBlank(loginForm.getCode())) {
+            return loginByCode(phone, loginForm.getCode());
+        }
+        if (StrUtil.isNotBlank(loginForm.getPassword())) {
+            return loginByPassword(phone, loginForm.getPassword());
+        }
+        return Result.fail("请输入验证码或密码");
+    }
+
+    /**
+     * 验证码登录/注册：校验验证码（一次性使用），未注册手机号自动创建账号
+     */
+    private Result loginByCode(String phone, String code) {
+        // 1.从redis获取验证码并校验
         String cacheCode = stringRedisTemplate.opsForValue().get(LOGIN_CODE_KEY + phone);
-        String code = loginForm.getCode();
         if (cacheCode == null || !cacheCode.equals(code)) {
             // 不一致，报错
             return Result.fail("验证码错误");
@@ -107,32 +129,105 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         // 验证码一次性使用：校验通过立即作废，防止 TTL 内被复用
         stringRedisTemplate.delete(LOGIN_CODE_KEY + phone);
 
-        // 4.一致，根据手机号查询用户 select * from tb_user where phone = ?
+        // 2.根据手机号查询用户 select * from tb_user where phone = ?
         User user = lambdaQuery().eq(User::getPhone, phone).one();
-
-        // 5.判断用户是否存在
+        // 3.判断用户是否存在
         if (user == null) {
-            // 6.不存在，创建新用户并保存
+            // 不存在，创建新用户并保存
             user = createUserWithPhone(phone);
         }
+        // 4.签发登录态
+        return doLogin(user);
+    }
 
-        // 7.保存用户信息到 redis中
-        // 7.1.随机生成token，作为登录令牌
+    /**
+     * 密码登录：校验账号存在、已设置密码、密码正确，连续失败计数锁定防暴力破解
+     */
+    private Result loginByPassword(String phone, String password) {
+        // 1.连续失败锁定检查
+        String failKey = LOGIN_FAIL_KEY + phone;
+        String failCountStr = stringRedisTemplate.opsForValue().get(failKey);
+        if (failCountStr != null) {
+            int failCount = 0;
+            try {
+                failCount = Integer.parseInt(failCountStr);
+            } catch (NumberFormatException e) {
+                // 计数数据异常（如外部写入）：按 0 处理，不影响登录可用性
+                log.warn("密码失败计数格式异常，忽略: key={}, value={}", failKey, failCountStr);
+            }
+            if (failCount >= MAX_PASSWORD_FAIL_TIMES) {
+                return Result.fail("密码错误次数过多，请 " + LOGIN_FAIL_TTL + " 分钟后再试，或使用验证码登录");
+            }
+        }
+        // 2.查询用户
+        User user = lambdaQuery().eq(User::getPhone, phone).one();
+        if (user == null) {
+            return Result.fail("该手机号未注册，请使用验证码登录");
+        }
+        if (StrUtil.isBlank(user.getPassword())) {
+            return Result.fail("该账号尚未设置密码，请先用验证码登录后在「我的-修改密码」中设置");
+        }
+        // 3.校验密码
+        if (!PasswordEncoder.matches(user.getPassword(), password)) {
+            // 4.失败计数 +1，首次失败时设置窗口过期时间
+            Long count = stringRedisTemplate.opsForValue().increment(failKey);
+            if (count != null && count == 1L) {
+                stringRedisTemplate.expire(failKey, LOGIN_FAIL_TTL, TimeUnit.MINUTES);
+            }
+            int remain = Math.max(0, MAX_PASSWORD_FAIL_TIMES - (count == null ? 1 : count.intValue()));
+            return Result.fail("密码错误" + (remain > 0 ? "，还可尝试 " + remain + " 次" : "，请稍后再试或使用验证码登录"));
+        }
+        // 5.登录成功：清除失败计数并签发登录态
+        stringRedisTemplate.delete(failKey);
+        return doLogin(user);
+    }
+
+    /**
+     * 签发登录态：生成 token，用户信息写入 Redis（hash），返回 token
+     */
+    private Result doLogin(User user) {
+        // 1.随机生成token，作为登录令牌
         String token = UUID.randomUUID().toString(true);
-        // 7.2.将User对象转为HashMap存储
+        // 2.将User对象转为HashMap存储
         UserDTO userDTO = BeanUtil.copyProperties(user, UserDTO.class);
         Map<String, Object> userMap = BeanUtil.beanToMap(userDTO, new HashMap<>(),
                 CopyOptions.create()
                         .setIgnoreNullValue(true)
                         .setFieldValueEditor((fieldName, fieldValue) -> fieldValue.toString()));
-        // 7.3.存储
+        // 3.存储
         String tokenKey = LOGIN_USER_KEY + token;
         stringRedisTemplate.opsForHash().putAll(tokenKey, userMap);
-        // 7.4.设置token有效期
+        // 4.设置token有效期
         stringRedisTemplate.expire(tokenKey, LOGIN_USER_TTL, TimeUnit.MINUTES);
 
-        // 8.返回token
+        // 5.返回token
         return Result.ok(token);
+    }
+
+    @Override
+    public Result setPassword(String oldPassword, String newPassword) {
+        // 1.校验新密码格式
+        if (StrUtil.isBlank(newPassword) || !newPassword.matches(RegexPatterns.PASSWORD_REGEX)) {
+            return Result.fail("密码格式不正确（4~32位字母、数字或下划线）");
+        }
+        // 2.获取当前登录用户
+        Long userId = UserHolder.getUser().getId();
+        User user = getById(userId);
+        if (user == null) {
+            return Result.fail("用户不存在");
+        }
+        // 3.已有密码时必须校验原密码
+        if (StrUtil.isNotBlank(user.getPassword())) {
+            if (StrUtil.isBlank(oldPassword) || !PasswordEncoder.matches(user.getPassword(), oldPassword)) {
+                return Result.fail("原密码错误");
+            }
+        }
+        // 4.更新密码（MD5 + 随机盐，见 PasswordEncoder）
+        boolean isSuccess = lambdaUpdate()
+                .set(User::getPassword, PasswordEncoder.encode(newPassword))
+                .eq(User::getId, userId)
+                .update();
+        return isSuccess ? Result.ok() : Result.fail("密码修改失败，请重试");
     }
 
     @Override
