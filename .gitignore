@@ -25,6 +25,8 @@ frontend/package-lock.json
 
 # ==================== 数据产物 ====================
 data/redis/
+# RAG 向量快照（运行时产物，机器生成，不入库；redis 模式下存 Redis 无需此文件）
+data/ai-vector-store.json
 
 # ==================== IDE ====================
 .vscode/
