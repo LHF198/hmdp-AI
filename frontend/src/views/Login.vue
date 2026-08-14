@@ -97,7 +97,12 @@ function sendCode() {
   userApi
     .sendCode(form.value.phone)
     .then(({ data }) => {
-      ElMessage.success('验证码已发送：' + data + '（演示环境）')
+      // 演示环境（echo-code=true）后端回显验证码；生产环境仅提示已发送
+      if (data) {
+        ElMessage.success('验证码已发送：' + data + '（演示环境）')
+      } else {
+        ElMessage.success('验证码已发送，请注意查收')
+      }
     })
     .catch((err) => {
       console.log(err)

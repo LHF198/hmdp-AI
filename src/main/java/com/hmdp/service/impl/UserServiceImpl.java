@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -58,6 +59,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     @Resource
     private IUserInfoService userInfoService;
 
+    /**
+     * 演示环境无短信通道时是否将验证码回显给前端（app.demo.echo-code，仅开发 profile 开启；生产禁止）
+     */
+    @Value("${app.demo.echo-code:false}")
+    private boolean echoCode;
+
     @Override
     public Result sendCode(String phone, HttpSession session) {
         // 1.校验手机号
@@ -65,16 +72,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             // 2.如果不符合，返回错误信息
             return Result.fail("手机号格式错误！");
         }
-        // 3.符合，生成验证码
+        // 3.发送冷却：验证码 TTL 内存在未消费验证码则拒绝重发（防短信轰炸 + 防验证码枚举）
+        if (Boolean.TRUE.equals(stringRedisTemplate.hasKey(LOGIN_CODE_KEY + phone))) {
+            return Result.fail("验证码已发送，请稍后再试");
+        }
+        // 4.生成验证码
         String code = RandomUtil.randomNumbers(6);
-
-        // 4.保存验证码到 session
+        // 5.保存验证码到 Redis（TTL 过期自动失效）
         stringRedisTemplate.opsForValue().set(LOGIN_CODE_KEY + phone, code, LOGIN_CODE_TTL, TimeUnit.MINUTES);
-
-        // 5.发送验证码（演示环境无短信通道，验证码直接回显给前端展示）
+        // 6.发送验证码（真实环境接入短信通道；演示环境按配置决定是否回显）
         log.debug("发送短信验证码成功，验证码：{}", code);
-        // 返回验证码供前端提示展示
-        return Result.ok(code);
+        if (echoCode) {
+            // 仅演示环境回显给前端展示
+            return Result.ok(code);
+        }
+        return Result.ok();
     }
 
     @Override
@@ -92,6 +104,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             // 不一致，报错
             return Result.fail("验证码错误");
         }
+        // 验证码一次性使用：校验通过立即作废，防止 TTL 内被复用
+        stringRedisTemplate.delete(LOGIN_CODE_KEY + phone);
 
         // 4.一致，根据手机号查询用户 select * from tb_user where phone = ?
         User user = lambdaQuery().eq(User::getPhone, phone).one();
