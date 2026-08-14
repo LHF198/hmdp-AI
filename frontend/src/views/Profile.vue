@@ -143,24 +143,31 @@
 
     <!-- 设置/修改密码弹窗 -->
     <el-dialog v-model="pwdDialogVisible" title="设置 / 修改密码" width="320px">
-      <el-input
-        v-model="pwdForm.oldPassword"
-        type="password"
-        show-password
-        placeholder="原密码（未设置过密码可留空）"
-        style="margin-bottom: 10px"
-      />
-      <el-input
-        v-model="pwdForm.newPassword"
-        type="password"
-        show-password
-        placeholder="新密码（4~32位字母、数字或下划线）"
-        style="margin-bottom: 10px"
-      />
-      <el-input v-model="pwdForm.confirmPassword" type="password" show-password placeholder="确认新密码" />
+      <div class="pwd-field">
+        <label class="pwd-label">原密码</label>
+        <el-input
+          v-model="pwdForm.oldPassword"
+          type="password"
+          show-password
+          placeholder="未设置过密码可留空"
+        />
+      </div>
+      <div class="pwd-field">
+        <label class="pwd-label">新密码</label>
+        <el-input
+          v-model="pwdForm.newPassword"
+          type="password"
+          show-password
+          placeholder="4~32位字母、数字或下划线"
+        />
+      </div>
+      <div class="pwd-field">
+        <label class="pwd-label">确认新密码</label>
+        <el-input v-model="pwdForm.confirmPassword" type="password" show-password placeholder="再次输入新密码" />
+      </div>
       <template #footer>
-        <el-button @click="pwdDialogVisible = false">取消</el-button>
-        <el-button type="primary" style="background: #f63; border-color: #f63" @click="submitPassword">确定</el-button>
+        <el-button class="pwd-btn-cancel" @click="pwdDialogVisible = false">取消</el-button>
+        <el-button class="pwd-btn-confirm" @click="submitPassword">确定</el-button>
       </template>
     </el-dialog>
   </div>
@@ -439,5 +446,26 @@ function firstImage(images) {
   max-height: none !important;
   overflow: visible !important;
   padding-bottom: 80px;
+}
+/* 修改密码弹窗标签样式 */
+.pwd-field {
+  margin-bottom: 12px;
+}
+.pwd-label {
+  display: block;
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 4px;
+}
+/* 修改密码弹窗按钮：覆盖 glass.css 全局 .el-button 的 !important 规则 */
+.pwd-btn-cancel {
+  background: #f5f5f5 !important;
+  color: #333 !important;
+  border: 1px solid #ddd !important;
+}
+.pwd-btn-confirm {
+  background: #f63 !important;
+  color: #fff !important;
+  border: 1px solid #f63 !important;
 }
 </style>

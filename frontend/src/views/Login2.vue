@@ -14,22 +14,18 @@
         <div style="text-align: center; color: #8c939d; margin: 5px 0">
           <a href="javascript:void(0)" @click="goCode">忘记密码？用验证码登录</a>
         </div>
-        <el-button @click="login" style="width: 100%; background-color: #f63; color: #fff">登录</el-button>
+        <el-button @click="login" style="width: 100%; background-color: #f63 !important; color: #fff !important; border-color: #f63 !important">登录</el-button>
         <div style="text-align: right; color: #333333; margin: 5px 0">
           <a href="/app/login" @click.prevent="goCode">验证码登录</a>
         </div>
       </div>
       <div class="login-radio">
-        <div>
-          <input type="radio" name="readed" v-model="radio" value="1" />
-          <label for="readed"></label>
-        </div>
-        <div>
-          我已阅读并同意
-          <a href="javascript:void(0)"> 《黑马点评用户服务协议》</a>、
+        <el-checkbox v-model="agreed" size="small" style="width: 100%; white-space: normal; line-height: 1.5">
+          <span style="display: inline">我已阅读并同意</span>
+          <a href="javascript:void(0)">《黑马点评用户服务协议》</a>、
           <a href="javascript:void(0)">《隐私政策》</a>
-          等，接受免除或者限制责任、诉讼管辖约定等粗体标示条款
-        </div>
+          <span style="display: inline">等，接受免除或者限制责任、诉讼管辖约定等粗体标示条款</span>
+        </el-checkbox>
       </div>
     </div>
   </div>
@@ -48,11 +44,11 @@ import { loginRedirectUrl } from '@/utils/date'
 const router = useRouter()
 const userStore = useUserStore()
 
-const radio = ref('')
+const agreed = ref(false)
 const form = ref({})
 
 function login() {
-  if (!radio.value) {
+  if (!agreed.value) {
     ElMessage.error('请先确认阅读用户协议！')
     return
   }
