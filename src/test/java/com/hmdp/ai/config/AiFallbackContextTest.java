@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,7 +29,12 @@ class AiFallbackContextTest {
         Assumptions.assumeTrue(chatModel instanceof FallbackChatModel,
                 "测试环境已注入 AI_API_KEY，跳过降级场景验证");
 
-        String content = chatClient.prompt().user("你好").call().content();
+        // 与生产调用一致（AssistantService 总会注入会话 ID）：MessageChatMemoryAdvisor 要求 conversationId 非空
+        String content = chatClient.prompt()
+                .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, "test-conversation-0001"))
+                .user("你好")
+                .call()
+                .content();
         assertEquals(FallbackChatModel.TIP_TEXT, content);
     }
 }

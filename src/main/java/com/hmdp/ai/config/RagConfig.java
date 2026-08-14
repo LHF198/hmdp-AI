@@ -64,6 +64,13 @@ public class RagConfig {
             @Value("${app.ai.rag.rebuild:false}") boolean rebuild) {
         SimpleVectorStore store = SimpleVectorStore.builder(embeddingModel).build();
 
+        // 降级模式（无 AI_API_KEY，注入 FallbackEmbeddingModel，embed() 返回全 1 占位向量）：
+        // 跳过快照加载/向量化/持久化，避免把占位向量写入快照，毒化后续真实启动的 RAG 检索
+        if (embeddingModel instanceof FallbackEmbeddingModel) {
+            log.info("降级模式（未配置 AI_API_KEY）：跳过 RAG 知识库向量化与快照读写");
+            return store;
+        }
+
         // 优先加载已持久化的向量快照，避免每次重启重复调用 embedding API（省配额、加快启动）
         if (!rebuild && snapshotRepository.load(store)) {
             return store;
