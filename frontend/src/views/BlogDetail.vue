@@ -5,7 +5,7 @@
       <div class="header-back-btn" @click="goBack">
         <el-icon :size="22"><ArrowLeft /></el-icon>
       </div>
-      <div class="header-title"></div>
+      <div class="header-title">{{ blog.title }}</div>
       <div
         class="header-delete"
         v-if="user && blog.userId && user.id === blog.userId"
@@ -16,11 +16,22 @@
       <div class="header-share" v-else title="复制笔记链接分享" @click="share">...</div>
     </div>
 
-    <div class="detail-body">
+    <!-- 笔记不存在/加载失败时的错误空态（避免渲染 NaN 日期、空头像等残缺假页面） -->
+    <div class="detail-body" v-if="loadError">
+      <EmptyState size="roomy">
+        <div class="blog-missing">
+          <div class="blog-missing-text">笔记不存在或已删除</div>
+          <div class="blog-missing-btn" @click="router.push('/')">返回首页</div>
+        </div>
+      </EmptyState>
+    </div>
+
+    <div class="detail-body" v-else>
       <!-- 图片轮播（触摸滑动 + 鼠标拖拽） -->
       <div
         class="blog-info-box"
         ref="swiper"
+        :style="swiperHeight ? { height: swiperHeight + 'px' } : {}"
         @touchstart="moveStart"
         @touchmove="moving"
         @touchend="moveEnd"
@@ -30,7 +41,7 @@
         @mouseleave="mouseEnd"
       >
         <div class="swiper-item" v-for="(img, i) in blog.images" :key="i">
-          <img :src="img" alt="" draggable="false" />
+          <img :src="img" alt="" draggable="false" @load="onImgLoad(i, $event)" />
         </div>
         <div class="indicator-dot" v-if="blog.images && blog.images.length > 1">
           {{ active + 1 }}/{{ blog.images.length }}
@@ -71,6 +82,9 @@
           </div>
         </div>
       </div>
+
+      <!-- 笔记标题：完整展示（header 中间为单行省略版） -->
+      <div class="blog-detail-title" v-if="blog.title">{{ blog.title }}</div>
 
       <!-- 笔记正文：插值渲染（v-html 渲染用户输入存在存储型 XSS 风险，已移除；pre-wrap 保留换行） -->
       <div class="blog-text">{{ blog.content }}</div>
@@ -162,41 +176,40 @@
 
     <!-- 底部栏：点赞 + 评论输入（Teleport 到 body：#app 的 backdrop-filter 会成为
          fixed 元素的包含块，导致底栏随内容滚动而非贴底） -->
-    <Teleport to="body">
+    <Teleport to="body" v-if="!loadError">
       <div class="foot blog-detail-foot">
-        <div class="foot-box">
-          <div class="foot-view" @click="addLike">
-            <svg
-              t="1646634642977"
-              class="icon"
-              viewBox="0 0 1024 1024"
-              version="1.1"
-              xmlns="http://www.w3.org/2000/svg"
-              width="26"
-              height="26"
-            >
-              <path
-                d="M160 944c0 8.8-7.2 16-16 16h-32c-26.5 0-48-21.5-48-48V528c0-26.5 21.5-48 48-48h32c8.8 0 16 7.2 16 16v448zM96 416c-53 0-96 43-96 96v416c0 53 43 96 96 96h96c17.7 0 32-14.3 32-32V448c0-17.7-14.3-32-32-32H96zM505.6 64c16.2 0 26.4 8.7 31 13.9 4.6 5.2 12.1 16.3 10.3 32.4l-23.5 203.4c-4.9 42.2 8.6 84.6 36.8 116.4 28.3 31.7 68.9 49.9 111.4 49.9h271.2c6.6 0 10.8 3.3 13.2 6.1s5 7.5 4 14l-48 303.4c-6.9 43.6-29.1 83.4-62.7 112C815.8 944.2 773 960 728.9 960h-317c-33.1 0-59.9-26.8-59.9-59.9v-455c0-6.1 1.7-12 5-17.1 69.5-109 106.4-234.2 107-364h41.6z m0-64h-44.9C427.2 0 400 27.2 400 60.7c0 127.1-39.1 251.2-112 355.3v484.1c0 68.4 55.5 123.9 123.9 123.9h317c122.7 0 227.2-89.3 246.3-210.5l47.9-303.4c7.8-49.4-30.4-94.1-80.4-94.1H671.6c-50.9 0-90.5-44.4-84.6-95l23.5-203.4C617.7 55 568.7 0 505.6 0z"
-                :fill="blog.isLike ? BRAND_COLOR : TEXT_SECONDARY"
-              ></path>
-            </svg>
-            <span :class="{ liked: blog.isLike }">{{ blog.liked }}</span>
-          </div>
+        <!-- 点赞区 -->
+        <div class="foot-like" @click="addLike">
+          <svg
+            t="1646634642977"
+            class="like-icon"
+            viewBox="0 0 1024 1024"
+            version="1.1"
+            xmlns="http://www.w3.org/2000/svg"
+            width="22"
+            height="22"
+          >
+            <path
+              d="M160 944c0 8.8-7.2 16-16 16h-32c-26.5 0-48-21.5-48-48V528c0-26.5 21.5-48 48-48h32c8.8 0 16 7.2 16 16v448zM96 416c-53 0-96 43-96 96v416c0 53 43 96 96 96h96c17.7 0 32-14.3 32-32V448c0-17.7-14.3-32-32-32H96zM505.6 64c16.2 0 26.4 8.7 31 13.9 4.6 5.2 12.1 16.3 10.3 32.4l-23.5 203.4c-4.9 42.2 8.6 84.6 36.8 116.4 28.3 31.7 68.9 49.9 111.4 49.9h271.2c6.6 0 10.8 3.3 13.2 6.1s5 7.5 4 14l-48 303.4c-6.9 43.6-29.1 83.4-62.7 112C815.8 944.2 773 960 728.9 960h-317c-33.1 0-59.9-26.8-59.9-59.9v-455c0-6.1 1.7-12 5-17.1 69.5-109 106.4-234.2 107-364h41.6z m0-64h-44.9C427.2 0 400 27.2 400 60.7c0 127.1-39.1 251.2-112 355.3v484.1c0 68.4 55.5 123.9 123.9 123.9h317c122.7 0 227.2-89.3 246.3-210.5l47.9-303.4c7.8-49.4-30.4-94.1-80.4-94.1H671.6c-50.9 0-90.5-44.4-84.6-95l23.5-203.4C617.7 55 568.7 0 505.6 0z"
+              :fill="blog.isLike ? BRAND_COLOR : '#999'"
+            ></path>
+          </svg>
+          <span class="like-count" :class="{ liked: blog.isLike }">{{ blog.liked }}</span>
         </div>
-        <div class="foot-gap"></div>
-        <div class="comment-input-row">
+
+        <!-- 评论输入区 -->
+        <div class="comment-bar">
           <input
             class="comment-input"
             v-model="commentContent"
             placeholder="说点什么，温柔一点～"
             @keyup.enter="sendComment"
           />
-          <div
-            class="foot-view send-btn"
-            @click="sendComment"
-          >
-            发送
-          </div>
+          <button class="send-btn" :class="{ active: commentContent.trim() }" @click="sendComment">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+              <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+            </svg>
+          </button>
         </div>
       </div>
     </Teleport>
@@ -224,6 +237,7 @@ const userStore = useUserStore()
 const blog = ref({})
 const shop = ref({})
 const likes = ref([])
+const loadError = ref(false) // 笔记加载失败（不存在/已删除）时切换到错误空态
 const user = ref({}) // 登录用户
 const followed = ref(false) // 是否关注了
 const comments = ref([]) // 评论列表
@@ -236,6 +250,8 @@ const swiper = ref(null)
 const _width = ref(0)
 const items = ref([])
 const active = ref(0)
+const imgRatios = ref({}) // 每张图的自然宽高比（width / height）
+const swiperHeight = ref(0) // 轮播容器高度：随当前图比例自适应，保证图片尽量完整展示
 const duration = 300
 const sensitivity = 60
 const resistance = 0.3
@@ -323,7 +339,10 @@ function queryBlogById(id) {
       queryLikeList(id)
       queryLoginUser()
     })
-    .catch((err) => ElMessage.error(err))
+    .catch((err) => {
+      loadError.value = true
+      ElMessage.error(err)
+    })
 }
 
 function queryShopById(shopId) {
@@ -457,6 +476,8 @@ function follow() {
 }
 
 function formatTime(b) {
+  // 无效日期（如 new Date(undefined)）返回空串，避免渲染出 NaN年NaN月NaN日
+  if (!b || isNaN(b.getTime())) return ''
   return (
     b.getFullYear() +
     '年' +
@@ -498,6 +519,27 @@ function deleteBlog() {
 }
 
 // ===== 图片触摸轮播（迁移自旧 blog-detail.html 的手写 swiper） =====
+// 图片加载完成后记录自然比例；若是当前展示图则同步调整容器高度
+function onImgLoad(i, e) {
+  const img = e.target
+  if (img.naturalWidth && img.naturalHeight) {
+    imgRatios.value[i] = img.naturalWidth / img.naturalHeight
+    if (i === active.value) {
+      applySwiperHeight()
+    }
+  }
+}
+
+// 按当前图比例自适应轮播高度：最小 200px，最大 75vh（防极长图撑爆页面）
+function applySwiperHeight() {
+  const ratio = imgRatios.value[active.value]
+  if (!ratio || !swiper.value) return
+  const w = swiper.value.offsetWidth
+  if (!w) return
+  const h = w / ratio
+  swiperHeight.value = Math.round(Math.min(Math.max(h, 200), window.innerHeight * 0.75))
+}
+
 function initSwiper() {
   if (!swiper.value) return
   items.value = swiper.value.querySelectorAll('.swiper-item')
@@ -663,6 +705,8 @@ function go(index) {
   }
   setTransition()
   setTransform()
+  // 切换后按新图比例调整容器高度（该图未加载完成时维持原高度，load 后再修正）
+  applySwiperHeight()
 }
 </script>
 
@@ -712,7 +756,7 @@ function go(index) {
   min-width: 36px;
   text-align: center;
   font-size: 18px;
-  color: #ff6633;
+  color: var(--brand);
   font-weight: bold;
   cursor: pointer;
 }
@@ -720,18 +764,10 @@ function go(index) {
 .blog-detail-page .detail-body {
   padding-bottom: 70px;
 }
-/* 作者栏关注按钮列 */
-.blog-detail-page .basic-follow-col {
-  width: 20%;
-}
-.blog-detail-page .logout-btn {
-  width: auto;
-  padding: 0 8px;
-  text-align: center;
-}
 /* 关联店铺卡片信息列 */
 .blog-detail-page .shop-card-info {
-  width: 80%;
+  flex: 1;
+  min-width: 0;
 }
 /* 点赞数文案 */
 .blog-detail-page .zan-count {
@@ -742,7 +778,7 @@ function go(index) {
 /* 评论空态 */
 .blog-detail-page .comments-empty {
   text-align: center;
-  color: #82848a;
+  color: var(--text-muted);
   padding: 20px 0;
   font-size: 14px;
 }
@@ -753,11 +789,31 @@ function go(index) {
 }
 .blog-detail-page .comment-meta {
   font-size: 12px;
-  color: #82848a;
+  color: var(--text-muted);
 }
 .blog-detail-page .comment-delete {
-  color: #ff6633;
+  color: var(--brand);
   margin-left: 10px;
+  cursor: pointer;
+}
+/* 笔记不存在空态 */
+.blog-detail-page .blog-missing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.blog-detail-page .blog-missing-text {
+  font-size: 15px;
+  color: var(--text-weak);
+}
+.blog-detail-page .blog-missing-btn {
+  padding: 8px 24px;
+  border-radius: var(--radius-pill);
+  background: var(--brand);
+  color: var(--brand-on);
+  box-shadow: var(--shadow-brand);
+  font-size: 14px;
   cursor: pointer;
 }
 /* 加载更多评价 */
@@ -767,30 +823,7 @@ function go(index) {
   padding: 15px 0;
   border-top: 1px solid #f1f1f1;
   margin-top: 10px;
-  color: #82848a;
+  color: var(--text-muted);
   cursor: pointer;
-}
-/* 底部栏：点赞计数列占位与评论输入区 */
-.blog-detail-page .foot-gap {
-  width: 10%;
-}
-.blog-detail-page .comment-input-row {
-  flex: 1;
-  display: flex;
-  align-items: center;
-}
-.blog-detail-page .comment-input {
-  flex: 1;
-  border: 1px solid #eee;
-  border-radius: 16px;
-  padding: 6px 12px;
-  font-size: 13px;
-  outline: none;
-  background: rgba(255, 255, 255, 0.9);
-}
-.blog-detail-page .send-btn {
-  margin-left: 8px;
-  cursor: pointer;
-  color: #ff6633;
 }
 </style>

@@ -14,7 +14,8 @@
         <div class="name">{{ user.nickName }}</div>
         <span>杭州</span>
       </div>
-      <div class="logout-btn" @click="follow" style="text-align: center">
+      <!-- 未关注时用品牌色强调为主操作，已关注时降级为次级样式 -->
+      <div class="logout-btn" :class="{ 'logout-btn--brand': !followed }" @click="follow">
         {{ followed ? '取消关注' : '关注' }}
       </div>
     </div>

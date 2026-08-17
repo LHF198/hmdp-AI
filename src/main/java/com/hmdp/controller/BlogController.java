@@ -68,6 +68,17 @@ public class BlogController {
         return blogService.queryBlogById(id);
     }
 
+    /**
+     * 某店铺的探店笔记列表（店铺详情页评论区聚合展示，匿名可访问）
+     * @param shopId 店铺id
+     * @return 笔记列表（按点赞数倒序）
+     */
+    @Anonymous
+    @GetMapping("/of/shop/{shopId}")
+    public Result queryBlogByShopId(@PathVariable("shopId") Long shopId) {
+        return blogService.queryBlogByShopId(shopId);
+    }
+
     @Anonymous
     @GetMapping("/likes/{id}")
     public Result queryBlogLikes(@PathVariable("id") Long id) {

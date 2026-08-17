@@ -1,0 +1,425 @@
+/* ============================================================
+   首页：店铺分类宫格 + 笔记瀑布流 + 城市选择器
+   取代 html/hmdp/css/index.css 与 glass.css 中的对应段
+   （旧实现为「index.css 写死黑底/黑粗边 → glass.css 用 !important 全量覆盖」的叠层，
+     此处只保留最终生效值，故无需任何 !important）
+   ============================================================ */
+
+/* ---------- 分类宫格 ---------- */
+.type-list {
+  /* Grid 4 列：取代旧 flex+space-around。旧方案最后一行格子不足 4 个时会被
+     space-around 分散到两端，与上方行错位（对齐失误）；grid 保证每列严格对齐 */
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  justify-items: center;
+  align-content: flex-start;
+  height: auto;
+  min-height: fit-content;
+  box-sizing: border-box;
+  padding: var(--space-5) var(--space-4) 14px;
+  gap: var(--space-3);
+  margin: var(--space-4) 0;
+  background: var(--surface-1);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  backdrop-filter: blur(20px) saturate(1.3);
+  border: 1px solid var(--border-3);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-2), var(--shadow-1), var(--sheen);
+}
+
+.type-box {
+  position: relative;
+  width: 100%;
+  max-width: 92px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-align: center;
+  padding: var(--space-2) var(--space-1);
+  background: rgba(255, 255, 255, 0.3);
+  border: 1px solid var(--border-3);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-1), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: transform var(--dur-slow) var(--ease),
+    background var(--dur-slow) var(--ease), border-color var(--dur-slow) var(--ease),
+    box-shadow var(--dur-slow) var(--ease);
+}
+
+/* 顶部高光 */
+.type-box::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40%;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.4) 0%,
+    transparent 100%
+  );
+  pointer-events: none;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+/* 悬停：改为品牌色光晕（旧实现为黑色光晕，与品牌语义不符） */
+.type-box:hover {
+  transform: translateY(-4px) scale(1.08);
+  background: rgba(255, 255, 255, 0.5);
+  border-color: var(--brand-border);
+  box-shadow: 0 0 0 3px rgba(255, 102, 51, 0.18),
+    0 8px 28px rgba(180, 90, 50, 0.22), var(--sheen);
+  z-index: 10;
+}
+
+.type-box:active {
+  transform: translateY(-2px) scale(1.02);
+  transition-duration: var(--dur-fast);
+}
+
+.type-view {
+  /* 彩色圆形底托：图标居中，底色按分类循环取 tokens 的 --cat-N */
+  width: 46px;
+  height: 46px;
+  margin: 0 auto;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--cat-1);
+  transition: transform var(--dur-base) var(--ease);
+}
+
+.type-box:hover .type-view {
+  transform: scale(1.06);
+}
+
+/* 按宫格位置循环分配底色（10 个分类一轮） */
+.type-list .type-box:nth-child(10n + 1) .type-view { background: var(--cat-1); }
+.type-list .type-box:nth-child(10n + 2) .type-view { background: var(--cat-2); }
+.type-list .type-box:nth-child(10n + 3) .type-view { background: var(--cat-3); }
+.type-list .type-box:nth-child(10n + 4) .type-view { background: var(--cat-4); }
+.type-list .type-box:nth-child(10n + 5) .type-view { background: var(--cat-5); }
+.type-list .type-box:nth-child(10n + 6) .type-view { background: var(--cat-6); }
+.type-list .type-box:nth-child(10n + 7) .type-view { background: var(--cat-7); }
+.type-list .type-box:nth-child(10n + 8) .type-view { background: var(--cat-8); }
+.type-list .type-box:nth-child(10n + 9) .type-view { background: var(--cat-9); }
+.type-list .type-box:nth-child(10n) .type-view { background: var(--cat-10); }
+
+.type-view img,
+.type-box .type-view img {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  border-radius: 0;
+  transition: transform var(--dur-base) ease;
+}
+
+.type-box:hover img {
+  transform: scale(1.05);
+}
+
+.type-text {
+  color: var(--text-strong);
+  font-size: 10px;
+  margin-top: var(--space-1);
+  margin-bottom: 2px;
+  line-height: 1.2;
+}
+
+/* 仅展示前两行（常见 5 列 → 前 10 项） */
+.type-list .type-box:nth-child(n + 11) {
+  display: none;
+}
+
+/* ---------- 笔记瀑布流 ---------- */
+.blog-list {
+  width: 100%;
+  /* Grid 2 列：取代旧 flex+space-around。旧方案最后一行单卡会被分散居中，
+     与上方两列错位；grid 保证最后一行单卡靠左，与两列网格线对齐 */
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-auto-rows: minmax(0, auto); /* 行高随内容自适应，确保卡片能撑开 */
+  justify-items: center;
+  align-content: start;
+  box-sizing: border-box;
+  /* 移除固定高度，让网格随卡片内容自然增长；页面整体滚动 */
+  overflow: visible;
+  margin: var(--space-2) 0 0;
+  /* 底部留出底栏高度 + 偏移 + 安全余量，避免最后一行被底栏遮挡 */
+  padding: 14px var(--space-4)
+    calc(var(--foot-height) + var(--foot-offset) + 30px);
+  background: var(--surface-1);
+  -webkit-backdrop-filter: var(--blur-panel);
+  backdrop-filter: var(--blur-panel);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-4), var(--sheen);
+}
+
+.blog-box {
+  /* 两列栅格：卡片撑满列宽，不再限制 max-width 导致居中留白 */
+  width: 100%;
+  margin: 5px 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.18);
+  -webkit-backdrop-filter: var(--blur-item);
+  backdrop-filter: var(--blur-item);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-2);
+  cursor: pointer;
+  transition: transform var(--dur-slow) var(--ease),
+    box-shadow var(--dur-slow) var(--ease), filter var(--dur-slow) var(--ease);
+}
+
+.blog-box:hover {
+  filter: brightness(1.05);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-4), var(--sheen);
+}
+
+.blog-box:active {
+  transform: scale(0.98);
+}
+
+.blog-img {
+  width: 100%;
+  /* 未加载时回退到 1:1 正方形占位；
+     图片加载后 JS 通过 inline style 设置 aspect-ratio 为图片自然宽高比，
+     容器比例与图片完全一致，contain 无留白 */
+  flex: none;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+}
+
+.blog-img img {
+  width: 100%;
+  height: 100%;
+  /* contain：容器比例已与图片一致，完整展示无留白（与博客详情页一致） */
+  object-fit: contain;
+  border-radius: var(--radius-lg);
+}
+
+/* aspect-ratio 不支持时的回退 */
+@supports not (aspect-ratio: 1 / 1) {
+  .blog-img {
+    height: min(44vw, 320px);
+  }
+}
+
+.blog-title {
+  padding: 8px var(--space-4) 4px;
+  min-height: 34px;
+  max-height: 40px;
+  overflow: hidden;
+  color: var(--text-strong);
+  font-size: 13px;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.blog-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: auto 0 8px;
+  padding: 0 var(--space-4);
+  gap: 6px;
+}
+
+.blog-user-icon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.blog-user-icon img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.blog-user-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-weak);
+  font-size: 11px;
+}
+
+.blog-liked {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 3px;
+  color: var(--accent-weak);
+  cursor: pointer;
+  font-size: 12px;
+}
+
+/* ---------- 瀑布流骨架屏（首次加载占位，避免空白闪烁） ---------- */
+.blog-skeleton {
+  width: 100%;
+  margin: 5px 0;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-2);
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.blog-skeleton-img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+}
+
+.blog-skeleton-line {
+  height: 12px;
+  margin: 10px var(--space-4) 0;
+  border-radius: var(--radius-pill);
+}
+
+.blog-skeleton-line.short {
+  width: 50%;
+  margin-bottom: 10px;
+}
+
+.blog-skeleton-img,
+.blog-skeleton-line {
+  background: rgba(31, 45, 61, 0.07);
+  animation: skeleton-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* ---------- 瀑布流加载尾巴（触底加载中 / 到底提示） ---------- */
+.blog-list-tail {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: var(--space-4) 0 var(--space-2);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.blog-list-tail .tail-loading {
+  color: var(--brand);
+}
+
+/* ---------- 省→市两级地区选择器 ---------- */
+.city-picker {
+  width: 100%;
+}
+
+.city-picker-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--divider);
+}
+
+.city-picker-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.city-picker-all {
+  font-size: 13px;
+  color: var(--brand);
+  cursor: pointer;
+}
+
+.city-picker-hot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: var(--space-4) 0 var(--space-3);
+  border-bottom: 1px solid var(--divider);
+}
+
+.city-picker-hot-item {
+  font-size: 12px;
+  padding: 3px var(--space-4);
+  border-radius: var(--radius-pill);
+  background: rgba(31, 45, 61, 0.06);
+  color: var(--text-weak);
+  cursor: pointer;
+  transition: background var(--dur-base) ease, color var(--dur-base) ease;
+}
+
+.city-picker-hot-item:hover {
+  background: rgba(31, 45, 61, 0.1);
+}
+
+.city-picker-hot-item.active {
+  background: var(--brand-weak);
+  color: var(--brand);
+}
+
+.city-picker-cols {
+  display: flex;
+  height: 320px;
+  margin-top: var(--space-3);
+}
+
+.city-picker-prov {
+  width: 96px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  border-right: 1px solid var(--divider);
+}
+
+.city-picker-prov-item,
+.city-picker-city-item {
+  padding: var(--space-3) var(--space-4);
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: background var(--dur-base) ease, color var(--dur-base) ease;
+}
+
+.city-picker-prov-item {
+  color: var(--text-weak);
+}
+
+.city-picker-city-item {
+  color: var(--text-strong);
+}
+
+.city-picker-prov-item:hover,
+.city-picker-city-item:hover {
+  background: rgba(31, 45, 61, 0.05);
+}
+
+.city-picker-prov-item.active,
+.city-picker-city-item.active {
+  background: var(--brand-weak);
+  color: var(--brand);
+  font-weight: 600;
+}
+
+.city-picker-city {
+  flex: 1;
+  overflow-y: auto;
+  padding-left: var(--space-3);
+}

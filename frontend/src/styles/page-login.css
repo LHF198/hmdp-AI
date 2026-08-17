@@ -1,0 +1,129 @@
+/* ============================================================
+   登录页（手机验证码 / 密码登录）
+   取代 html/hmdp/css/login.css 与 glass.css 的登录段
+   ------------------------------------------------------------
+   旧实现问题：
+   - .header / .header-title 为全局定义（已上移 layout.css 收敛）
+   - .content 写死 #f7f5f5 实色底，与玻璃外壳冲突
+   - 登录按钮为纯黑 + 三处 !important 强制白字，与全站主色不一致 → 改为品牌橙主按钮
+   ============================================================ */
+
+.login-container {
+  height: 100%;
+}
+
+.login-container .content {
+  height: auto;
+  min-height: 60vh;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-6);
+  background: var(--surface-2);
+  -webkit-backdrop-filter: var(--blur-segment);
+  backdrop-filter: var(--blur-segment);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-3);
+}
+
+.login-container .login-form {
+  height: auto;
+  padding: var(--space-6) var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* 手机号 + 验证码同行 */
+.login-container .form-row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.login-container .phone-input {
+  width: 60%;
+}
+
+.login-container .code-btn {
+  width: 38%;
+}
+
+.login-container .form-tip {
+  text-align: center;
+  color: var(--text-muted);
+  margin: 5px 0;
+  font-size: 12px;
+}
+
+/* 主登录按钮：品牌橙（旧实现为纯黑 + !important 白字） */
+.login-container .login-btn {
+  width: 100%;
+  margin-top: var(--space-2);
+}
+
+.login-container .form-right {
+  text-align: right;
+  margin: 5px 0;
+}
+
+.login-container .form-right a {
+  color: var(--brand);
+  font-size: 13px;
+}
+
+/* ---------- 协议勾选 ---------- */
+.login-radio {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: 0 var(--space-5) var(--space-5);
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.login-radio a {
+  color: var(--brand);
+}
+
+/* 自定义单选圈：品牌色选中态 */
+.login-radio input[type="radio"] {
+  opacity: 0;
+  position: absolute;
+}
+
+.login-radio input[type="radio"] + label {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  min-width: 22px;
+  cursor: pointer;
+}
+
+.login-radio input[type="radio"] + label::before {
+  content: "\a0";
+  display: inline-block;
+  vertical-align: middle;
+  font-size: 12px;
+  width: 0.7em;
+  height: 0.7em;
+  margin-right: 0.4em;
+  border-radius: 50%;
+  border: 2px solid var(--accent-weak);
+  text-indent: 0.15em;
+  line-height: 1;
+  padding: 0.2em;
+  transition: border-color var(--dur-base) ease,
+    background-color var(--dur-base) ease;
+}
+
+.login-radio input[type="radio"]:checked + label::before {
+  background-color: var(--brand);
+  border-color: var(--brand);
+  background-clip: content-box;
+  padding: 0.2em;
+}

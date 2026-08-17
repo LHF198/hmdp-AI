@@ -61,7 +61,7 @@
             v-model="userInput"
             class="ai-input"
             rows="1"
-            placeholder="请问我有什么可以帮助您的嘛..."
+            placeholder="有什么可以帮您的吗？试试问我：杭州有什么好吃的？"
             @keydown.enter.exact.prevent="sendMessage"
             @input="adjustTextareaHeight"
           ></textarea>

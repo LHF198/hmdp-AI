@@ -12,6 +12,17 @@
       <div class="header-share" title="复制店铺链接分享" @click="share">...</div>
     </div>
 
+    <!-- 店铺不存在/加载失败时的错误空态（避免渲染“暂无店名 + 0 分”的残缺假页面） -->
+    <div class="detail-body" v-if="loadError">
+      <EmptyState size="roomy">
+        <div class="shop-missing">
+          <div class="shop-missing-text">店铺不存在或已删除</div>
+          <div class="shop-missing-btn" @click="router.push('/')">返回首页</div>
+        </div>
+      </EmptyState>
+    </div>
+
+    <template v-else>
     <!-- 商店信息卡片 -->
     <div class="shop-info-box">
       <div class="shop-title">{{ shop.name || '店铺名称' }}</div>
@@ -21,14 +32,7 @@
         <span>{{ shop.comments || 0 }}条</span>
       </div>
 
-      <div class="shop-rate-info">口味:{{ (shop.score / 10).toFixed(1) }} 环境:{{ (shop.score / 10).toFixed(1) }} 服务:{{ (shop.score / 10).toFixed(1) }}</div>
-
-      <!-- 商店排名区域（静态演示数据） -->
-      <div class="shop-rank">
-        <img :src="bdImg" width="63" height="20" alt="" />
-        <span>{{ shop.area || '商圈' }}好评榜第3名</span>
-        <div><el-icon :size="14"><ArrowRight /></el-icon></div>
-      </div>
+      <div class="shop-rate-info" v-if="shop.score">口味:{{ (shop.score / 10).toFixed(1) }} 环境:{{ (shop.score / 10).toFixed(1) }} 服务:{{ (shop.score / 10).toFixed(1) }}</div>
 
       <!-- 商店图片横向滚动 -->
       <div class="shop-images" v-if="shop.images && shop.images.length > 0">
@@ -110,17 +114,38 @@
       </div>
     </div>
 
-    <!-- 评论卡片（店铺评价功能尚未开放，展示空状态避免误导性假数据） -->
+    <!-- 评论卡片：店铺评价功能尚未开放，聚合展示大家的探店笔记作为真实评价内容 -->
     <div class="shop-comments">
       <div class="comments-head">
-        <div>网友评价 <span>（0）</span></div>
+        <div>网友评价</div>
+        <span v-if="shopBlogs.length > 0" class="comments-sub">来自探店笔记</span>
       </div>
-      <div class="comments-empty">
-        暂无评价，去笔记里看看大家的探店体验吧
+      <div class="shop-blog-strip" v-if="shopBlogs.length > 0">
+        <div
+          class="shop-blog-card"
+          v-for="b in shopBlogs"
+          :key="b.id"
+          @click="router.push('/blog/' + b.id)"
+        >
+          <div class="shop-blog-img">
+            <img :src="b.img" alt="" loading="lazy" />
+          </div>
+          <div class="shop-blog-title">{{ b.title }}</div>
+          <div class="shop-blog-foot">
+            <img class="shop-blog-avatar" :src="b.icon || '/imgs/icons/default-icon.png'" alt="" />
+            <span class="shop-blog-name">{{ b.name }}</span>
+            <span class="shop-blog-liked">
+              <LikeIcon :active="b.isLike" />
+              {{ b.liked }}
+            </span>
+          </div>
+        </div>
       </div>
+      <EmptyState v-else size="compact" text="暂无评价，来做第一个探店笔记吧" />
     </div>
 
-    <div class="copyright">copyright ©2021 hmdp.com</div>
+    <div class="copyright">copyright ©{{ year }} hmdp.com</div>
+    </template>
 
     <!-- 店铺详情弹窗 -->
     <el-dialog title="店铺详情" v-model="shopDetailVisible" width="90%" append-to-body>
@@ -138,9 +163,7 @@
 
     <!-- 我的秒杀订单弹窗 -->
     <el-dialog title="我的秒杀订单" v-model="ordersVisible" width="90%" append-to-body>
-      <div v-if="orders.length === 0" class="orders-empty">
-        暂无订单
-      </div>
+      <EmptyState v-if="orders.length === 0" size="compact" text="暂无订单" />
       <div
         v-for="o in orders"
         :key="o.id"
@@ -184,18 +207,22 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { shopApi } from '@/api/shop'
+import { blogApi } from '@/api/blog'
 import { voucherApi } from '@/api/voucher'
 import { ORDER_STATUS, ORDER_STATUS_TEXT } from '@/utils/order-status'
 import { INFO_ICON_COLOR, RATE_TEXT_COLOR } from '@/utils/colors'
 import { useUserStore } from '@/stores/user'
 import AiLauncher from '@/components/AiLauncher.vue'
-import bdImg from '../../html/hmdp/imgs/bd.png'
+import LikeIcon from '@/components/LikeIcon.vue'
 
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
 
+const year = new Date().getFullYear() // 页脚版权年份动态生成
 const shop = ref({ name: '', score: 0, comments: 0, images: [], address: '', openHours: '' })
+const shopBlogs = ref([]) // 该店铺的探店笔记（评论区聚合展示）
+const loadError = ref(false) // 店铺加载失败（不存在/已删除）时切换到错误空态
 const vouchers = ref([])
 const orders = ref([])
 const ordersVisible = ref(false)
@@ -212,6 +239,7 @@ onMounted(() => {
   const shopId = route.params.id
   queryShopById(shopId)
   queryVoucher(shopId)
+  queryShopBlogs(shopId)
   // 每秒刷新当前时间，驱动倒计时重渲染
   timer = setInterval(() => {
     nowTs.value = Date.now()
@@ -264,6 +292,12 @@ function queryShopById(shopId) {
   shopApi
     .detail(shopId)
     .then(({ data }) => {
+      // 接口对不存在的 id 返回空对象（无 id 字段），此时不能继续渲染兜底字段，
+      // 否则会呈现“暂无店名 + 0 分”的假页面
+      if (!data || !data.id) {
+        loadError.value = true
+        return
+      }
       if (data.images) {
         data.images = data.images.split(',')
       } else {
@@ -278,6 +312,7 @@ function queryShopById(shopId) {
     })
     .catch((err) => {
       console.error('加载店铺信息失败:', err)
+      loadError.value = true
       ElMessage.error('加载店铺信息失败，请稍后重试')
     })
 }
@@ -291,6 +326,21 @@ function queryVoucher(shopId) {
     .catch((err) => {
       console.error('加载代金券失败:', err)
       vouchers.value = []
+    })
+}
+
+function queryShopBlogs(shopId) {
+  // 评论区聚合该店铺的探店笔记；加载失败不阻断主流程，降级为空态
+  blogApi
+    .ofShop(shopId)
+    .then(({ data }) => {
+      shopBlogs.value = (data || []).map((b) => ({
+        ...b,
+        img: (b.images || '').split(',')[0],
+      }))
+    })
+    .catch(() => {
+      shopBlogs.value = []
     })
 }
 
@@ -477,9 +527,116 @@ function seckill(v) {
 /* 评论空态 */
 .shop-detail-page .comments-empty {
   text-align: center;
-  color: #82848a;
+  color: var(--text-muted);
   padding: 20px 0;
   font-size: 14px;
+}
+/* 评论区探店笔记聚合：横向滚动卡片条 */
+.shop-detail-page .comments-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.shop-detail-page .comments-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+.shop-detail-page .shop-blog-strip {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 4px 2px 8px;
+  scrollbar-width: none;
+}
+.shop-detail-page .shop-blog-strip::-webkit-scrollbar {
+  display: none;
+}
+.shop-detail-page .shop-blog-card {
+  flex-shrink: 0;
+  width: 132px;
+  border-radius: var(--radius-md);
+  border: 1px solid #f0f0f0;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform var(--dur-base) var(--ease), box-shadow var(--dur-base) var(--ease);
+}
+.shop-detail-page .shop-blog-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-2);
+}
+.shop-detail-page .shop-blog-img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  background: var(--surface-inset);
+}
+.shop-detail-page .shop-blog-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.shop-detail-page .shop-blog-title {
+  padding: 6px 8px 2px;
+  font-size: 12px;
+  line-height: 1.3;
+  color: var(--text-strong);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 36px;
+}
+.shop-detail-page .shop-blog-foot {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px 8px;
+}
+.shop-detail-page .shop-blog-avatar {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.shop-detail-page .shop-blog-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.shop-detail-page .shop-blog-liked {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 11px;
+  color: var(--accent-weak);
+}
+/* 店铺不存在空态 */
+.shop-detail-page .shop-missing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.shop-detail-page .shop-missing-text {
+  font-size: 15px;
+  color: var(--text-weak);
+}
+.shop-detail-page .shop-missing-btn {
+  padding: 8px 24px;
+  border-radius: var(--radius-pill);
+  background: var(--brand);
+  color: var(--brand-on);
+  box-shadow: var(--shadow-brand);
+  font-size: 14px;
+  cursor: pointer;
 }
 /* 店铺详情弹窗正文 */
 .shop-detail-page .dialog-detail {
@@ -490,7 +647,7 @@ function seckill(v) {
 /* 秒杀订单弹窗 */
 .shop-detail-page .orders-empty {
   text-align: center;
-  color: #82848a;
+  color: var(--text-muted);
   padding: 10px 0;
 }
 .shop-detail-page .order-item {
@@ -503,12 +660,12 @@ function seckill(v) {
 }
 .shop-detail-page .order-meta {
   font-size: 12px;
-  color: #82848a;
+  color: var(--text-muted);
   margin-top: 4px;
 }
 .shop-detail-page .order-time {
   font-size: 12px;
-  color: #82848a;
+  color: var(--text-muted);
   margin-top: 2px;
 }
 .shop-detail-page .order-actions {
@@ -516,6 +673,6 @@ function seckill(v) {
 }
 .shop-detail-page .order-code {
   font-size: 12px;
-  color: #ff6633;
+  color: var(--brand);
 }
 </style>

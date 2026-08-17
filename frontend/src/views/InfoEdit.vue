@@ -10,8 +10,8 @@
       <div class="info-box">
         <div class="info-item">
           <div class="info-label">头像</div>
-          <div class="info-btn" style="cursor: pointer" @click="chooseIcon" title="点击更换头像">
-            <img width="35" style="border-radius: 50%" :src="user.icon || defaultIcon" alt="" />
+          <div class="info-btn info-btn--tappable" @click="chooseIcon" title="点击更换头像">
+            <img class="info-avatar" width="35" :src="user.icon || defaultIcon" alt="" />
             <el-icon :size="16"><ArrowRight /></el-icon>
           </div>
         </div>
@@ -23,7 +23,7 @@
               size="small"
               v-model="user.nickName"
               maxlength="20"
-              style="width: 150px; text-align: right"
+              class="info-field"
             ></el-input>
           </div>
         </div>
@@ -36,7 +36,7 @@
               v-model="info.introduce"
               maxlength="128"
               placeholder="介绍一下自己"
-              style="width: 150px; text-align: right"
+              class="info-field"
             ></el-input>
           </div>
         </div>
@@ -81,14 +81,8 @@
           </div>
         </div>
       </div>
-      <div class="info-box" style="text-align: center">
-        <el-button
-          type="primary"
-          round
-          style="width: 80%; background: #ff6633; border-color: #ff6633"
-          @click="save"
-          >保存修改</el-button
-        >
+      <div class="info-box info-box--center">
+        <el-button type="primary" round class="info-submit-btn" @click="save">保存修改</el-button>
       </div>
 
       <div class="info-box">
@@ -215,22 +209,29 @@ function save() {
 }
 </script>
 
-<style>
-/* 资料编辑页基础布局样式
- * 旧 info-edit.html 的 .edit-container/.info-box/.info-item 等类在现有 CSS 中缺失（玻璃化改造时丢失），
- * 此处按原版黑马点评样式补齐，并叠加玻璃拟态主题 */
+<style scoped>
+/* 资料编辑页布局：.edit-container/.info-box/.info-item 为本页专有类
+ * 保存按钮直接用 el-button type="primary"，由 components.css 统一提供品牌橙，
+ * 旧实现中为对抗 glass.css `!important` 而写的覆盖规则已随叠层消除一并删除 */
 .edit-container {
   padding: 20px 0;
 }
 .info-box {
-  background: rgba(255, 255, 255, 0.25);
-  -webkit-backdrop-filter: blur(14px);
-  backdrop-filter: blur(14px);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: var(--surface-1);
+  -webkit-backdrop-filter: var(--blur-segment);
+  backdrop-filter: var(--blur-segment);
+  border: 1px solid var(--border-2);
   border-radius: var(--radius-lg);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-3);
   padding: 0 15px;
   margin-bottom: 15px;
+}
+.info-box--center {
+  text-align: center;
+  padding: 15px;
+}
+.info-submit-btn {
+  width: 80%;
 }
 .info-item {
   display: flex;
@@ -246,25 +247,22 @@ function save() {
 .info-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-2);
   color: var(--text-weak);
 }
-.info-btn img {
-  margin-right: 4px;
-  background: #eee;
+.info-btn--tappable {
+  cursor: pointer;
+}
+.info-avatar {
+  border-radius: 50%;
+  margin-right: var(--space-1);
+  background: rgba(31, 45, 61, 0.06);
 }
 .info-btn .el-input__inner,
 .info-btn .el-input__wrapper {
   text-align: right;
 }
-.divider {
-  height: 1px;
-  background: rgba(31, 45, 61, 0.08);
-}
-/* 保存按钮：glass.css 的 .el-button { background: var(--accent) !important } 会把内联样式压成深色，
-   此处用更高优先级选择器恢复主题橙 */
-.edit-container .el-button--primary {
-  background: #ff6633 !important;
-  border-color: #ff6633 !important;
+.info-field {
+  width: 150px;
 }
 </style>

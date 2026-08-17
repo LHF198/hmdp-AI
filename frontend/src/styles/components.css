@@ -1,0 +1,293 @@
+/* ============================================================
+   Components — 按钮体系、输入框、玻璃卡片、空态、标签、Element Plus 适配
+   取代 glass.css 的组件段 + ep-override.css
+   ------------------------------------------------------------
+   按钮层级（收敛旧的「深灰 / 纯黑 / 品牌橙 / 紫渐变」四套主按钮）：
+     .el-button                → 次级：玻璃白底
+     .el-button--primary       → 主操作：品牌橙
+     .btn-brand                → 主操作（非 Element 场景）
+     .el-button--success       → 正向确认
+     .el-button--danger        → 危险操作
+   ============================================================ */
+
+/* ---------- 按钮基线：次级玻璃按钮 ---------- */
+body .el-button {
+  background: var(--surface-3);
+  color: var(--text-strong);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-2);
+  transition: transform var(--dur-fast) ease, filter var(--dur-base) ease,
+    box-shadow var(--dur-base) ease, background var(--dur-base) ease;
+}
+
+body .el-button:hover {
+  filter: brightness(1.04);
+  background: rgba(255, 255, 255, 0.45);
+}
+
+body .el-button:active {
+  transform: scale(0.98);
+}
+
+body .el-button.is-disabled,
+body .el-button.is-disabled:hover {
+  filter: grayscale(0.2) brightness(0.98);
+  box-shadow: none;
+  opacity: 0.6;
+}
+
+/* ---------- 主操作：品牌橙 ---------- */
+body .el-button--primary,
+.btn-brand {
+  background: var(--brand);
+  color: var(--brand-on);
+  border: none;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-brand);
+  cursor: pointer;
+  transition: transform var(--dur-fast) ease, filter var(--dur-base) ease,
+    box-shadow var(--dur-base) ease;
+}
+
+body .el-button--primary:hover,
+.btn-brand:hover {
+  background: var(--brand-strong);
+  filter: none;
+}
+
+body .el-button--primary:active,
+.btn-brand:active {
+  transform: scale(0.98);
+}
+
+/* Element Plus 会把 span 文字色继承给按钮内文本，主按钮需强制前景色 */
+body .el-button--primary span,
+.btn-brand span {
+  color: var(--brand-on);
+}
+
+/* ---------- 正向 / 危险 ---------- */
+body .el-button--success {
+  background: var(--success);
+  color: var(--text-on-dark);
+  border: none;
+}
+
+body .el-button--success span {
+  color: var(--text-on-dark);
+}
+
+body .el-button--danger {
+  background: var(--danger);
+  color: var(--text-on-dark);
+  border: none;
+}
+
+body .el-button--danger span {
+  color: var(--text-on-dark);
+}
+
+/* ---------- 输入框 ----------
+   Element Plus 的背景/边框/圆角落在 .el-input__wrapper 上（非旧版 .el-input__inner） */
+body .el-input__wrapper {
+  background: var(--surface-inset);
+  border: none;
+  box-shadow: var(--inner-shadow);
+  border-radius: var(--radius-lg);
+  padding: 1px 12px;
+  transition: box-shadow var(--dur-base) ease, background var(--dur-base) ease;
+}
+
+body .el-input__wrapper.is-focus,
+body .el-input__wrapper:hover {
+  background: var(--surface-inset-focus);
+}
+
+body .el-input__wrapper.is-focus {
+  box-shadow: 0 0 0 3px var(--focus-ring), var(--inner-shadow);
+}
+
+body .el-input__inner {
+  background: transparent;
+  color: var(--text-strong);
+}
+
+body .el-input__inner::placeholder {
+  color: var(--text-muted);
+}
+
+body .el-textarea__inner {
+  background: var(--surface-inset);
+  border: none;
+  box-shadow: var(--inner-shadow);
+  border-radius: var(--radius-md);
+  color: var(--text-strong);
+}
+
+body .el-textarea__inner:focus {
+  box-shadow: 0 0 0 3px var(--focus-ring), var(--inner-shadow);
+}
+
+/* ---------- 玻璃卡片工具类 ----------
+   替代此前散落在模板里的内联 background/border-radius/padding */
+.glass-card {
+  background: var(--surface-3);
+  -webkit-backdrop-filter: var(--blur-item);
+  backdrop-filter: var(--blur-item);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-2);
+  padding: var(--space-4) var(--space-5);
+  box-sizing: border-box;
+}
+
+.glass-card--tappable {
+  cursor: pointer;
+  transition: transform var(--dur-slow) var(--ease),
+    box-shadow var(--dur-slow) var(--ease);
+}
+
+.glass-card--tappable:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-4), var(--sheen);
+}
+
+.glass-card--tappable:active {
+  transform: scale(0.98);
+}
+
+/* ---------- 空态：全站统一（旧实现在 6 处重复内联） ---------- */
+.empty-state {
+  width: 100%;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+  padding: 40px 0;
+  line-height: 1.6;
+}
+
+.empty-state--compact {
+  padding: 20px 0;
+}
+
+.empty-state--roomy {
+  padding: 60px 0;
+}
+
+/* ---------- 用户行（粉丝/关注列表） ---------- */
+.user-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.user-row-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.user-row-name {
+  font-size: 14px;
+  color: var(--text-strong);
+}
+
+.user-row-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* ---------- 标签 chip ---------- */
+.tag {
+  background: var(--surface-3);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-md);
+}
+
+/* ---------- Element Plus：Tabs ---------- */
+body .el-tabs__item {
+  font-size: 14px;
+  font-weight: bold;
+  color: var(--text-weak);
+}
+
+body .el-tabs__item.is-active {
+  color: var(--text-strong);
+}
+
+body .el-tabs__nav-wrap::after {
+  display: none;
+}
+
+body .el-tabs__active-bar {
+  height: 4px;
+  border-radius: var(--radius-pill);
+  /* 旧实现为黑色渐变，改为品牌色，与选中态语义一致 */
+  background-color: var(--brand);
+  background-image: none;
+}
+
+body .el-tabs__header {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg);
+  margin: 0 0 var(--space-4);
+  border-bottom: 1px solid var(--border-2);
+}
+
+/* ---------- Element Plus：评分 ---------- */
+body .el-rate__icon {
+  margin-right: 0;
+}
+
+/* ---------- Element Plus：弹窗 ---------- */
+body .el-dialog {
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.92);
+  -webkit-backdrop-filter: var(--blur-segment);
+  backdrop-filter: var(--blur-segment);
+}
+
+body .el-dialog__title {
+  color: var(--text-strong);
+  font-weight: 600;
+}
+
+/* ---------- 骨架屏配色对齐玻璃主题 ---------- */
+body .el-skeleton__item {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.35) 25%,
+    rgba(255, 255, 255, 0.55) 37%,
+    rgba(255, 255, 255, 0.35) 63%
+  );
+  border-radius: var(--radius-md);
+}
+
+/* ---------- 图片渐显：加载完成后由 JS 添加 is-loaded ---------- */
+.img-fade {
+  opacity: 0;
+  transition: opacity var(--dur-slow) ease;
+}
+
+.img-fade.is-loaded {
+  opacity: 1;
+}
+
+/* ---------- 路由切换过渡 ---------- */
+.page-fade-enter-active,
+.page-fade-leave-active {
+  transition: opacity var(--dur-base) ease, transform var(--dur-base) var(--ease);
+}
+
+.page-fade-enter-from {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.page-fade-leave-to {
+  opacity: 0;
+}

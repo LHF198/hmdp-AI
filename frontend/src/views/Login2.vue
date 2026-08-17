@@ -9,22 +9,21 @@
     <div class="content">
       <div class="login-form">
         <el-input placeholder="请输入手机号" v-model="form.phone"> </el-input>
-        <div style="height: 5px"></div>
-        <el-input placeholder="请输入密码" v-model="form.password"> </el-input>
-        <div style="text-align: center; color: #8c939d; margin: 5px 0">
+        <el-input placeholder="请输入密码" v-model="form.password" type="password" show-password> </el-input>
+        <div class="form-tip">
           <a href="javascript:void(0)" @click="goCode">忘记密码？用验证码登录</a>
         </div>
-        <el-button @click="login" style="width: 100%; background-color: #f63 !important; color: #fff !important; border-color: #f63 !important">登录</el-button>
-        <div style="text-align: right; color: #333333; margin: 5px 0">
+        <el-button type="primary" class="login-btn" @click="login">登录</el-button>
+        <div class="form-right">
           <a href="/app/login" @click.prevent="goCode">验证码登录</a>
         </div>
       </div>
       <div class="login-radio">
-        <el-checkbox v-model="agreed" size="small" style="width: 100%; white-space: normal; line-height: 1.5">
-          <span style="display: inline">我已阅读并同意</span>
+        <el-checkbox v-model="agreed" size="small" class="agree-checkbox">
+          <span class="agree-text">我已阅读并同意</span>
           <a href="javascript:void(0)">《黑马点评用户服务协议》</a>、
           <a href="javascript:void(0)">《隐私政策》</a>
-          <span style="display: inline">等，接受免除或者限制责任、诉讼管辖约定等粗体标示条款</span>
+          <span class="agree-text">等，接受免除或者限制责任、诉讼管辖约定等粗体标示条款</span>
         </el-checkbox>
       </div>
     </div>
@@ -73,3 +72,15 @@ function goCode() {
   router.push('/login')
 }
 </script>
+
+<style scoped>
+/* 表单通用样式见 styles/page-login.css；此处仅协议勾选框的换行处理 */
+.agree-checkbox {
+  width: 100%;
+  white-space: normal;
+  line-height: 1.5;
+}
+.agree-text {
+  display: inline;
+}
+</style>

@@ -99,6 +99,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { shopApi } from '@/api/shop'
 import { useCityStore } from '@/stores/city'
+import { BRAND_COLOR, TEXT_SECONDARY } from '@/utils/colors'
 
 // ★★ 百度地图 AK 配置（与旧 MPA map.html 共用同一个浏览器端 AK，Referer 白名单需含 8080）★★
 const BAIDU_MAP_AK = 'Zvsh9Bo1IPj673vg707O9DFX6smMDYyA'
@@ -149,11 +150,13 @@ function loadBMap(ak) {
   })
 }
 
-// 自定义橙色大头针图标
+// 自定义品牌色大头针图标（SVG 需序列化为 data URI 交给 BMapGL，故用字符串拼接，颜色取品牌常量）
 function makePinIcon() {
   const svg =
     '<svg xmlns="http://www.w3.org/2000/svg" width="30" height="42" viewBox="0 0 30 42">' +
-    '<path d="M15 0C6.7 0 0 6.7 0 15c0 11.2 15 27 15 27s15-15.8 15-27C30 6.7 23.3 0 15 0z" fill="#ff6633" stroke="#fff" stroke-width="2"/>' +
+    '<path d="M15 0C6.7 0 0 6.7 0 15c0 11.2 15 27 15 27s15-15.8 15-27C30 6.7 23.3 0 15 0z" fill="' +
+    BRAND_COLOR +
+    '" stroke="#fff" stroke-width="2"/>' +
     '<circle cx="15" cy="15" r="6" fill="#fff"/></svg>'
   return new BMapGL.Icon('data:image/svg+xml,' + encodeURIComponent(svg), new BMapGL.Size(30, 42), {
     anchor: new BMapGL.Size(15, 42),
@@ -280,12 +283,16 @@ function renderShops() {
 // 点击标记：打开信息窗口 + 显示底部卡片
 function openInfo(s, pt) {
   activeShop.value = s
+  // 百度地图 InfoWindow 由第三方在 Vue 树之外渲染，只接受 HTML 字符串，
+  // 因此这里必须用内联样式；颜色仍从品牌常量取，不写死字面量。
   const html =
-    '<div style="min-width:200px;font-family:Microsoft YaHei,sans-serif">' +
-    '<div style="font-size:15px;font-weight:700;color:#1a1a1a;margin-bottom:4px">' +
+    '<div style="min-width:200px;font-family:PingFang SC,Microsoft YaHei,sans-serif">' +
+    '<div style="font-size:15px;font-weight:700;color:#1f2d3d;margin-bottom:4px">' +
     s.name +
     '</div>' +
-    '<div style="font-size:12px;color:#999">均价￥' +
+    '<div style="font-size:12px;color:' +
+    TEXT_SECONDARY +
+    '">均价￥' +
     (s.avgPrice || '-') +
     '/人 · ' +
     (s.address || '') +
@@ -293,7 +300,9 @@ function openInfo(s, pt) {
     '<div style="margin-top:8px;text-align:right">' +
     '<span onclick="__openShopDetail(' +
     s.id +
-    ')" style="color:#ff6633;font-size:13px;cursor:pointer">查看详情 ›</span>' +
+    ')" style="color:' +
+    BRAND_COLOR +
+    ';font-size:13px;cursor:pointer">查看详情 ›</span>' +
     '</div></div>'
   const info = new BMapGL.InfoWindow(html, { width: 240 })
   map.openInfoWindow(info, pt)
@@ -386,17 +395,17 @@ onBeforeUnmount(() => {
   cursor: pointer;
 }
 .map-type.active {
-  background: #ff6633;
+  background: var(--brand);
   color: #fff;
 }
 .city-type {
   display: flex;
   align-items: center;
   background: #ffe8e0;
-  color: #ff6633;
+  color: var(--brand);
 }
 .city-label {
-  color: #ff6633;
+  color: var(--brand);
   font-size: 13px;
   display: inline-flex;
   align-items: center;

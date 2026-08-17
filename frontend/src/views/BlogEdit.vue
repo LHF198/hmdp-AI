@@ -1,9 +1,9 @@
 <template>
   <div class="blog-edit-page">
     <!-- 顶部导航 Teleport 到 body：
-         1. glass.css 给 #app 加了 backdrop-filter，会成为 fixed 定位的包含块，
+         1. layout.css 给 #app 加了 backdrop-filter，会成为 fixed 定位的包含块，
             导致 header 宽度/位置与卡片错位；Teleport 后相对视口定位
-         2. 改用 blog-edit-header 类名，绕开 info.css/login.css/glass.css 全局 .header 规则泄漏 -->
+         2. 改用 blog-edit-header 类名，避免与 layout.css 的全局 .header 规则耦合 -->
     <Teleport to="body">
       <div class="blog-edit-header">
         <div class="header-cancel-btn" @click="goBack">取消</div>

@@ -4,6 +4,8 @@ import http from './http'
 export const blogApi = {
   // 热门笔记分页（首页瀑布流）
   hot: (current) => http.get('/blog/hot', { params: { current } }),
+  // 某店铺的探店笔记（店铺详情页评论区聚合展示，按点赞倒序）
+  ofShop: (shopId) => http.get('/blog/of/shop/' + shopId),
   // 点赞/取消点赞
   like: (id) => http.put('/blog/like/' + id),
   // 笔记详情（点赞后刷新状态用）

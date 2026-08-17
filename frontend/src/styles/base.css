@@ -1,0 +1,114 @@
+/* ============================================================
+   Base — reset、根字号、页面背景、排版基线、图片默认
+   取代旧 html/hmdp/css/main.css 的全局部分 + glass.css 的 body 装饰层
+   ============================================================ */
+
+html {
+  /* 保持旧移动端 12px 基准：全站文字尺寸以此为默认继承，改动会全局放大/缩小 */
+  font-size: var(--font-size-root);
+  width: 100%;
+}
+
+body {
+  margin: 0;
+}
+
+html,
+body {
+  min-height: 100%;
+  overflow-x: hidden;
+  background: var(--bg-base);
+  color: var(--text-strong);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ---------- 背景装饰光斑（品牌橙 + 冷色互补，柔和景深） ---------- */
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  z-index: -2;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+body::before {
+  width: 380px;
+  height: 380px;
+  left: -120px;
+  top: -80px;
+  background: radial-gradient(
+    closest-side,
+    rgba(255, 153, 102, 0.7),
+    rgba(255, 102, 51, 0.35) 60%,
+    transparent 70%
+  );
+}
+
+body::after {
+  width: 420px;
+  height: 420px;
+  right: -140px;
+  bottom: -100px;
+  background: radial-gradient(
+    closest-side,
+    rgba(102, 204, 255, 0.6),
+    rgba(153, 204, 204, 0.35) 60%,
+    transparent 70%
+  );
+}
+
+/* ---------- 排版基线 ---------- */
+h1,
+h2,
+h3,
+h4,
+h5 {
+  color: var(--text-strong);
+}
+
+p,
+span,
+small,
+li {
+  color: var(--text-weak);
+}
+
+a {
+  color: var(--brand);
+  text-decoration: none;
+}
+
+/* ---------- 图片默认圆角：统一由变量控制 ---------- */
+img {
+  border-radius: var(--radius-sm);
+}
+
+/* ---------- 滚动容器统一平滑滚动 ---------- */
+.blog-list,
+.shop-list,
+.comment-list {
+  scroll-behavior: smooth;
+}
+
+/* ---------- 通用分隔线 ---------- */
+.divider {
+  height: 1px;
+  background: var(--divider);
+}
+
+/* ---------- 降低动效偏好：尊重系统设置 ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -6,6 +6,11 @@
    ============================================================ */
 
 /* 主内容卡片 */
+.shop-detail-page {
+  /* 显式撑满 #app 内容区，确保内部卡片 margin:auto 的居中参照正确 */
+  width: 100%;
+}
+
 .shop-detail-page .shop-info-box,
 .shop-detail-page .shop-voucher,
 .shop-detail-page .shop-comments {
@@ -16,6 +21,9 @@
   margin: 12px auto;
   max-width: 680px;
   width: 95%;
+  /* 必须 box-sizing: border-box：padding 20px 否则会被加到 95% 宽度之外，
+     导致卡片实际宽度超出父容器、视觉上偏右（历史 bug） */
+  box-sizing: border-box;
   padding: 20px;
   overflow: hidden;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -35,7 +43,30 @@
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  height: 28px;
+}
+
+.shop-detail-page .shop-rate .el-rate {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+}
+
+/* el-rate 内部星星与分数文字对齐 */
+.shop-detail-page .shop-rate .el-rate__text {
+  margin-left: 6px;
+  font-size: 14px;
+  color: var(--brand);
+  font-weight: 600;
+  line-height: 28px;
+}
+
+.shop-detail-page .shop-rate > span {
+  font-size: 14px;
+  color: var(--text-weak);
+  white-space: nowrap;
+  line-height: 28px;
 }
 
 .shop-detail-page .shop-rate-info {
@@ -82,7 +113,7 @@
   display: flex;
   overflow-x: auto;
   padding: 16px 0;
-  gap: 12px;
+  gap: 10px;
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
 }
@@ -101,10 +132,10 @@
 }
 
 .shop-detail-page .shop-images img {
-  height: 110px;
-  width: 150px;
+  height: 100px;
+  width: 140px;
   flex-shrink: 0;
-  border-radius: 12px;
+  border-radius: 10px;
   border: 1px solid #f0f0f0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   object-fit: cover;
@@ -123,9 +154,17 @@
   margin-top: 12px;
 }
 
-.shop-detail-page .shop-address i {
-  color: #1890ff;
-  font-size: 16px;
+.shop-detail-page .shop-address > div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+
+.shop-detail-page .shop-address > span {
+  line-height: 20px;
 }
 
 /* 商店服务区域 */
@@ -136,9 +175,23 @@
   padding: 10px 0;
 }
 
-.shop-detail-page .shop-service div {
+.shop-detail-page .shop-service-sep {
+  color: #ccc;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.shop-detail-page .shop-service-icon,
+.shop-detail-page .shop-service > div {
   display: flex;
   align-items: center;
+  flex-shrink: 0;
+}
+
+.shop-detail-page .shop-service img {
+  height: 18px;
+  width: auto;
+  object-fit: contain;
 }
 
 /* 营业时间 */
@@ -149,18 +202,22 @@
   font-size: 13px;
   border-top: 1px solid #f5f5f5;
   margin-top: 8px;
-  gap: 10px;
-  flex-wrap: wrap;
+  gap: 8px;
+  height: 40px;
 }
 
-.shop-detail-page .shop-open-time span,
-.shop-detail-page .shop-open-time div {
+.shop-detail-page .shop-open-time > span:first-child {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+
+.shop-detail-page .shop-open-time > div {
   color: #333;
-}
-
-.shop-detail-page .shop-open-time i {
-  font-size: 16px;
-  color: #1890ff;
+  line-height: 20px;
 }
 
 /* 右侧箭头 */
@@ -174,6 +231,7 @@
   justify-content: flex-end;
   gap: 4px;
   cursor: pointer;
+  line-height: 20px;
 }
 
 /* 代金券标题区域 */

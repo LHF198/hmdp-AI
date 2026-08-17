@@ -71,37 +71,37 @@
       </div>
     </div>
     <div class="blog-list" @scroll="onScroll">
-      <div class="blog-box" v-for="b in blogs" :key="b.id">
-        <div class="blog-img" @click="toBlogDetail(b)">
-          <img :src="b.img" alt="" loading="lazy" />
+      <!-- 首次加载骨架屏：避免白屏闪烁 -->
+      <template v-if="loading">
+        <div class="blog-skeleton" v-for="i in 4" :key="'sk' + i">
+          <div class="blog-skeleton-img"></div>
+          <div class="blog-skeleton-line"></div>
+          <div class="blog-skeleton-line short"></div>
         </div>
-        <div class="blog-title">{{ b.title }}</div>
-        <div class="blog-foot">
-          <div class="blog-user-icon">
-            <img :src="b.icon || '/imgs/icons/default-icon.png'" alt="" />
+      </template>
+      <template v-else>
+        <div class="blog-box" v-for="b in blogs" :key="b.id" :style="cardStyle(b)">
+          <div class="blog-img" :ref="(el) => registerImgBox(b, el)" @click="toBlogDetail(b)">
+            <img v-img-fade :src="b.img" alt="" loading="lazy" @load="onCardImgLoad(b, $event)" />
           </div>
-          <div class="blog-user-name">{{ b.name }}</div>
-          <div class="blog-liked" @click="addLike(b)">
-            <svg
-              t="1646634642977"
-              class="icon"
-              viewBox="0 0 1024 1024"
-              version="1.1"
-              xmlns="http://www.w3.org/2000/svg"
-              p-id="2187"
-              width="14"
-              height="14"
-            >
-              <path
-                d="M160 944c0 8.8-7.2 16-16 16h-32c-26.5 0-48-21.5-48-48V528c0-26.5 21.5-48 48-48h32c8.8 0 16 7.2 16 16v448zM96 416c-53 0-96 43-96 96v416c0 53 43 96 96 96h96c17.7 0 32-14.3 32-32V448c0-17.7-14.3-32-32-32H96zM505.6 64c16.2 0 26.4 8.7 31 13.9 4.6 5.2 12.1 16.3 10.3 32.4l-23.5 203.4c-4.9 42.2 8.6 84.6 36.8 116.4 28.3 31.7 68.9 49.9 111.4 49.9h271.2c6.6 0 10.8 3.3 13.2 6.1s5 7.5 4 14l-48 303.4c-6.9 43.6-29.1 83.4-62.7 112C815.8 944.2 773 960 728.9 960h-317c-33.1 0-59.9-26.8-59.9-59.9v-455c0-6.1 1.7-12 5-17.1 69.5-109 106.4-234.2 107-364h41.6z m0-64h-44.9C427.2 0 400 27.2 400 60.7c0 127.1-39.1 251.2-112 355.3v484.1c0 68.4 55.5 123.9 123.9 123.9h317c122.7 0 227.2-89.3 246.3-210.5l47.9-303.4c7.8-49.4-30.4-94.1-80.4-94.1H671.6c-50.9 0-90.5-44.4-84.6-95l23.5-203.4C617.7 55 568.7 0 505.6 0z"
-                p-id="2188"
-                :fill="b.isLike ? BRAND_COLOR : TEXT_SECONDARY"
-              ></path>
-            </svg>
-            {{ b.liked }}
+          <div class="blog-title">{{ b.title }}</div>
+          <div class="blog-foot">
+            <div class="blog-user-icon">
+              <img :src="b.icon || '/imgs/icons/default-icon.png'" alt="" />
+            </div>
+            <div class="blog-user-name">{{ b.name }}</div>
+            <div class="blog-liked" @click="addLike(b)">
+              <LikeIcon :active="b.isLike" />
+              {{ b.liked }}
+            </div>
           </div>
         </div>
-      </div>
+        <!-- 加载尾巴：触底加载中 / 到底提示 -->
+        <div class="blog-list-tail" v-if="blogs.length > 0">
+          <span v-if="loadingMore" class="tail-loading">正在加载...</span>
+          <span v-else-if="!hasMore">今天的分享就到这里，明天再来看看吧</span>
+        </div>
+      </template>
     </div>
     <FootBar :active-btn="1" />
   </div>
@@ -110,14 +110,14 @@
 <script setup>
 // 首页：店铺分类横滑、热门笔记流（触底分页加载）、关键词搜索与城市选择
 // （省→市数据复用旧 MPA 的 cities.js，选择结果存 localStorage 供全站使用）
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { shopApi } from '@/api/shop'
 import { blogApi } from '@/api/blog'
 // 副作用导入：cities.js 以 ES 模块形式导出全国省→市数据
 import { CITY_DATA } from '@/utils/cities'
-import { BRAND_COLOR, TEXT_SECONDARY } from '@/utils/colors'
+import LikeIcon from '@/components/LikeIcon.vue'
 
 const router = useRouter()
 
@@ -125,12 +125,16 @@ const types = ref([]) // 类型列表
 const blogs = ref([]) // 笔记列表
 const current = ref(1) // blog 页码
 const isReachBottom = ref(false)
+const loading = ref(true) // 首次加载：展示骨架屏
+const loadingMore = ref(false) // 触底加载下一页：尾巴展示“正在加载”
+const hasMore = ref(true) // 是否还有下一页（后端返回空页即到底）
 const searchKey = ref('')
 const city = ref(localStorage.getItem('hmdp_city') || '杭州')
 const hotCities = ['北京', '上海', '广州', '深圳', '杭州', '成都', '南京', '武汉', '西安', '重庆']
 const cityPopVisible = ref(false)
 const provinces = ref([])
 const curProvince = ref('')
+const imgRatios = ref({}) // 每张卡片首图的自然宽高比（width / height），驱动卡片高度自适应
 
 const curCities = computed(() => {
   const p = provinces.value.find((x) => x.name === curProvince.value)
@@ -166,10 +170,41 @@ function queryHotBlogsScroll() {
   blogApi
     .hot(current.value)
     .then(({ data }) => {
-      data.forEach((b) => (b.img = (b.images || '').split(',')[0]))
-      blogs.value = blogs.value.concat(data)
+      const list = data || []
+      list.forEach((b) => {
+        b.img = (b.images || '').split(',')[0]
+        // 若已有缓存比例则直接应用，否则等 img @load 回调
+        if (imgRatios.value[b.id]) {
+          b._ratio = imgRatios.value[b.id]
+        }
+      })
+      blogs.value = blogs.value.concat(list)
+      // 对已有缓存比例的卡片，DOM 渲染后直接设置高度（@load 可能因缓存不触发）
+      nextTick(() => {
+        list.forEach((b) => {
+          if (b._ratio) {
+            const box = imgBoxRefs.get(b.id)
+            if (box && box.offsetWidth > 0) {
+              box.style.height = Math.round(box.offsetWidth / b._ratio) + 'px'
+              box.style.aspectRatio = ''
+            }
+          }
+        })
+      })
+      // 后端返回空页：已到底，关闭触底分页并展示到底提示
+      if (list.length === 0) {
+        hasMore.value = false
+        current.value--
+      }
     })
-    .catch((err) => ElMessage.error(err))
+    .catch((err) => {
+      current.value--
+      ElMessage.error(err)
+    })
+    .finally(() => {
+      loading.value = false
+      loadingMore.value = false
+    })
 }
 
 function addLike(b) {
@@ -206,7 +241,12 @@ function onScroll(e) {
   const scrollHeight = e.target.scrollHeight
   if (scrollTop + offsetHeight >= scrollHeight - 1 && !isReachBottom.value) {
     isReachBottom.value = true
+    // 已到底或首次加载未完成时不再请求下一页
+    if (!hasMore.value || loading.value) {
+      return
+    }
     // 再次查询下一页数据
+    loadingMore.value = true
     current.value++
     queryHotBlogsScroll()
   } else {
@@ -246,96 +286,46 @@ function toPage(i) {
     router.push('/profile')
   }
 }
+
+// ===== 卡片图片比例自适应 =====
+// 核心思路：图片加载后测量容器实际渲染宽度，按图片自然宽高比计算高度，
+// 直接设置 inline height。容器比例与图片完全一致，contain 无留白无裁剪。
+const imgBoxRefs = new Map() // blogId → DOM element
+
+function registerImgBox(b, el) {
+  if (el) imgBoxRefs.set(b.id, el)
+  else imgBoxRefs.delete(b.id)
+}
+
+function onCardImgLoad(b, e) {
+  const img = e.target
+  if (img.naturalWidth && img.naturalHeight) {
+    const ratio = img.naturalWidth / img.naturalHeight
+    imgRatios.value[b.id] = ratio
+    b._ratio = ratio
+    // 测量容器实际渲染宽度，按图片比例计算高度
+    const box = imgBoxRefs.get(b.id)
+    if (box) {
+      const w = box.offsetWidth
+      if (w > 0) {
+        box.style.height = Math.round(w / ratio) + 'px'
+        box.style.aspectRatio = '' // 清除 fallback，用精确高度
+      }
+    }
+  }
+}
+
+// 图片容器样式：未加载时用 1:1 占位，加载后由 onCardImgLoad 设置精确高度
+function imgBoxStyle(b) {
+  return {}
+}
+
+// 卡片整体样式（预留，当前无额外样式）
+function cardStyle(b) {
+  return {}
+}
 </script>
 
-<style>
-/* 省→市两级地区选择器（从旧 index.html 内联样式迁移） */
-.city-picker {
-  width: 100%;
-}
-.city-picker-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #f0f0f0;
-}
-.city-picker-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: #333;
-}
-.city-picker-all {
-  font-size: 13px;
-  color: #ff6633;
-  cursor: pointer;
-}
-.city-picker-hot {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  padding: 10px 0 8px;
-  border-bottom: 1px solid #f0f0f0;
-}
-.city-picker-hot-item {
-  font-size: 12px;
-  padding: 3px 10px;
-  border-radius: 12px;
-  background: #f5f5f5;
-  color: #555;
-  cursor: pointer;
-}
-.city-picker-hot-item.active {
-  background: #fff0eb;
-  color: #ff6633;
-}
-/* 城市下拉触发按钮（头部导航） */
-.city-dropdown {
-  color: #fff;
-  font-size: 14px;
-}
-/* 搜索图标按钮 */
-.search-icon {
-  cursor: pointer;
-}
-.city-picker-cols {
-  display: flex;
-  height: 320px;
-  margin-top: 8px;
-}
-.city-picker-prov {
-  width: 96px;
-  flex-shrink: 0;
-  overflow-y: auto;
-  border-right: 1px solid #f0f0f0;
-}
-.city-picker-prov-item {
-  padding: 8px 10px;
-  font-size: 13px;
-  color: #555;
-  cursor: pointer;
-  border-radius: 8px;
-}
-.city-picker-prov-item.active {
-  background: #fff0eb;
-  color: #ff6633;
-  font-weight: 600;
-}
-.city-picker-city {
-  flex: 1;
-  overflow-y: auto;
-  padding-left: 8px;
-}
-.city-picker-city-item {
-  padding: 8px 10px;
-  font-size: 13px;
-  color: #333;
-  cursor: pointer;
-  border-radius: 8px;
-}
-.city-picker-city-item.active {
-  background: #fff0eb;
-  color: #ff6633;
-  font-weight: 600;
-}
-</style>
+<!-- 城市选择器与搜索栏样式已收敛至 styles/page-home.css 与 styles/layout.css，
+     本页无需再声明局部样式（旧实现的 .city-dropdown 白字是为黑色搜索栏适配，
+     搜索栏改为玻璃底后已统一为 --text-strong） -->

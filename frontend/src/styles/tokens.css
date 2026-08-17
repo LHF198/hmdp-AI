@@ -1,0 +1,150 @@
+/* ============================================================
+   Design Tokens — 全站唯一设计变量来源（single source of truth）
+   ------------------------------------------------------------
+   规则：
+   1. 任何页面/组件 CSS 只允许引用这里的变量，禁止写死颜色/圆角/阴影字面量
+   2. JS 侧颜色统一从 utils/colors.js 引用，其值必须与此文件保持一致
+   3. 旧 glass.css :root 的变量名全部保留（下方 legacy alias 段），
+      保证 blog-detail-spa.css / blog-edit-spa.css 等页面样式零改动仍生效
+   ============================================================ */
+
+:root {
+  /* ---------- 品牌色：全站唯一主色（点评橙） ---------- */
+  --brand: #ff6633;
+  --brand-strong: #f2521c; /* hover/active 加深 */
+  --brand-weak: rgba(255, 102, 51, 0.14); /* 选中态浅底 */
+  --brand-border: rgba(255, 102, 51, 0.4);
+  --brand-on: #ffffff; /* 品牌色上的前景文字 */
+
+  /* ---------- 中性/玻璃底色 ---------- */
+  --bg-base: #d6d1cb; /* 暖灰底 */
+  --surface-1: rgba(255, 255, 255, 0.25); /* 主卡片 */
+  --surface-2: rgba(255, 255, 255, 0.2); /* 分段区块 */
+  --surface-3: rgba(255, 255, 255, 0.35); /* 抬升卡片 */
+  --surface-inset: rgba(214, 209, 203, 0.6); /* 输入框内凹 */
+  --surface-inset-focus: rgba(214, 209, 203, 0.7);
+
+  --border-1: rgba(255, 255, 255, 0.35);
+  --border-2: rgba(255, 255, 255, 0.25);
+  --border-3: rgba(255, 255, 255, 0.45);
+  --divider: rgba(31, 45, 61, 0.08);
+
+  /* ---------- 文字 ---------- */
+  /* 次级文字由 0.75 提到 0.82，改善半透明玻璃底上的对比度 */
+  --text-strong: #1f2d3d;
+  --text-weak: rgba(31, 45, 61, 0.82);
+  --text-muted: rgba(31, 45, 61, 0.6); /* 占位/空态 */
+  --text-on-dark: #ffffff;
+
+  /* ---------- 强调（深色中性，用于次级按钮/图标） ---------- */
+  --accent: #22272b;
+  --accent-weak: rgba(34, 39, 43, 0.65);
+  --focus-ring: rgba(255, 102, 51, 0.3);
+
+  /* ---------- 语义色 ---------- */
+  --success: #2fa36b;
+  --danger: #e5484d;
+  --info: #1890ff;
+
+  /* ---------- 分类金刚区图标底色（柔和马卡龙系，10 个循环） ---------- */
+  --cat-1: rgba(255, 138, 76, 0.16); /* 美食 */
+  --cat-2: rgba(146, 111, 236, 0.16); /* KTV */
+  --cat-3: rgba(236, 112, 160, 0.16); /* 丽人·美发 */
+  --cat-4: rgba(236, 92, 124, 0.14); /* 美睫·美甲 */
+  --cat-5: rgba(47, 163, 107, 0.14); /* 按摩·足疗 */
+  --cat-6: rgba(38, 166, 154, 0.16); /* 美容SPA */
+  --cat-7: rgba(24, 144, 255, 0.14); /* 亲子游乐 */
+  --cat-8: rgba(93, 109, 190, 0.16); /* 酒吧 */
+  --cat-9: rgba(240, 173, 52, 0.18); /* 轰趴馆 */
+  --cat-10: rgba(124, 179, 66, 0.18); /* 健身运动 */
+
+  /* ---------- 圆角 ---------- */
+  --radius-xl: 24px;
+  --radius-lg: 18px;
+  --radius-md: 14px;
+  --radius-sm: 12px;
+  --radius-pill: 999px;
+
+  /* ---------- 阴影 ---------- */
+  --glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  --shadow-1: 0 3px 8px rgba(0, 0, 0, 0.05);
+  --shadow-2: 0 6px 14px rgba(0, 0, 0, 0.06);
+  --shadow-3: 0 8px 20px rgba(0, 0, 0, 0.08);
+  --shadow-4: 0 8px 24px rgba(0, 0, 0, 0.1);
+  --shadow-brand: 0 6px 14px rgba(255, 102, 51, 0.28);
+  --inner-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+  --sheen: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+
+  /* ---------- 毛玻璃模糊 ---------- */
+  --blur-card: blur(25px) saturate(1.2);
+  --blur-panel: blur(20px) saturate(1.2);
+  --blur-segment: blur(14px);
+  --blur-item: blur(8px);
+
+  /* ---------- 字体 ---------- */
+  --font-sans: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+    "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-size-root: 12px; /* 保持旧移动端基准，勿改：全站 px 尺寸以此为默认继承 */
+
+  /* ---------- 间距 ---------- */
+  --space-1: 4px;
+  --space-2: 6px;
+  --space-3: 8px;
+  --space-4: 10px;
+  --space-5: 12px;
+  --space-6: 16px;
+
+  /* ---------- 布局 ---------- */
+  --app-max-width: 480px;
+  --app-gutter: 12px;
+  --foot-height: 64px;
+  --foot-offset: 16px;
+
+  /* ---------- 动效 ---------- */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast: 0.12s;
+  --dur-base: 0.2s;
+  --dur-slow: 0.35s;
+
+  /* ---------- 层级 ---------- */
+  --z-sticky: 20;
+  --z-dropdown: 100;
+  --z-foot: 1000;
+  --z-launcher: 9999;
+
+  /* ============================================================
+     AI 模块：并入品牌色系
+     原先为紫蓝色系（#4f46e5 / #a855f7），与品牌橙割裂；
+     现改为品牌橙 + 中性玻璃，保持 AI 页独立气质但同属一个色系家族
+     ============================================================ */
+  --ai-text-primary: var(--text-strong);
+  --ai-text-secondary: var(--text-muted);
+  --ai-title-color: var(--text-strong);
+  --ai-app-bg: rgba(255, 255, 255, 0.72);
+  --ai-border-color: rgba(255, 102, 51, 0.18);
+  --ai-focus-ring: var(--focus-ring);
+  --ai-user-bubble-bg: var(--brand-weak);
+  --ai-user-bubble-text: var(--text-strong);
+  --ai-user-avatar-bg: rgba(255, 102, 51, 0.18);
+  --ai-user-avatar-icon: var(--brand-strong);
+  --ai-assistant-bubble-bg: rgba(255, 255, 255, 0.78);
+  --ai-input-bg: rgba(255, 255, 255, 0.85);
+  --ai-accent-btn-bg: linear-gradient(135deg, #ff7a45, #f2521c);
+  --ai-accent-btn-text: var(--brand-on);
+  --ai-header-bg: linear-gradient(
+    135deg,
+    rgba(255, 122, 69, 0.16),
+    rgba(255, 102, 51, 0.1)
+  );
+  --ai-chip-bg: rgba(255, 255, 255, 0.6);
+  --ai-shadow: 0 28px 60px rgba(180, 90, 50, 0.14);
+
+  /* ============================================================
+     Legacy alias — 勿删
+     旧 glass.css 变量名，被仍在使用的页面样式引用：
+     --card-bg / --card-border 由 surface/border 派生
+     ============================================================ */
+  --card-bg: var(--surface-1);
+  --card-border: var(--border-1);
+}

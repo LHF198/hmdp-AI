@@ -5,13 +5,19 @@
    - 头部/作者栏复用全局 .header/.basic/.logout-btn（info.css/shop-list.css）
    ============================================================ */
 
-/* 图片轮播容器（触摸滑动） */
+/* 图片轮播容器（触摸滑动）
+   高度由 JS 按当前图自然比例自适应（见 BlogDetail.vue 的 applySwiperHeight），
+   380px 仅为图片加载前的初始值；transition 让切图时高度平滑过渡 */
 .blog-detail-page .blog-info-box {
   position: relative;
   overflow: hidden;
-  height: 300px;
+  height: 380px;
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   background: #f0f0f0;
+  border-radius: var(--radius-lg);
+  transition: height 0.3s ease;
 }
 
 .blog-detail-page .blog-info-box.indicator {
@@ -39,7 +45,52 @@
 .blog-detail-page .swiper-item img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  /* contain：高度被 75vh 限幅等情况下也不裁剪，图片尽量完整展示 */
+  object-fit: contain;
+}
+
+/* header 中间的笔记标题：单行省略
+   旧实现用 position:absolute + max-width:55vw，长标题会从中心向两侧扩展，
+   视觉上与左侧返回键重叠（绝对定位脱离文档流）。
+   改用 flex 布局让标题自动填充中间区域，确保不遮挡两侧按钮 */
+.blog-detail-page .header {
+  /* 覆盖全局 .header 的 justify-content: space-between，
+     改为三段式 flex 布局：返回键 | 标题(自适应) | 删除/分享 */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.blog-detail-page .header-back-btn {
+  /* 覆盖全局 .header-back-btn 的 width:10%，改为固定宽度 */
+  width: auto;
+  min-width: 44px;
+  flex-shrink: 0;
+}
+
+.blog-detail-page .header-title {
+  /* 不再绝对定位，改为 flex 中间自适应区域 */
+  position: static;
+  transform: none;
+  left: auto;
+  top: auto;
+  flex: 1;
+  min-width: 0; /* 允许收缩到内容以下以触发 text-overflow */
+  margin: 0 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: none; /* 移除旧的 55vw 限制 */
+}
+
+/* 正文区笔记标题 */
+.blog-detail-page .blog-detail-title {
+  padding: 12px 16px 0;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--text-strong);
+  word-break: break-word;
 }
 
 /* 作者栏右侧时间样式 */
@@ -51,16 +102,48 @@
   opacity: 0.4;
 }
 
+/* 作者栏：修复百分比宽度导致的对齐问题 */
+.blog-detail-page .basic {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  gap: 10px;
+}
+
+.blog-detail-page .basic-icon {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+}
+
+.blog-detail-page .basic-icon img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.blog-detail-page .basic-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.blog-detail-page .basic-info .name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
 /* 关联店铺卡片 */
 .blog-detail-page .shop-basic {
-  margin: 15px auto;
-  width: 90%;
+  margin: 15px 16px;
+  width: auto;
   border-radius: 12px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 15px;
-  box-shadow: 0 4px 4px 2px rgba(0, 0, 0, 0.1);
+  gap: 12px;
+  padding: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   background: rgba(255, 255, 255, 0.85);
   cursor: pointer;
 }
@@ -84,15 +167,13 @@
 
 /* 点赞区 */
 .blog-detail-page .zan-box {
-  width: 90%;
-  margin: auto;
-  padding: 20px 0 10px;
+  padding: 16px;
   display: flex;
-  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
 }
 
 .blog-detail-page .zan-list {
-  width: 88%;
   display: flex;
   align-items: center;
 }
@@ -115,8 +196,7 @@
 
 /* 笔记正文 */
 .blog-detail-page .blog-text {
-  width: 90%;
-  padding: 5px 20px;
+  padding: 5px 16px 10px;
   font-size: 15px;
   line-height: 1.7;
   color: #333;
@@ -151,7 +231,7 @@
 .blog-detail-page .comments-head span {
   font-size: 12px;
   font-weight: normal;
-  color: #82848a;
+  color: var(--text-muted);
 }
 
 .blog-detail-page .comment-list {
@@ -213,54 +293,145 @@
 /* 头部右侧删除按钮（仅作者可见） */
 .blog-detail-page .header-delete {
   font-size: 13px;
-  color: #ff6633;
-  border: 1px solid #ff6633;
+  color: var(--brand);
+  border: 1px solid var(--brand);
   border-radius: 14px;
   padding: 3px 12px;
   cursor: pointer;
   background: rgba(255, 255, 255, 0.9);
 }
 
-/* 底部栏：点赞 + 评论输入 + 发送
+/* 作者栏关注按钮列 */
+.blog-detail-page .basic-follow-col {
+  flex-shrink: 0;
+}
+
+.blog-detail-page .basic-follow-col .logout-btn {
+  width: auto;
+  padding: 4px 14px;
+  text-align: center;
+  font-size: 13px;
+}
+
+/* 底部栏：点赞 + 评论输入
  * 底栏已 Teleport 到 body（避开 #app backdrop-filter 对 fixed 的包含块影响），
  * 选择器不再依赖 .blog-detail-page 前缀，宽度对齐 #app 手机卡片 */
 .blog-detail-foot {
   max-width: 480px;
   width: calc(100% - 24px);
-  height: 52px;
+  height: 56px;
   display: flex;
-  justify-content: center;
   align-items: center;
-  box-shadow: 0 -1px 2px 1px rgba(0, 0, 0, 0.1);
+  gap: 12px;
+  box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.08);
   position: fixed;
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
   background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
   z-index: 600;
-  padding: 0 12px;
+  padding: 0 16px;
   box-sizing: border-box;
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.5);
 }
 
-.blog-detail-foot .foot-box {
-  width: auto;
-  color: #82848a;
-  text-align: center;
+/* 点赞区 */
+.blog-detail-foot .foot-like {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
   cursor: pointer;
-  padding: 0 8px;
+  padding: 6px 10px;
+  border-radius: 20px;
+  transition: background 0.2s ease, transform 0.15s ease;
+  user-select: none;
 }
-
-.blog-detail-foot .foot-view {
-  font-size: 12px;
+.blog-detail-foot .foot-like:hover {
+  background: rgba(255, 102, 51, 0.08);
+}
+.blog-detail-foot .foot-like:active {
+  transform: scale(0.95);
+}
+.blog-detail-foot .like-icon {
+  transition: transform 0.2s ease;
+}
+.blog-detail-foot .foot-like:active .like-icon {
+  transform: scale(1.2);
+}
+.blog-detail-foot .like-count {
+  font-size: 13px;
+  color: #999;
+  font-weight: 500;
+  min-width: 16px;
   text-align: center;
+  transition: color 0.2s ease;
+}
+.blog-detail-foot .like-count.liked {
+  color: var(--brand);
 }
 
-.blog-detail-foot .foot-view span {
-  font-size: 12px;
+/* 评论输入区 */
+.blog-detail-foot .comment-bar {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 24px;
+  padding: 4px 6px 4px 14px;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+.blog-detail-foot .comment-bar:focus-within {
+  background: rgba(0, 0, 0, 0.06);
+  box-shadow: inset 0 0 0 1.5px rgba(255, 102, 51, 0.25);
+}
+.blog-detail-foot .comment-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 13px;
+  color: var(--text-strong);
+  line-height: 28px;
+  min-width: 0;
+}
+.blog-detail-foot .comment-input::placeholder {
+  color: rgba(0, 0, 0, 0.35);
 }
 
-.blog-detail-foot .liked {
-  color: #ff6633;
+/* 发送按钮 */
+.blog-detail-foot .send-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.12);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+.blog-detail-foot .send-btn:hover {
+  background: rgba(0, 0, 0, 0.18);
+}
+.blog-detail-foot .send-btn:active {
+  transform: scale(0.9);
+}
+.blog-detail-foot .send-btn.active {
+  background: var(--brand);
+  box-shadow: 0 2px 8px rgba(255, 102, 51, 0.35);
+}
+.blog-detail-foot .send-btn.active:hover {
+  background: var(--brand-strong);
+}
+.blog-detail-foot .send-btn svg {
+  transform: rotate(-45deg) translateX(1px);
 }

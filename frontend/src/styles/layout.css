@@ -1,0 +1,252 @@
+/* ============================================================
+   Layout — 应用外壳、页头、底部导航、搜索栏
+   取代 glass.css 的布局段 + main.css 的 .foot 段
+   + index.css/shop-list.css/login.css/info.css 中的 .header 定义（四处重复，此处收敛为一份）
+   ============================================================ */
+
+/* ---------- 应用外壳：手机优先的悬浮玻璃卡 ----------
+   注意：#app 的 backdrop-filter 会创建包含块，
+   其内部 position:fixed 元素（.foot / .ai-launcher）以 #app 为定位参照。
+   .foot 与 .ai-launcher 的定位数值依赖这一点，勿移除 backdrop-filter。 */
+#app {
+  box-sizing: border-box;
+  position: relative;
+  min-height: 100vh;
+  max-width: var(--app-max-width);
+  width: calc(100% - 2 * var(--app-gutter));
+  margin: 0 auto;
+  padding: var(--app-gutter) var(--app-gutter)
+    calc(72px + env(safe-area-inset-bottom, 0px));
+  background: var(--surface-1);
+  -webkit-backdrop-filter: var(--blur-card);
+  backdrop-filter: var(--blur-card);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--glass-shadow);
+}
+
+/* ---------- 玻璃分段区块：卡片内的浮动分区 ---------- */
+.search-bar,
+.sort-bar,
+.top-bar,
+.shop-info-box,
+.shop-comments,
+.shop-voucher,
+.login-form,
+.comment-list {
+  background: var(--surface-2);
+  -webkit-backdrop-filter: var(--blur-segment);
+  backdrop-filter: var(--blur-segment);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-3);
+}
+
+/* ---------- 页头：返回键在左，标题绝对居中（移动端通用范式） ----------
+   旧实现散落在 login.css / shop-list.css / info.css 三处且未做作用域，
+   其中 info.css 的绝对居中会泄漏到所有页面。此处收敛为一份显式的全局约定。 */
+.header {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: auto;
+  padding: var(--space-5) 0;
+  line-height: normal;
+  margin-bottom: var(--space-4);
+  background: var(--surface-2);
+  -webkit-backdrop-filter: var(--blur-segment);
+  backdrop-filter: var(--blur-segment);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-lg);
+}
+
+.header-title {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: auto;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-strong);
+  white-space: nowrap;
+}
+
+.header-back-btn {
+  width: 10%;
+  min-width: 36px;
+  display: flex;
+  align-items: center;
+  font-size: 22px;
+  color: var(--accent-weak);
+  cursor: pointer;
+  transition: color var(--dur-base) ease, transform var(--dur-fast) ease;
+}
+
+.header-back-btn:active {
+  transform: scale(0.94);
+}
+
+.header-search {
+  width: 10%;
+  min-width: 36px;
+  text-align: center;
+  font-size: 18px;
+  color: var(--brand);
+  cursor: pointer;
+}
+
+.header-icon {
+  font-size: 14px;
+  color: var(--accent-weak);
+  cursor: pointer;
+}
+
+/* ---------- 首页搜索栏 ---------- */
+.search-bar {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  height: auto;
+  padding: var(--space-4);
+  gap: var(--space-4);
+  color: var(--text-strong);
+}
+
+.search-input {
+  width: 70%;
+}
+
+.search-input .el-input,
+.search-input .el-input__inner {
+  width: 100%;
+}
+
+.search-icon {
+  cursor: pointer;
+}
+
+/* 城市选择触发按钮 */
+.city-btn {
+  background: rgba(255, 255, 255, 0.28);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-4);
+  box-shadow: var(--shadow-3);
+}
+
+.city-dropdown {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--text-strong);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* ---------- 底部导航 ----------
+   组件已 Teleport 到 body（见 FootBar.vue），此处 fixed 相对视口定位。
+   width:calc(100% - 2*gutter) + max-width 与 #app 对齐，实现"悬浮玻璃卡 + 居中底栏"。
+   注意：切勿把底栏放回 #app 内 —— #app 的 backdrop-filter 会创建包含块，
+   fixed 元素的定位参照会从视口变为 #app，内容超高时底栏被推到页面底部（历史 bug）。 */
+.foot {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: var(--foot-offset);
+  max-width: var(--app-max-width);
+  width: calc(100% - 2 * var(--app-gutter));
+  height: var(--foot-height);
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.38),
+    rgba(255, 255, 255, 0.22)
+  );
+  -webkit-backdrop-filter: var(--blur-segment);
+  backdrop-filter: var(--blur-segment);
+  border: none;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.12);
+  z-index: var(--z-foot);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.foot-box {
+  width: 20%;
+  height: 100%;
+  text-align: center;
+  color: #5c6166;
+  cursor: pointer;
+  position: relative;
+  /* 图标+文字纵向堆叠并整体居中：旧实现无此设置，文字被挤到盒底（与图标错位 16px） */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--dur-base) ease, transform var(--dur-base) var(--ease),
+    filter var(--dur-base) ease;
+}
+
+.foot-box:hover {
+  filter: brightness(1.05);
+  transform: translateY(-2px);
+}
+
+.foot-box:active {
+  transform: scale(0.98);
+}
+
+.foot-view,
+.foot-text {
+  text-align: center;
+}
+
+.foot-view {
+  /* el-icon 为 inline-flex 且 26px 图标，去掉 line-height 带来的额外行盒高度，
+     避免图标与文字之间出现不可见空隙导致整体偏下 */
+  font-size: 26px;
+  line-height: 0;
+}
+
+.foot-text {
+  font-size: 8px;
+  line-height: 1;
+  /* 小字贴图标下方（旧 MPA 语义），避免文字被 flex 中线推向盒底造成"图标高悬、文字沉底"的视觉失衡 */
+  margin-top: -4px;
+}
+
+/* 选中态：品牌色替代旧的纯黑，与全站主色统一 */
+.foot-box.active {
+  color: var(--brand);
+}
+
+/* 中间发布按钮：品牌橙凸起胶囊（替代旧黑色圆图 add.png，与全站主色统一） */
+.foot-add {
+  width: 44px;
+  height: 30px;
+  border-radius: var(--radius-pill);
+  background: var(--brand);
+  color: var(--brand-on);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-brand);
+}
+
+/* 消息未读红点 */
+.foot-badge {
+  position: absolute;
+  top: -2px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--brand);
+}

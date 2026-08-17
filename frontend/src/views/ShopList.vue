@@ -43,15 +43,37 @@
       </div>
     </div>
     <div class="shop-list" @scroll="onScroll">
-      <div v-if="loaded && shops.length === 0" class="shop-empty">
-        当前城市暂无相关商铺，换个城市或关键词试试吧
+      <EmptyState
+        v-if="loaded && shops.length === 0"
+        size="roomy"
+        text="当前城市暂无相关商铺，换个城市或关键词试试吧"
+      />
+      <!-- 首次加载骨架屏：避免空白闪烁 -->
+      <div v-else-if="!loaded" class="shop-skeleton">
+        <el-skeleton v-for="i in 4" :key="i" animated>
+          <template #template>
+            <div class="shop-skeleton-row">
+              <el-skeleton-item variant="image" class="shop-skeleton-img" />
+              <div class="shop-skeleton-info">
+                <el-skeleton-item variant="h3" style="width: 60%" />
+                <el-skeleton-item variant="text" style="width: 40%" />
+                <el-skeleton-item variant="text" style="width: 80%" />
+              </div>
+            </div>
+          </template>
+        </el-skeleton>
       </div>
       <div class="shop-box" v-for="s in shops" :key="s.id" @click="toDetail(s.id)">
-        <div class="shop-img"><img :src="s.images" alt="" /></div>
+        <div class="shop-img"><img v-img-fade :src="s.images" alt="" loading="lazy" /></div>
         <div class="shop-info">
           <div class="shop-title shop-item">{{ s.name }}</div>
           <div class="shop-rate shop-item">
-            <el-rate disabled :model-value="s.score / 10" text-color="#F63" show-score></el-rate>
+            <el-rate
+              disabled
+              :model-value="s.score / 10"
+              :text-color="RATE_TEXT_COLOR"
+              show-score
+            ></el-rate>
             <span>{{ s.comments }}条</span>
           </div>
           <div class="shop-area shop-item">
@@ -80,6 +102,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { shopApi } from '@/api/shop'
 import AiLauncher from '@/components/AiLauncher.vue'
+import EmptyState from '@/components/EmptyState.vue'
+import { RATE_TEXT_COLOR } from '@/utils/colors'
 
 const route = useRoute()
 const router = useRouter()
@@ -245,12 +269,27 @@ function onScroll(e) {
 </script>
 
 <style scoped>
-/* 空列表提示：与全局玻璃拟态主题一致的次级文字色 */
-.shop-empty {
-  text-align: center;
-  color: #82848a;
-  padding: 60px 0;
-  font-size: 14px;
-  width: 100%;
+/* 空态改用 EmptyState 组件（样式见 styles/components.css）；此处仅骨架屏布局 */
+.shop-skeleton-row {
+  display: flex;
+  gap: 12px;
+  padding: 10px;
+  margin-bottom: 8px;
+  background: var(--surface-3);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-lg);
+}
+.shop-skeleton-img {
+  width: 95px;
+  height: 95px;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+.shop-skeleton-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
 }
 </style>

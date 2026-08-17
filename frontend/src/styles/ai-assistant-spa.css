@@ -1,39 +1,19 @@
 /* AI 探店助手页样式（ai-assistant.css 的 SPA 改写版）：
    - body.ai-page-body -> .ai-page-root（SPA 中 body 为全局，改为页面根类隔离）
    - #ai-page -> .ai-page-inner
-   - 删除 .ai-launcher 悬浮按钮部分（已迁移至 components/AiLauncher.vue） */
-:root {
-  --ai-text-primary: #1c1f3a;
-  --ai-text-secondary: #7b80a8;
-  --ai-title-color: #151836;
-  --ai-app-bg: #ffffff;
-  --ai-border-color: rgba(129, 140, 248, 0.18);
-  --ai-focus-ring: rgba(129, 140, 248, 0.25);
-  --ai-user-bubble-bg: #f7f8ff;
-  --ai-user-bubble-text: #1c1f3a;
-  --ai-user-avatar-bg: rgba(129, 140, 248, 0.18);
-  --ai-user-avatar-icon: #4f46e5;
-  --ai-assistant-bubble-bg: #ebeefe;
-  --ai-input-bg: rgba(243, 244, 255, 0.92);
-  --ai-accent-btn-bg: linear-gradient(135deg, #5d5ffb, #8b5cf6);
-  --ai-accent-btn-text: #ffffff;
-  --ai-header-bg: linear-gradient(
-    135deg,
-    rgba(93, 95, 251, 0.18),
-    rgba(139, 92, 246, 0.18)
-  );
-  --ai-chip-bg: rgba(255, 255, 255, 0.55);
-}
+   - 删除 .ai-launcher 悬浮按钮部分（已迁移至 components/AiLauncher.vue）
+   - 配色变量已上移至 styles/tokens.css（--ai-*），并由紫蓝色系并入品牌橙色系；
+     此文件只负责布局与结构，不再自带 :root 变量块 */
 
 /* Full page layout */
 .ai-page-root {
   margin: 0;
-  font-family: "Inter", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+  font-family: var(--font-sans);
   background: linear-gradient(
     145deg,
-    #edf1ff 0%,
-    #f7f8fd 45%,
-    #eef2ff 100%
+    #f6efe9 0%,
+    #fbf7f4 45%,
+    #f3ece6 100%
   );
   min-height: 100vh;
   display: flex;
@@ -61,7 +41,7 @@
   height: 420px;
   background: radial-gradient(
     circle at 20% 20%,
-    rgba(129, 140, 248, 0.35),
+    rgba(255, 122, 69, 0.32),
     rgba(195, 206, 255, 0.1)
   );
   top: -140px;
@@ -97,7 +77,7 @@
   background: var(--ai-app-bg);
   border-radius: 24px;
   border: 1px solid var(--ai-border-color);
-  box-shadow: 0 28px 60px rgba(74, 85, 255, 0.12);
+  box-shadow: 0 28px 60px rgba(180, 90, 50, 0.14);
   backdrop-filter: blur(18px) saturate(160%);
   -webkit-backdrop-filter: blur(18px) saturate(160%);
   overflow: hidden;
@@ -131,16 +111,16 @@
   border-radius: 16px;
   background: linear-gradient(
     135deg,
-    rgba(129, 140, 248, 0.35),
-    rgba(99, 102, 241, 0.45)
+    rgba(255, 122, 69, 0.32),
+    rgba(255, 102, 51, 0.38)
   );
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #312e81;
+  color: var(--brand-strong);
   font-size: 20px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4),
-    0 10px 24px rgba(79, 70, 229, 0.18);
+    0 10px 24px rgba(180, 90, 50, 0.18);
 }
 
 .ai-header-title {
@@ -169,9 +149,9 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  border: 1px solid rgba(129, 140, 248, 0.35);
+  border: 1px solid rgba(255, 122, 69, 0.32);
   background: var(--ai-chip-bg);
-  color: #4f46e5;
+  color: var(--brand-strong);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -181,8 +161,8 @@
 
 .ai-icon-button:hover {
   transform: scale(1.05);
-  background: rgba(79, 70, 229, 0.2);
-  color: #312e81;
+  background: rgba(255, 102, 51, 0.18);
+  color: var(--brand-strong);
 }
 
 .ai-icon-button:disabled {
@@ -194,9 +174,9 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  border: 1px solid rgba(129, 140, 248, 0.35);
+  border: 1px solid rgba(255, 122, 69, 0.32);
   background: var(--ai-chip-bg);
-  color: #4f46e5;
+  color: var(--brand-strong);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -205,9 +185,9 @@
 }
 
 .ai-close-button:hover {
-  background: rgba(99, 102, 241, 0.18);
+  background: rgba(255, 102, 51, 0.16);
   transform: scale(1.04);
-  color: #312e81;
+  color: var(--brand-strong);
 }
 
 .ai-chat-body {
@@ -244,7 +224,7 @@
   align-items: center;
   justify-content: center;
   font-size: 18px;
-  box-shadow: 0 6px 12px rgba(79, 70, 229, 0.18);
+  box-shadow: 0 6px 12px rgba(180, 90, 50, 0.18);
   flex-shrink: 0;
 }
 
@@ -268,7 +248,7 @@
   color: inherit;
 
   /* 阴影效果: 水平0 垂直10px 模糊22px,颜色为半透明紫色 */
-  box-shadow: 0 10px 22px rgba(79, 70, 229, 0.16);
+  box-shadow: 0 10px 22px rgba(180, 90, 50, 0.14);
 
   /* 行高调整为1.3，兼顾紧凑与可读性 */
   line-height: 1.3;
@@ -330,14 +310,14 @@
   line-height: 1.6;
   color: var(--ai-text-primary);
   background: var(--ai-input-bg);
-  box-shadow: inset 0 2px 6px rgba(79, 70, 229, 0.08);
+  box-shadow: inset 0 2px 6px rgba(180, 90, 50, 0.08);
   transition: box-shadow 0.2s ease;
   font-family: inherit;
 }
 
 .ai-input:focus {
   outline: none;
-  box-shadow: inset 0 2px 6px rgba(79, 70, 229, 0.12),
+  box-shadow: inset 0 2px 6px rgba(180, 90, 50, 0.12),
     0 0 0 3px var(--ai-focus-ring);
 }
 
@@ -357,7 +337,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 12px 26px rgba(79, 70, 229, 0.24);
+  box-shadow: 0 12px 26px rgba(180, 90, 50, 0.24);
   transition: transform 0.2s ease, filter 0.2s ease;
   flex-shrink: 0;
 }
@@ -415,7 +395,7 @@
 
   .ai-page-card {
     border-radius: 20px;
-    box-shadow: 0 20px 50px rgba(79, 70, 229, 0.14);
+    box-shadow: 0 20px 50px rgba(180, 90, 50, 0.14);
   }
 
   .ai-chat-footer {
@@ -495,7 +475,5 @@
   }
 }
 
-/* 覆盖 glass.css 的样式，确保手机宽度限制 */
-.ai-page-card {
-  max-width: 440px !important;
-}
+/* 说明：此前这里有一条 `max-width: 440px !important` 用于对抗 glass.css 的全局 #app 宽度规则。
+   glass.css 已退役，AI 页不再与全局外壳争抢宽度，宽度约束已合并进上方 .ai-page-card 定义。 */

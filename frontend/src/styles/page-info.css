@@ -1,0 +1,324 @@
+/* ============================================================
+   个人主页 / 他人主页
+   取代 html/hmdp/css/info.css
+   ------------------------------------------------------------
+   旧实现的三个问题已在此修正：
+   1. 重复定义：.header 与 .basic 各写了两遍（后者覆盖前者），此处只保留最终生效的一份
+   2. 全局泄漏：.header / .header-title / .el-tabs__* / .el-tabs__content 未加作用域，
+      会影响所有页面。页头已上移 layout.css 统一收敛，Tab 相关样式此处收窄到 .info-page
+   3. 冗余 !important：叠层已消除，无需再靠 !important 抢优先级
+   ============================================================ */
+
+/* ---------- 用户资料卡 ---------- */
+.info-page .basic {
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: 15px;
+  background: var(--surface-2);
+  -webkit-backdrop-filter: var(--blur-segment);
+  backdrop-filter: var(--blur-segment);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-3);
+}
+
+.info-page .basic-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  gap: var(--space-2);
+}
+
+.info-page .basic-icon {
+  width: 64px;
+  height: 64px;
+  background-color: transparent;
+  box-shadow: none;
+  flex-shrink: 0;
+}
+
+.info-page .basic-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.info-page .basic-info {
+  flex-grow: 1;
+  width: auto;
+  min-width: 0;
+  padding: 0 15px;
+}
+
+.info-page .basic-info .name {
+  font-weight: bold;
+  font-size: 16px;
+  color: var(--text-strong);
+}
+
+/* 城市标签 */
+.info-page .basic-info span {
+  display: inline-block;
+  padding: 2px var(--space-3);
+  margin: 5px 0 var(--space-4);
+  background: rgba(255, 255, 255, 0.3);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-sm);
+  color: var(--text-weak);
+  font-size: 12px;
+}
+
+/* ---------- 资料卡上的胶囊按钮 ---------- */
+.info-page .edit-btn,
+.info-page .logout-btn {
+  width: auto;
+  height: auto;
+  padding: var(--space-1) var(--space-5);
+  line-height: 20px;
+  text-align: center;
+  border-radius: var(--radius-md);
+  color: var(--text-strong);
+  background: var(--surface-3);
+  border: 1px solid var(--border-2);
+  box-shadow: var(--shadow-3);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform var(--dur-fast) ease, background var(--dur-base) ease;
+}
+
+.info-page .edit-btn:hover,
+.info-page .logout-btn:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.info-page .edit-btn:active,
+.info-page .logout-btn:active {
+  transform: scale(0.98);
+}
+
+.info-page .logout-btn {
+  line-height: 1;
+}
+
+/* 签到按钮：品牌色描边强调（替代模板内联样式） */
+.info-page .logout-btn--brand {
+  color: var(--brand);
+  border-color: var(--brand-border);
+  background: var(--brand-weak);
+}
+
+.info-page .logout-btn--brand:hover {
+  background: rgba(255, 102, 51, 0.2);
+}
+
+/* ---------- 个人简介 ---------- */
+.info-page .introduce {
+  padding: 15px 5px 5px;
+  margin: 0;
+  width: 100%;
+  box-sizing: border-box;
+  color: var(--text-weak);
+  border-top: 1px solid var(--border-2);
+  cursor: pointer;
+}
+
+/* ---------- Tab 内容区 ---------- */
+.info-page .content {
+  height: auto;
+  background: transparent;
+  box-shadow: none;
+  border: none;
+  border-radius: 0;
+}
+
+.info-page .el-tabs__header {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg);
+  margin: 0 0 var(--space-4);
+  border-bottom: 1px solid var(--border-2);
+}
+
+.info-page .el-tabs__content {
+  background: rgba(255, 255, 255, 0.18);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-lg);
+  padding: 15px;
+  box-shadow: var(--shadow-2);
+  margin-top: -10px;
+  min-height: 200px;
+}
+
+/* ---------- 我的笔记列表项（横向卡片） ----------
+   .blog-img / .blog-title 等类名与首页瀑布流共用，必须收窄在 .info-page 内 */
+.info-page .blog-item {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  width: 100%;
+  height: auto;
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+  box-sizing: border-box;
+  background: var(--surface-1);
+  -webkit-backdrop-filter: var(--blur-item);
+  backdrop-filter: var(--blur-item);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-2);
+}
+
+.info-page .blog-img {
+  width: 80px;
+  height: 80px;
+  margin-right: var(--space-5);
+  flex-shrink: 0;
+  flex-grow: 0;
+  aspect-ratio: auto;
+}
+
+.info-page .blog-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+}
+
+.info-page .blog-info {
+  flex: 1;
+  width: auto;
+  min-width: 0;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+  color: var(--text-weak);
+}
+
+.info-page .blog-title {
+  width: 100%;
+  height: auto;
+  padding: 0;
+  line-height: 1.4;
+  color: var(--text-strong);
+  margin-bottom: var(--space-3);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.info-page .blog-liked,
+.info-page .blog-comments {
+  display: inline-flex;
+  align-items: center;
+  width: auto;
+  font-size: 12px;
+  margin-right: 15px;
+}
+
+.info-page .blog-liked img {
+  width: 14px;
+  height: 14px;
+  margin-right: var(--space-1);
+}
+
+/* 删除按钮 */
+.info-page .blog-del {
+  flex-shrink: 0;
+  padding: var(--space-1);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color var(--dur-base) ease, transform var(--dur-fast) ease;
+}
+
+.info-page .blog-del:hover {
+  color: var(--danger);
+}
+
+.info-page .blog-del:active {
+  transform: scale(0.9);
+}
+
+/* ---------- 关注 Tab 的笔记卡片（单列） ---------- */
+.info-page .blog-list {
+  width: 100%;
+  height: auto;
+  max-height: none;
+  overflow: visible;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  padding: 0 0 80px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.info-page .blog-box {
+  width: 95%;
+  max-width: none; /* 覆盖 page-home.css 的两列 max-width，单列卡片占满 */
+  margin: 5px 0;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.18);
+  -webkit-backdrop-filter: var(--blur-item);
+  backdrop-filter: var(--blur-item);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-2);
+}
+
+.info-page .blog-img2 img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.info-page .blog-foot {
+  display: flex;
+  align-items: center;
+  margin: var(--space-4) 0 5px;
+  padding: 0 var(--space-4);
+}
+
+.info-page .blog-user-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.info-page .blog-user-icon img {
+  width: 100%;
+  border-radius: 50%;
+}
+
+.info-page .blog-user-name {
+  width: auto;
+  padding-left: var(--space-3);
+  color: var(--text-weak);
+  font-size: 12px;
+}
+
+.info-page .blog-foot .blog-liked {
+  margin-right: auto;
+  justify-content: flex-start;
+  color: var(--accent-weak);
+}
+
+/* ---------- 修改密码弹窗 ---------- */
+.pwd-field {
+  margin-bottom: var(--space-5);
+}
+
+.pwd-label {
+  display: block;
+  font-size: 13px;
+  color: var(--text-weak);
+  margin-bottom: var(--space-1);
+}

@@ -28,6 +28,11 @@ public interface IBlogService extends IService<Blog> {
 
     Result queryBlogById(Long id);
 
+    /**
+     * 查询某店铺下的探店笔记（按点赞数倒序，店铺详情页聚合展示）
+     */
+    Result queryBlogByShopId(Long shopId);
+
     Result likeBlog(Long id);
 
     Result queryBlogLikes(Long id);

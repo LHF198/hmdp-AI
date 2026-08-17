@@ -92,6 +92,11 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
      */
     private static final int FEED_PAGE_SIZE = 2;
 
+    /**
+     * 店铺详情页聚合展示的探店笔记条数上限（按点赞数倒序取 TopN）
+     */
+    private static final int SHOP_BLOG_LIMIT = 10;
+
     @PreDestroy
     public void destroy() {
         FEED_PUSH_EXECUTOR.shutdownNow();
@@ -134,6 +139,21 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
                 .page(new Page<>(current, SystemConstants.MAX_PAGE_SIZE));
         // 获取当前页数据
         List<Blog> records = page.getRecords();
+        return Result.ok(records);
+    }
+
+    @Override
+    public Result queryBlogByShopId(Long shopId) {
+        // 按点赞数倒序取该店铺的探店笔记 TopN，填充作者信息与当前用户点赞状态
+        List<Blog> records = lambdaQuery()
+                .eq(Blog::getShopId, shopId)
+                .orderByDesc(Blog::getLiked)
+                .last("LIMIT " + SHOP_BLOG_LIMIT)
+                .list();
+        records.forEach(blog -> {
+            this.queryBlogUser(blog);
+            this.isBlogLiked(blog);
+        });
         return Result.ok(records);
     }
 

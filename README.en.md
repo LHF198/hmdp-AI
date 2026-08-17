@@ -257,3 +257,16 @@ http://localhost:8081/shop/1
 ## License
 
 MIT License
+
+## Changelog
+
+### 2026-08
+- **L2 SPA Refactoring Complete**: Frontend migrated from legacy MPA to Vue 3 SPA (Vite build + nginx deployment), with legacy MPA pages preserved for rollback
+- **AI Shop Assistant Enhanced**: Integrated Spring AI + RAG knowledge base + Redis chat memory, with streaming SSE output support
+- **UI/UX Improvements**:
+  - Homepage waterfall cards now adapt to original image aspect ratio (consistent with detail page)
+  - Blog detail page title display + long title ellipsis
+  - Shop detail page card centering fix
+  - Global design system (tokens.css) + glassmorphism theme
+- **Performance Optimization**: nginx gzip compression (main bundle -62%), on-demand icon registration (293 → 25)
+- **Architecture Improvements**: CSS architecture refactoring (page-level style isolation), componentization (EmptyState/LikeIcon)

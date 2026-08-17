@@ -61,28 +61,24 @@
 }
 
 .header-cancel-btn {
-  color: #666; /* 文字颜色：深灰色 */
-  background: rgba(108, 117, 125, 0.1); /* 背景色：灰色透明度10% */
+  color: var(--text-weak); /* 文字颜色：次级文字 */
+  background: var(--surface-inset); /* 背景色：内凹中性灰底 */
 }
 
 .header-cancel-btn:hover {
-  background: rgba(108, 117, 125, 0.2); /* 悬停时背景色：灰色透明度20% */
+  background: var(--surface-inset-focus); /* 悬停时背景加深 */
   transform: translateY(-1px); /* 悬停时向上移动1像素 */
 }
 
 .header-commit-btn {
-  color: #fff; /* 文字颜色：白色 */
-  background: linear-gradient(
-    135deg,
-    #667eea 0%,
-    #764ba2 100%
-  ); /* 渐变背景：135度角，从蓝色到紫色 */
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3); /* 阴影：水平0 垂直4 模糊15 蓝色透明度30% */
+  color: var(--brand-on); /* 文字颜色：白色 */
+  background: var(--ai-accent-btn-bg); /* 品牌橙渐变（原蓝紫渐变与品牌色系割裂，已统一） */
+  box-shadow: var(--shadow-brand); /* 品牌色阴影 */
 }
 
 .header-commit-btn:hover {
   transform: translateY(-2px); /* 悬停时向上移动2像素 */
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4); /* 悬停时阴影增强：垂直6 模糊20 透明度40% */
+  background: var(--brand-strong); /* 悬停时加深 */
 }
 
 .blog-edit-header .header-title {
@@ -142,9 +138,9 @@
 .section-pill {
   white-space: nowrap;
   padding: 6px 14px;
-  border-radius: 999px;
-  background: rgba(102, 126, 234, 0.12);
-  color: #4f56c1;
+  border-radius: var(--radius-pill);
+  background: var(--brand-weak);
+  color: var(--brand-strong);
   font-size: 12px;
   font-weight: 600;
 }
@@ -162,16 +158,12 @@
   align-items: center; /* 水平居中对齐子元素 */
   justify-content: center; /* 垂直居中对齐子元素 */
   height: 120px; /* 高度120像素 */
-  border: 2px dashed rgba(102, 126, 234, 0.3); /* 虚线边框：2像素蓝色透明度30% */
-  border-radius: 15px; /* 圆角半径15像素 */
-  background: linear-gradient(
-    135deg,
-    rgba(102, 126, 234, 0.05) 0%,
-    rgba(118, 75, 162, 0.05) 100%
-  ); /* 渐变背景：135度角，从淡蓝色到淡紫色，透明度5% */
+  border: 2px dashed var(--brand-border); /* 虚线边框：品牌橙浅描边 */
+  border-radius: var(--radius-md); /* 圆角 */
+  background: transparent; /* 无底色，悬停时再铺品牌浅底 */
   cursor: pointer; /* 鼠标悬停时显示手型光标 */
   transition: all 0.3s ease; /* 所有属性的过渡动画，持续0.3秒 */
-  color: #667eea; /* 文字颜色：蓝色 */
+  color: var(--brand); /* 文字颜色：品牌橙 */
 }
 
 .upload-tip {
@@ -180,12 +172,8 @@
 }
 
 .upload-btn:hover {
-  border-color: rgba(102, 126, 234, 0.6); /* 悬停时边框颜色：蓝色透明度60% */
-  background: linear-gradient(
-    135deg,
-    rgba(102, 126, 234, 0.1) 0%,
-    rgba(118, 75, 162, 0.1) 100%
-  ); /* 悬停时背景：渐变透明度增加到10% */
+  border-color: var(--brand); /* 悬停时边框加深为品牌橙 */
+  background: var(--brand-weak); /* 悬停时铺品牌浅底 */
   transform: translateY(-2px); /* 悬停时向上移动2像素 */
 }
 
@@ -334,12 +322,8 @@
 }
 
 .city-select {
-  background: linear-gradient(
-    135deg,
-    #667eea 0%,
-    #764ba2 100%
-  ); /* 渐变背景：135度角，从蓝色到紫色 */
-  color: white; /* 文字颜色：白色 */
+  background: var(--ai-accent-btn-bg); /* 品牌橙渐变（原蓝紫渐变已与品牌色统一） */
+  color: var(--brand-on); /* 文字颜色：白色 */
   padding: 10px 15px; /* 内边距：上下10像素，左右15像素 */
   border-radius: 20px; /* 圆角半径20像素 */
   font-size: 14px; /* 字体大小14像素 */
@@ -391,7 +375,7 @@
 }
 
 .shop-dialog .shop-item:hover {
-  background: rgba(102, 126, 234, 0.05); /* 悬停时背景色：蓝色透明度5% */
+  background: var(--brand-weak); /* 悬停时背景色：品牌橙浅底 */
 }
 
 .shop-dialog .shop-item:last-child {

@@ -20,8 +20,7 @@
           <div class="edit-btn" @click="toEdit">编辑资料</div>
         </div>
         <div
-          class="logout-btn"
-          style="margin-right: 8px; color: #ff6633; border-color: #ff6633"
+          class="logout-btn logout-btn--brand"
           @click="sign"
           v-if="user && user.id"
         >
@@ -30,7 +29,7 @@
         <div class="logout-btn" @click="pwdDialogVisible = true" title="设置/修改登录密码">修改密码</div>
         <div class="logout-btn" @click="logout">退出登录</div>
       </div>
-      <div class="introduce" @click="toEdit" title="点击编辑简介" style="cursor: pointer">
+      <div class="introduce" @click="toEdit" title="点击编辑简介">
         <span v-if="info.introduce">{{ info.introduce }}</span>
         <span v-else>添加个人简介，让大家更好的认识你 <el-icon :size="14"><Edit /></el-icon></span>
       </div>
@@ -40,9 +39,7 @@
     <div class="content">
       <el-tabs v-model="activeName" @tab-click="handleClick">
         <el-tab-pane label="笔记" name="1">
-          <div v-if="blogs.length === 0" style="text-align: center; color: #82848a; padding: 40px 0; font-size: 14px">
-            还没有发布过笔记，去首页写一篇吧
-          </div>
+          <EmptyState v-if="blogs.length === 0" text="还没有发布过笔记，去首页写一篇吧" />
           <div v-for="b in blogs" :key="b.id" class="blog-item">
             <div class="blog-img">
               <img :src="firstImage(b.images)" alt="" />
@@ -63,47 +60,33 @@
         </el-tab-pane>
 
         <el-tab-pane label="评价" name="2">
-          <div v-if="myComments.length === 0" style="text-align: center; color: #82848a; padding: 40px 0; font-size: 14px">
-            还没有发过评价，去笔记详情页评一条吧
-          </div>
+          <EmptyState v-if="myComments.length === 0" text="还没有发过评价，去笔记详情页评一条吧" />
           <div
             v-for="c in myComments"
             :key="c.id"
-            style="background: rgba(255,255,255,0.85); border-radius: 10px; padding: 10px 12px; margin-bottom: 10px; cursor: pointer"
+            class="glass-card glass-card--tappable comment-row"
             @click="toBlogById(c.blog_id)"
           >
-            <div style="font-size: 14px; color: #222">{{ c.content }}</div>
-            <div style="font-size: 12px; color: #999; margin-top: 4px">
+            <div class="comment-row-text">{{ c.content }}</div>
+            <div class="comment-row-meta">
               评《{{ c.blog_title || '笔记' }}》 · {{ relativeTime(c.create_time) }}
             </div>
           </div>
         </el-tab-pane>
 
         <el-tab-pane :label="`粉丝(${info.fans || 0})`" name="3">
-          <div v-if="fans.length === 0" style="text-align: center; color: #82848a; padding: 40px 0; font-size: 14px">
-            还没有粉丝，多发笔记吸引关注吧
-          </div>
-          <div
-            v-for="f in fans"
-            :key="f.id"
-            style="display: flex; align-items: center; background: rgba(255,255,255,0.85); border-radius: 10px; padding: 10px 12px; margin-bottom: 10px"
-          >
-            <img
-              :src="f.user_icon || defaultIcon"
-              alt=""
-              style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; margin-right: 10px"
-            />
+          <EmptyState v-if="fans.length === 0" text="还没有粉丝，多发笔记吸引关注吧" />
+          <div v-for="f in fans" :key="f.id" class="glass-card user-row fan-row">
+            <img class="user-row-avatar" :src="f.user_icon || defaultIcon" alt="" />
             <div>
-              <div style="font-size: 14px; color: #222">{{ f.user_nick_name }}</div>
-              <div style="font-size: 12px; color: #999; margin-top: 2px">{{ relativeTime(f.create_time) }} 关注了你</div>
+              <div class="user-row-name">{{ f.user_nick_name }}</div>
+              <div class="user-row-meta">{{ relativeTime(f.create_time) }} 关注了你</div>
             </div>
           </div>
         </el-tab-pane>
 
         <el-tab-pane :label="`关注(${info.followee || 0})`" name="4">
-          <div v-if="blogs2.length === 0" style="text-align: center; color: #82848a; padding: 40px 0; font-size: 14px">
-            还没有关注的人，去首页看看热门笔记吧
-          </div>
+          <EmptyState v-if="blogs2.length === 0" text="还没有关注的人，去首页看看热门笔记吧" />
           <div class="blog-list" @scroll="onScroll">
             <div class="blog-box" v-for="b in blogs2" :key="b.id">
               <div class="blog-img2" @click="toBlogDetail(b)">
@@ -116,20 +99,7 @@
                 </div>
                 <div class="blog-user-name">{{ b.name }}</div>
                 <div class="blog-liked" @click="addLike(b)">
-                  <svg
-                    t="1646634642977"
-                    class="icon"
-                    viewBox="0 0 1024 1024"
-                    version="1.1"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="14"
-                    height="14"
-                  >
-                    <path
-                      d="M160 944c0 8.8-7.2 16-16 16h-32c-26.5 0-48-21.5-48-48V528c0-26.5 21.5-48 48-48h32c8.8 0 16 7.2 16 16v448zM96 416c-53 0-96 43-96 96v416c0 53 43 96 96 96h96c17.7 0 32-14.3 32-32V448c0-17.7-14.3-32-32-32H96zM505.6 64c16.2 0 26.4 8.7 31 13.9 4.6 5.2 12.1 16.3 10.3 32.4l-23.5 203.4c-4.9 42.2 8.6 84.6 36.8 116.4 28.3 31.7 68.9 49.9 111.4 49.9h271.2c6.6 0 10.8 3.3 13.2 6.1s5 7.5 4 14l-48 303.4c-6.9 43.6-29.1 83.4-62.7 112C815.8 944.2 773 960 728.9 960h-317c-33.1 0-59.9-26.8-59.9-59.9v-455c0-6.1 1.7-12 5-17.1 69.5-109 106.4-234.2 107-364h41.6z m0-64h-44.9C427.2 0 400 27.2 400 60.7c0 127.1-39.1 251.2-112 355.3v484.1c0 68.4 55.5 123.9 123.9 123.9h317c122.7 0 227.2-89.3 246.3-210.5l47.9-303.4c7.8-49.4-30.4-94.1-80.4-94.1H671.6c-50.9 0-90.5-44.4-84.6-95l23.5-203.4C617.7 55 568.7 0 505.6 0z"
-                      :fill="b.isLike ? BRAND_COLOR : TEXT_SECONDARY"
-                    ></path>
-                  </svg>
+                  <LikeIcon :active="b.isLike" />
                   {{ b.liked }}
                 </div>
               </div>
@@ -166,8 +136,8 @@
         <el-input v-model="pwdForm.confirmPassword" type="password" show-password placeholder="再次输入新密码" />
       </div>
       <template #footer>
-        <el-button class="pwd-btn-cancel" @click="pwdDialogVisible = false">取消</el-button>
-        <el-button class="pwd-btn-confirm" @click="submitPassword">确定</el-button>
+        <el-button @click="pwdDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="submitPassword">确定</el-button>
       </template>
     </el-dialog>
   </div>
@@ -184,7 +154,8 @@ import { blogApi, commentApi } from '@/api/blog'
 import { useUserStore } from '@/stores/user'
 import { messageApi } from '@/api/message'
 import { relativeTime } from '@/utils/date'
-import { BRAND_COLOR, TEXT_SECONDARY } from '@/utils/colors'
+import EmptyState from '@/components/EmptyState.vue'
+import LikeIcon from '@/components/LikeIcon.vue'
 import defaultIcon from '../../html/hmdp/imgs/icons/default-icon.png'
 import thumbup from '../../html/hmdp/imgs/thumbup.png'
 
@@ -439,33 +410,20 @@ function firstImage(images) {
 }
 </script>
 
-<style>
-/* Profile 页的 .blog-list（关注 Tab）不走内部滚动，随页面自然滚动 */
-.info-page .blog-list {
-  height: auto !important;
-  max-height: none !important;
-  overflow: visible !important;
-  padding-bottom: 80px;
+<style scoped>
+/* 本页特有的行样式；通用玻璃卡片/空态/用户行样式见 styles/components.css，
+   .info-page 布局与关注 Tab 的滚动行为见 styles/page-info.css */
+.comment-row,
+.fan-row {
+  margin-bottom: 10px;
 }
-/* 修改密码弹窗标签样式 */
-.pwd-field {
-  margin-bottom: 12px;
+.comment-row-text {
+  font-size: 14px;
+  color: var(--text-strong);
 }
-.pwd-label {
-  display: block;
-  font-size: 13px;
-  color: #666;
-  margin-bottom: 4px;
-}
-/* 修改密码弹窗按钮：覆盖 glass.css 全局 .el-button 的 !important 规则 */
-.pwd-btn-cancel {
-  background: #f5f5f5 !important;
-  color: #333 !important;
-  border: 1px solid #ddd !important;
-}
-.pwd-btn-confirm {
-  background: #f63 !important;
-  color: #fff !important;
-  border: 1px solid #f63 !important;
+.comment-row-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
 }
 </style>
