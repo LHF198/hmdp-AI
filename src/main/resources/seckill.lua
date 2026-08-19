@@ -29,8 +29,9 @@ if(endTime and nowTime > endTime) then
     -- 已经结束，返回4
     return 4
 end
--- 3.1.判断库存是否充足 get stockKey
-if(tonumber(redis.call('get', stockKey)) <= 0) then
+-- 3.1.判断库存是否充足 get stockKey（key 缺失时 get 返回 false，tonumber(false)=nil，需 nil 守护避免 Lua 运行时错误）
+local stock = tonumber(redis.call('get', stockKey))
+if(not stock or stock <= 0) then
     -- 3.2.库存不足，返回1
     return 1
 end

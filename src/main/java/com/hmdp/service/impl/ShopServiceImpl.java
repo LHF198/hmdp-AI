@@ -98,12 +98,23 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         if (id == null) {
             return Result.fail("店铺id不能为空");
         }
-        // 1.更新数据库
+        // 1.捕获旧 typeId（用于类型变更时清理旧 GEO 条目）
+        Shop oldShop = getById(id);
+        Long oldTypeId = (oldShop != null) ? oldShop.getTypeId() : null;
+        // 2.更新数据库
         updateById(shop);
-        // 2.缓存失效与 GEO 更新延后到事务提交后执行：
-        //   避免“删缓存-提交”窗口内并发读回填旧数据导致脏读（提交后新数据立即可见，删缓存才安全）
+        // 3.缓存失效与 GEO 更新延后到事务提交后执行：
+        //   避免"删缓存-提交"窗口内并发读回填旧数据导致脏读（提交后新数据立即可见，删缓存才安全）
         Runnable afterCommitTask = () -> {
             deleteCacheWithRetry(CACHE_SHOP_KEY + id);
+            // 若类型变更，清理旧 typeId 的 GEO 条目（避免旧类型附近查询返回不该出现的店铺）
+            if (oldTypeId != null && shop.getTypeId() != null && !oldTypeId.equals(shop.getTypeId())) {
+                try {
+                    stringRedisTemplate.opsForGeo().remove(SHOP_GEO_KEY + oldTypeId, id.toString());
+                } catch (Exception e) {
+                    log.warn("清理旧类型GEO缓存失败: shopId={}, oldTypeId={}", id, oldTypeId, e);
+                }
+            }
             // 坐标变更时同步更新 GEO 缓存，保证附近/距离排序与 DB 一致
             if (shop.getX() != null && shop.getY() != null && shop.getTypeId() != null) {
                 stringRedisTemplate.opsForGeo().add(SHOP_GEO_KEY + shop.getTypeId(),
