@@ -89,6 +89,11 @@
             <artifactId>hutool-all</artifactId>
             <version>5.8.47</version>
         </dependency>
+        <!-- BCrypt 密码哈希（仅引入 crypto 模块，不触发 Spring Security 自动配置） -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-crypto</artifactId>
+        </dependency>
         <!--redisson-->
         <dependency>
             <groupId>org.redisson</groupId>

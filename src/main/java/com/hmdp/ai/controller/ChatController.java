@@ -17,6 +17,7 @@ import com.hmdp.annotation.Anonymous;
 import com.hmdp.ai.dto.ChatRequest;
 import com.hmdp.ai.dto.ChatResponse;
 import com.hmdp.ai.service.AssistantService;
+import com.hmdp.dto.Result;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -81,20 +82,21 @@ public class ChatController {
      * 清空会话记忆，开启全新对话
      */
     @DeleteMapping("/conversation/{conversationId}")
-    public Map<String, Object> clearConversation(@PathVariable @Size(max = 64, message = "会话ID过长") String conversationId) {
+    public Result clearConversation(@PathVariable @Size(max = 64, message = "会话ID过长") String conversationId) {
         assistantService.clearConversation(conversationId);
-        return Map.of("success", true, "conversationId", conversationId);
+        return Result.ok(conversationId);
     }
 
     /**
      * 健康检查
      */
+    @Anonymous
     @GetMapping("/health")
-    public Map<String, Object> health() {
-        return Map.of(
+    public Result health() {
+        return Result.ok(Map.of(
                 "status", "UP",
                 "service", "hmdp-ai-assistant",
                 "timestamp", System.currentTimeMillis()
-        );
+        ));
     }
 }

@@ -57,6 +57,7 @@ const codeBtnMsg = ref('发送验证码') // 发送短信按钮提示
 const form = ref({})
 
 let countdownTask = null // 倒计时定时器（组件卸载时清理）
+let resetTask = null // 按钮重置定时器（组件卸载时清理）
 
 function login() {
   if (!radio.value) {
@@ -117,7 +118,7 @@ function sendCode() {
     i--
     codeBtnMsg.value = i + '秒后可重发'
   }, 1000)
-  setTimeout(() => {
+  resetTask = setTimeout(() => {
     disabled.value = false
     clearInterval(countdownTask)
     codeBtnMsg.value = '发送验证码'
@@ -127,6 +128,7 @@ function sendCode() {
 onUnmounted(() => {
   // 离开页面时清理倒计时，避免泄漏
   if (countdownTask) clearInterval(countdownTask)
+  if (resetTask) clearTimeout(resetTask)
 })
 </script>
 

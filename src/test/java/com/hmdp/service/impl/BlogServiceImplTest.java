@@ -1,7 +1,10 @@
 package com.hmdp.service.impl;
 
+import java.util.Collections;
+
 import org.junit.jupiter.api.AfterEach;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,6 +15,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -20,11 +24,15 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.baomidou.mybatisplus.extension.conditions.update.LambdaUpdateChainWrapper;
 import com.hmdp.dto.Result;
 import com.hmdp.dto.UserDTO;
 import com.hmdp.entity.Blog;
+import com.hmdp.entity.Follow;
 import com.hmdp.entity.User;
+import com.hmdp.service.IBlogCommentsService;
+import com.hmdp.service.IFollowService;
 import com.hmdp.service.IUserService;
 import com.hmdp.utils.UserHolder;
 
@@ -142,5 +150,68 @@ class BlogServiceImplTest {
 
         assertTrue(r.getSuccess());
         verify(zSetOperations, times(0)).score(anyString(), anyString());
+    }
+
+    // ==================== deleteBlog：权限校验与资源清理 ====================
+
+    @Test
+    void deleteBlog_未登录时拒绝() {
+        UserHolder.removeUser();
+
+        Result r = blogService.deleteBlog(10L);
+
+        assertEquals("请先登录", r.getErrorMsg());
+    }
+
+    @Test
+    void deleteBlog_笔记不存在时拒绝() {
+        doReturn(null).when(blogService).getById(10L);
+
+        Result r = blogService.deleteBlog(10L);
+
+        assertEquals("笔记不存在！", r.getErrorMsg());
+    }
+
+    @Test
+    void deleteBlog_非本人笔记时拒绝() {
+        Blog blog = new Blog();
+        blog.setId(10L);
+        blog.setUserId(999L); // 他人笔记
+        doReturn(blog).when(blogService).getById(10L);
+
+        Result r = blogService.deleteBlog(10L);
+
+        assertEquals("只能删除自己的笔记！", r.getErrorMsg());
+        // 不应触发删除操作
+        verify(blogService, never()).removeById(any());
+    }
+
+    @Test
+    void deleteBlog_本人笔记时删除成功() {
+        Blog blog = new Blog();
+        blog.setId(10L);
+        blog.setUserId(1L); // 本人
+        blog.setImages("");
+        doReturn(blog).when(blogService).getById(10L);
+        doReturn(true).when(blogService).removeById(10L);
+
+        // Mock followService（无粉丝）
+        IFollowService followService = mock(IFollowService.class);
+        LambdaQueryChainWrapper<Follow> followQuery = mock(LambdaQueryChainWrapper.class);
+        when(followService.lambdaQuery()).thenReturn(followQuery);
+        when(followQuery.eq(any(), any())).thenReturn(followQuery);
+        when(followQuery.list()).thenReturn(Collections.emptyList());
+        ReflectionTestUtils.setField(blogService, "followService", followService);
+
+        // Mock blogCommentsService
+        IBlogCommentsService blogCommentsService = mock(IBlogCommentsService.class);
+        ReflectionTestUtils.setField(blogService, "blogCommentsService", blogCommentsService);
+
+        Result r = blogService.deleteBlog(10L);
+
+        assertTrue(r.getSuccess());
+        verify(blogService).removeById(10L);
+        // 事务提交后清理 Redis（无事务上下文时同步执行）
+        verify(stringRedisTemplate).delete("blog:liked:10");
     }
 }

@@ -1,8 +1,12 @@
 package com.hmdp.controller;
 
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,6 +24,7 @@ import com.hmdp.service.IShopService;
 import com.hmdp.utils.SystemConstants;
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import jakarta.annotation.Resource;
 
 /**
@@ -35,6 +40,15 @@ public class ShopController {
 
     @Resource
     private IShopService shopService;
+
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
+
+    /**
+     * 城市列表缓存 key，TTL 24 小时
+     */
+    private static final String CACHE_CITIES_KEY = "cache:cities";
+    private static final long CACHE_CITIES_TTL = 24;
 
     /**
      * 根据id查询商铺信息
@@ -98,8 +112,13 @@ public class ShopController {
     @Anonymous
     @GetMapping("/cities")
     public Result queryCities() {
-        // 常用城市保底，避免演示数据仅覆盖单城时下拉只有一项；与店铺数据取并集去重
-        List<String> cities = new java.util.ArrayList<>(java.util.Arrays.asList(
+        // 1.优先从 Redis 缓存读取（城市列表极低频变更，TTL 24h）
+        String cached = stringRedisTemplate.opsForValue().get(CACHE_CITIES_KEY);
+        if (StrUtil.isNotBlank(cached)) {
+            return Result.ok(JSONUtil.toList(cached, String.class));
+        }
+        // 2.缓存未命中：常用城市保底 + DB 去重并集
+        List<String> cities = new ArrayList<>(Arrays.asList(
                 "杭州", "上海", "北京", "广州", "深圳", "成都", "南京", "武汉"));
         shopService.query()
                 .select("DISTINCT city")
@@ -112,6 +131,13 @@ public class ShopController {
                         cities.add(c);
                     }
                 });
+        // 3.写入缓存（24 小时过期）
+        try {
+            stringRedisTemplate.opsForValue().set(
+                    CACHE_CITIES_KEY, JSONUtil.toJsonStr(cities), CACHE_CITIES_TTL, TimeUnit.HOURS);
+        } catch (Exception e) {
+            // Redis 写入失败不影响本次返回
+        }
         return Result.ok(cities);
     }
 

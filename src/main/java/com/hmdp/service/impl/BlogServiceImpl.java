@@ -3,6 +3,7 @@ package com.hmdp.service.impl;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -13,6 +14,8 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -110,11 +113,10 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
                 .page(new Page<>(current, SystemConstants.MAX_PAGE_SIZE));
         // 获取当前页数据
         List<Blog> records = page.getRecords();
-        // 查询用户
-        records.forEach(blog -> {
-            this.queryBlogUser(blog);
-            this.isBlogLiked(blog);
-        });
+        // 批量填充作者信息（1 次 IN 查询替代 N 次 getById，消除 N+1）
+        fillBlogUserBatch(records);
+        // 逐条查 Redis ZSet score（单次 O(1)，可接受）
+        records.forEach(this::isBlogLiked);
         return Result.ok(records);
     }
 
@@ -150,10 +152,9 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
                 .orderByDesc(Blog::getLiked)
                 .last("LIMIT " + SHOP_BLOG_LIMIT)
                 .list();
-        records.forEach(blog -> {
-            this.queryBlogUser(blog);
-            this.isBlogLiked(blog);
-        });
+        // 批量填充作者信息（消除 N+1）
+        fillBlogUserBatch(records);
+        records.forEach(this::isBlogLiked);
         return Result.ok(records);
     }
 
@@ -203,7 +204,11 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
                 } catch (Exception e) {
                     // Redis 写入失败：回滚 DB 计数，保持 DB/Redis 状态一致
                     log.error("点赞缓存写入失败，回滚DB计数: blogId={}, userId={}", id, userId, e);
-                    lambdaUpdate().setSql("liked = IF(liked > 0, liked - 1, 0)").eq(Blog::getId, id).update();
+                    try {
+                        lambdaUpdate().setSql("liked = IF(liked > 0, liked - 1, 0)").eq(Blog::getId, id).update();
+                    } catch (Exception rollbackEx) {
+                        log.error("DB回滚也失败，需人工介入: blogId={}", id, rollbackEx);
+                    }
                 }
             }
         } else {
@@ -217,7 +222,11 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
                 } catch (Exception e) {
                     // Redis 删除失败：回滚 DB 计数，保持 DB/Redis 状态一致
                     log.error("点赞缓存删除失败，回滚DB计数: blogId={}, userId={}", id, userId, e);
-                    lambdaUpdate().setSql("liked=liked+1").eq(Blog::getId, id).update();
+                    try {
+                        lambdaUpdate().setSql("liked=liked+1").eq(Blog::getId, id).update();
+                    } catch (Exception rollbackEx) {
+                        log.error("DB回滚也失败，需人工介入: blogId={}", id, rollbackEx);
+                    }
                 }
             }
         }
@@ -296,18 +305,50 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         if (!blog.getUserId().equals(user.getId())) {
             return Result.fail("只能删除自己的笔记！");
         }
-        // 4.删除笔记下的所有评论
+        // 4.事务内只做 DB 操作：删除评论 + 删除笔记
         blogCommentsService.remove(new LambdaQueryWrapper<BlogComments>().eq(BlogComments::getBlogId, id));
-        // 5.删除笔记点赞缓存
-        stringRedisTemplate.delete(BLOG_LIKED_KEY + id);
-        // 6.从所有粉丝的feed流中移除该笔记
-        List<Follow> follows = followService.lambdaQuery().eq(Follow::getFollowUserId, user.getId()).list();
-        for (Follow follow : follows) {
-            stringRedisTemplate.opsForZSet().remove(FEED_KEY + follow.getUserId(), id.toString());
+        boolean isSuccess = removeById(id);
+        if (!isSuccess) {
+            return Result.fail("删除笔记失败！");
         }
-        // 7.删除笔记关联的图片文件（失败不影响主流程）
-        if (StrUtil.isNotBlank(blog.getImages())) {
-            for (String img : blog.getImages().split(",")) {
+        // 5.Redis/文件清理延后到事务提交后执行：避免 DB 回滚时 Redis/文件副作用不可撤销
+        List<Follow> follows = followService.lambdaQuery().eq(Follow::getFollowUserId, user.getId()).list();
+        String images = blog.getImages();
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    cleanupBlogResources(id, follows, images);
+                }
+            });
+        } else {
+            // 无事务上下文（如测试直调）时同步执行
+            cleanupBlogResources(id, follows, images);
+        }
+        return Result.ok();
+    }
+
+    /**
+     * 清理笔记关联的 Redis 缓存与图片文件（事务提交后调用，失败仅日志不影响主流程）
+     */
+    private void cleanupBlogResources(Long blogId, List<Follow> follows, String images) {
+        // 1.删除点赞缓存
+        try {
+            stringRedisTemplate.delete(BLOG_LIKED_KEY + blogId);
+        } catch (Exception e) {
+            log.error("删除笔记点赞缓存失败: blogId={}", blogId, e);
+        }
+        // 2.从粉丝 feed 流移除
+        for (Follow follow : follows) {
+            try {
+                stringRedisTemplate.opsForZSet().remove(FEED_KEY + follow.getUserId(), blogId.toString());
+            } catch (Exception e) {
+                log.error("从粉丝feed流移除笔记失败: blogId={}, fanId={}", blogId, follow.getUserId(), e);
+            }
+        }
+        // 3.删除图片文件
+        if (StrUtil.isNotBlank(images)) {
+            for (String img : images.split(",")) {
                 if (StrUtil.isBlank(img) || !img.startsWith("/imgs/")) {
                     continue;
                 }
@@ -318,12 +359,6 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
                 }
             }
         }
-        // 8.删除笔记记录
-        boolean isSuccess = removeById(id);
-        if (!isSuccess) {
-            return Result.fail("删除笔记失败！");
-        }
-        return Result.ok();
     }
 
     @Override
@@ -361,12 +396,9 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         String idStr = StrUtil.join(",", ids);
         List<Blog> blogs = lambdaQuery().in(Blog::getId, ids).last("ORDER BY FIELD(id," + idStr + ")").list();
 
-        for (Blog blog : blogs) {
-            // 5.1.查询blog有关的用户
-            queryBlogUser(blog);
-            // 5.2.查询blog是否被点赞
-            isBlogLiked(blog);
-        }
+        // 批量填充作者信息（消除 N+1）
+        fillBlogUserBatch(blogs);
+        blogs.forEach(this::isBlogLiked);
 
         // 6.封装并返回
         ScrollResult r = new ScrollResult();
@@ -387,6 +419,29 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         }
         blog.setName(user.getNickName());
         blog.setIcon(user.getIcon());
+    }
+
+    /**
+     * 批量填充笔记作者信息：1 次 IN 查询替代 N 次 getById，消除 N+1 查询问题
+     */
+    private void fillBlogUserBatch(List<Blog> blogs) {
+        if (blogs == null || blogs.isEmpty()) {
+            return;
+        }
+        List<Long> userIds = blogs.stream().map(Blog::getUserId).distinct().toList();
+        Map<Long, User> userMap = userIds.isEmpty()
+                ? Collections.emptyMap()
+                : userService.listByIds(userIds).stream()
+                        .collect(Collectors.toMap(User::getId, u -> u));
+        for (Blog blog : blogs) {
+            User user = userMap.get(blog.getUserId());
+            if (user != null) {
+                blog.setName(user.getNickName());
+                blog.setIcon(user.getIcon());
+            } else {
+                log.warn("笔记作者不存在，跳过用户信息: blogId={}, userId={}", blog.getId(), blog.getUserId());
+            }
+        }
     }
 
     @Override
