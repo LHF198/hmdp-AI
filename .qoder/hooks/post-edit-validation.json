@@ -1,0 +1,36 @@
+{
+  "hooks": {
+    "afterEdit": [
+      {
+        "id": "java-test-validation",
+        "description": "编辑 Java 后端核心文件后，运行相关单元测试验证变更",
+        "globs": ["src/main/java/com/hmdp/**/*.java"],
+        "command": "pwsh -Command \"mvn test -pl . -q -Dtest=${relativeFileBasenameNoExtension}* 2>&1 | Select-Object -Last 20\"",
+        "cwd": "${workspaceFolder}",
+        "timeout": 120000,
+        "triggerOn": ["save"],
+        "enabled": true
+      },
+      {
+        "id": "frontend-build-validation",
+        "description": "编辑前端核心文件后，运行 Vite 构建检查语法和类型错误",
+        "globs": ["frontend/src/**/*.vue", "frontend/src/**/*.js"],
+        "command": "pwsh -Command \"cd frontend; npx vite build 2>&1 | Select-Object -Last 15\"",
+        "cwd": "${workspaceFolder}",
+        "timeout": 60000,
+        "triggerOn": ["save"],
+        "enabled": true
+      },
+      {
+        "id": "config-validation",
+        "description": "编辑应用配置文件后，验证 YAML 语法正确性",
+        "globs": ["src/main/resources/**/*.yaml", "src/main/resources/**/*.yml"],
+        "command": "pwsh -Command \"mvn compile -pl . -q 2>&1 | Select-Object -Last 10\"",
+        "cwd": "${workspaceFolder}",
+        "timeout": 120000,
+        "triggerOn": ["save"],
+        "enabled": true
+      }
+    ]
+  }
+}
