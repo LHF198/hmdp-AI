@@ -97,7 +97,7 @@ function queryLoginUser() {
   userApi
     .me()
     .then(({ data }) => {})
-    .catch(console.log)
+    .catch((err) => ElMessage.error(err))
 }
 
 function queryUser() {
@@ -114,7 +114,7 @@ function queryUser() {
       // 是否被关注
       isFollowed()
     })
-    .catch(console.log)
+    .catch((err) => ElMessage.error(err))
 }
 
 function goBack() {

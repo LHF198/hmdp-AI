@@ -325,6 +325,7 @@ function queryVoucher(shopId) {
     })
     .catch((err) => {
       console.error('加载代金券失败:', err)
+      ElMessage.error(err)
       vouchers.value = []
     })
 }
@@ -505,7 +506,7 @@ function seckill(v) {
   min-width: 36px;
   text-align: center;
   font-size: 18px;
-  color: #22272b;
+  color: var(--accent); /* 使用设计变量替代 #22272b */
   font-weight: bold;
   cursor: pointer;
   flex-shrink: 0;
@@ -556,7 +557,7 @@ function seckill(v) {
   flex-shrink: 0;
   width: 132px;
   border-radius: var(--radius-md);
-  border: 1px solid #f0f0f0;
+  border: 1px solid var(--divider); /* 使用设计变量替代 #f0f0f0 */
   overflow: hidden;
   cursor: pointer;
   transition: transform var(--dur-base) var(--ease), box-shadow var(--dur-base) var(--ease);

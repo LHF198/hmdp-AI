@@ -175,6 +175,35 @@ body .el-textarea__inner:focus {
   padding: 60px 0;
 }
 
+/* 空态图标 */
+.empty-state-icon {
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+/* 空态 CTA 按钮：引导用户行动 */
+.empty-state-action {
+  display: inline-block;
+  margin-top: 16px;
+  padding: 8px 24px;
+  border-radius: var(--radius-pill);
+  background: var(--brand);
+  color: var(--brand-on);
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: var(--shadow-brand);
+  transition: transform var(--dur-fast) ease, filter var(--dur-base) ease;
+}
+
+.empty-state-action:hover {
+  background: var(--brand-strong);
+  transform: translateY(-1px);
+}
+
+.empty-state-action:active {
+  transform: scale(0.97);
+}
+
 /* ---------- 用户行（粉丝/关注列表） ---------- */
 .user-row {
   display: flex;

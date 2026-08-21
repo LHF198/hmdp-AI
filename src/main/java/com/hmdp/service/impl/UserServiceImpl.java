@@ -22,6 +22,7 @@ import com.hmdp.entity.UserInfo;
 import com.hmdp.mapper.UserMapper;
 import com.hmdp.service.IUserInfoService;
 import com.hmdp.service.IUserService;
+import com.hmdp.utils.PasswordEncoder;
 import static com.hmdp.utils.RedisConstants.LOGIN_CODE_KEY;
 import static com.hmdp.utils.RedisConstants.LOGIN_CODE_TTL;
 import static com.hmdp.utils.RedisConstants.LOGIN_FAIL_KEY;
@@ -29,7 +30,6 @@ import static com.hmdp.utils.RedisConstants.LOGIN_FAIL_TTL;
 import static com.hmdp.utils.RedisConstants.LOGIN_USER_KEY;
 import static com.hmdp.utils.RedisConstants.LOGIN_USER_TTL;
 import static com.hmdp.utils.RedisConstants.USER_SIGN_KEY;
-import com.hmdp.utils.PasswordEncoder;
 import com.hmdp.utils.RegexPatterns;
 import com.hmdp.utils.RegexUtils;
 import static com.hmdp.utils.SystemConstants.USER_NICK_NAME_PREFIX;
@@ -85,7 +85,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         // 5.保存验证码到 Redis（TTL 过期自动失效）
         stringRedisTemplate.opsForValue().set(LOGIN_CODE_KEY + phone, code, LOGIN_CODE_TTL, TimeUnit.MINUTES);
         // 6.发送验证码（真实环境接入短信通道；演示环境按配置决定是否回显）
-        log.debug("发送短信验证码成功，验证码：{}", code);
+        log.info("发送验证码成功: phone={}", phone);
         if (echoCode) {
             // 仅演示环境回显给前端展示
             return Result.ok(code);
@@ -137,7 +137,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             user = createUserWithPhone(phone);
         }
         // 4.签发登录态
-        return doLogin(user);
+        return doLogin(user, "code");
     }
 
     /**
@@ -175,17 +175,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
                 stringRedisTemplate.expire(failKey, LOGIN_FAIL_TTL, TimeUnit.MINUTES);
             }
             int remain = Math.max(0, MAX_PASSWORD_FAIL_TIMES - (count == null ? 1 : count.intValue()));
+            log.warn("密码登录失败: phone={}, failCount={}, remain={}", phone, count, remain);
             return Result.fail("密码错误" + (remain > 0 ? "，还可尝试 " + remain + " 次" : "，请稍后再试或使用验证码登录"));
         }
         // 5.登录成功：清除失败计数并签发登录态
         stringRedisTemplate.delete(failKey);
-        return doLogin(user);
+        return doLogin(user, "password");
     }
 
     /**
      * 签发登录态：生成 token，用户信息写入 Redis（hash），返回 token
      */
-    private Result doLogin(User user) {
+    private Result doLogin(User user, String loginMethod) {
         // 1.随机生成token，作为登录令牌
         String token = UUID.randomUUID().toString(true);
         // 2.将User对象转为HashMap存储
@@ -200,7 +201,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         // 4.设置token有效期
         stringRedisTemplate.expire(tokenKey, LOGIN_USER_TTL, TimeUnit.MINUTES);
 
-        // 5.返回token
+        // 5.记录登录成功日志
+        log.info("用户登录成功: userId={}, phone={}, method={}", user.getId(), user.getPhone(), loginMethod);
+        // 6.返回token
         return Result.ok(token);
     }
 
@@ -214,11 +217,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         Long userId = UserHolder.getUser().getId();
         User user = getById(userId);
         if (user == null) {
+            log.warn("修改密码时用户不存在: userId={}", userId);
             return Result.fail("用户不存在");
         }
         // 3.已有密码时必须校验原密码
         if (StrUtil.isNotBlank(user.getPassword())) {
             if (StrUtil.isBlank(oldPassword) || !PasswordEncoder.matches(user.getPassword(), oldPassword)) {
+                log.warn("修改密码时原密码错误: userId={}", userId);
                 return Result.fail("原密码错误");
             }
         }

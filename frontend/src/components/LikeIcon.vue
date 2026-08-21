@@ -1,7 +1,8 @@
 <template>
-  <!-- 点赞图标：原先在 Home.vue 与 Profile.vue 各粘贴了一整段相同的 SVG path，此处收敛为单一来源 -->
+  <!-- 点赞图标：颜色由品牌色常量驱动，点赞时触发弹跳动画 -->
   <svg
     class="like-icon"
+    :class="{ 'like-bounce': bouncing }"
     viewBox="0 0 1024 1024"
     version="1.1"
     xmlns="http://www.w3.org/2000/svg"
@@ -18,12 +19,22 @@
 </template>
 
 <script setup>
-// 点赞图标（受控展示组件）：颜色由品牌色常量驱动，不接受硬编码颜色
+// 点赞图标（受控展示组件）：颜色由品牌色常量驱动，点赞时触发弹跳动画
+import { ref, watch } from 'vue'
 import { BRAND_COLOR, TEXT_SECONDARY } from '@/utils/colors'
 
-defineProps({
+const props = defineProps({
   active: { type: Boolean, default: false },
   size: { type: [Number, String], default: 14 },
+})
+
+// 点赞状态变化时触发弹跳动画
+const bouncing = ref(false)
+let bounceTimer = null
+watch(() => props.active, () => {
+  bouncing.value = true
+  clearTimeout(bounceTimer)
+  bounceTimer = setTimeout(() => { bouncing.value = false }, 400)
 })
 </script>
 
@@ -34,5 +45,16 @@ defineProps({
 }
 .like-icon:active {
   transform: scale(0.88);
+}
+/* 点赞弹跳动画：scale 先放大再回缩，形成弹性反馈 */
+.like-bounce {
+  animation: like-bounce-keyframes 0.4s ease;
+}
+@keyframes like-bounce-keyframes {
+  0%   { transform: scale(1); }
+  25%  { transform: scale(1.35); }
+  50%  { transform: scale(0.88); }
+  75%  { transform: scale(1.1); }
+  100% { transform: scale(1); }
 }
 </style>

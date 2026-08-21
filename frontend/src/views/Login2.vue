@@ -21,10 +21,17 @@
       <div class="login-radio">
         <el-checkbox v-model="agreed" size="small" class="agree-checkbox">
           <span class="agree-text">我已阅读并同意</span>
-          <a href="javascript:void(0)">《黑马点评用户服务协议》</a>、
-          <a href="javascript:void(0)">《隐私政策》</a>
-          <span class="agree-text">等，接受免除或者限制责任、诉讼管辖约定等粗体标示条款</span>
+          <a href="javascript:void(0)" @click.stop="showAgreement = !showAgreement" class="agree-toggle">
+            相关协议 <el-icon :size="12" :style="{ transform: showAgreement ? 'rotate(180deg)' : '', transition: 'transform 0.2s' }"><ArrowDown /></el-icon>
+          </a>
         </el-checkbox>
+        <transition name="agree-slide">
+          <div v-if="showAgreement" class="agree-detail">
+            <a href="javascript:void(0)">《黑马点评用户服务协议》</a>、
+            <a href="javascript:void(0)">《隐私政策》</a>
+            <span class="agree-text">等，接受免除或者限制责任、诉讼管辖约定等粗体标示条款</span>
+          </div>
+        </transition>
       </div>
     </div>
   </div>
@@ -45,6 +52,7 @@ const userStore = useUserStore()
 
 const agreed = ref(false)
 const form = ref({})
+const showAgreement = ref(false) // 协议详情折叠状态
 
 function login() {
   if (!agreed.value) {
@@ -82,5 +90,35 @@ function goCode() {
 }
 .agree-text {
   display: inline;
+}
+/* 协议折叠展开按钮 */
+.agree-toggle {
+  color: var(--brand);
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 12px;
+}
+/* 协议详情展开区 */
+.agree-detail {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  padding: 6px 0 0 24px;
+}
+.agree-detail a {
+  color: var(--brand);
+}
+/* 折叠过渡动画 */
+.agree-slide-enter-active,
+.agree-slide-leave-active {
+  transition: all 0.2s ease;
+  max-height: 80px;
+  overflow: hidden;
+}
+.agree-slide-enter-from,
+.agree-slide-leave-to {
+  max-height: 0;
+  opacity: 0;
 }
 </style>

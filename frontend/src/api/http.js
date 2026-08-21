@@ -29,6 +29,8 @@ http.interceptors.response.use(
   function (response) {
     // 判断执行结果
     if (!response.data.success) {
+      // 记录失败请求详情，便于生产环境排查
+      console.warn(`API业务失败: url=${response.config.url}, params=${JSON.stringify(response.config.params || {})}, data=${JSON.stringify(response.config.data || {})}, errorMsg=${response.data.errorMsg}`)
       return Promise.reject(response.data.errorMsg || '操作失败')
     }
     return response.data

@@ -85,6 +85,7 @@ public class UserController {
         // 2.删除Redis中的token对应的用户信息
         if (StrUtil.isNotBlank(token)) {
             stringRedisTemplate.delete(LOGIN_USER_KEY + token);
+            log.info("用户登出: token={}", token);
         }
         return Result.ok();
     }
@@ -147,8 +148,16 @@ public class UserController {
         info.setCredits(null);
         info.setLevel(null);
         // saveOrUpdate：没有记录则新增，有记录则更新
-        boolean success = userInfoService.saveOrUpdate(info);
-        return success ? Result.ok() : Result.fail("更新失败");
+        try {
+            boolean success = userInfoService.saveOrUpdate(info);
+            if (!success) {
+                log.error("个人资料更新失败: userId={}, info={}", userId, info);
+            }
+            return success ? Result.ok() : Result.fail("更新失败");
+        } catch (Exception e) {
+            log.error("个人资料更新异常: userId={}", userId, e);
+            return Result.fail("更新失败: " + e.getMessage());
+        }
     }
 
     @GetMapping("/{id}")

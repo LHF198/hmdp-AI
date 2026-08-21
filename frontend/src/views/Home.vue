@@ -66,7 +66,7 @@
     </div>
     <div class="type-list">
       <div class="type-box" v-for="t in types" :key="t.id" @click="toShopList(t.id, t.name)">
-        <div class="type-view"><img :src="'/imgs/' + t.icon" alt="" /></div>
+        <div class="type-view"><img :src="t.icon" alt="" /></div>
         <div class="type-text">{{ t.name }}</div>
       </div>
     </div>

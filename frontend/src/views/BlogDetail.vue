@@ -498,7 +498,7 @@ function queryLoginUser() {
         isFollowed()
       }
     })
-    .catch(console.log)
+    .catch((err) => ElMessage.error(err))
 }
 
 function deleteBlog() {
@@ -718,7 +718,7 @@ function go(index) {
   bottom: 12px;
   padding: 3px 10px;
   border-radius: 12px;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.5); /* 保留半透明黑底，符合设计规范 */
   color: #fff;
   font-size: 12px;
   z-index: 2;

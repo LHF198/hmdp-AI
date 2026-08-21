@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>黑马点评 — UI 美化原型</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+/* ============================================================
+   Design Tokens — 美化版
+   ============================================================ */
+:root {
+  --brand: #FF6B35;
+  --brand-strong: #E85A24;
+  --brand-weak: rgba(255, 107, 53, 0.12);
+  --brand-glow: rgba(255, 107, 53, 0.35);
+  
+  --bg-base: #FFF8F2;
+  --bg-warm: #FEF3E8;
+  --surface: #FFFDF9;
+  --surface-raised: #FFFFFF;
+  --surface-inset: rgba(255, 248, 242, 0.8);
+  
+  --border-light: rgba(45, 32, 25, 0.06);
+  --border-medium: rgba(45, 32, 25, 0.1);
+  
+  --text-strong: #2D2019;
+  --text-body: #4A3F35;
+  --text-weak: #8C7B6D;
+  --text-muted: #B5A898;
+  
+  --success: #3DAA6D;
+  --danger: #E5484D;
+  
+  --radius-xl: 20px;
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --radius-pill: 999px;
+  
+  --shadow-sm: 0 2px 8px rgba(45, 32, 25, 0.04);
+  --shadow-md: 0 4px 16px rgba(45, 32, 25, 0.06);
+  --shadow-lg: 0 8px 32px rgba(45, 32, 25, 0.08);
+  --shadow-xl: 0 16px 48px rgba(45, 32, 25, 0.1);
+  --shadow-brand: 0 6px 20px rgba(255, 107, 53, 0.3);
+  --shadow-float: 0 20px 60px rgba(45, 32, 25, 0.12);
+  
+  --font-serif: 'Noto Serif SC', serif;
+  --font-sans: 'Noto Sans SC', -apple-system, sans-serif;
+  
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ============================================================
+   Base Reset
+   ============================================================ */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 14px; }
+body {
+  font-family: var(--font-sans);
+  background: var(--bg-base);
+  color: var(--text-body);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 背景装饰 */
+body::before {
+  content: '';
+  position: fixed;
+  top: -200px;
+  left: -100px;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(255,107,53,0.15) 0%, transparent 70%);
+  border-radius: 50%;
+  filter: blur(40px);
+  pointer-events: none;
+  z-index: 0;
+}
+body::after {
+  content: '';
+  position: fixed;
+  bottom: -150px;
+  right: -100px;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(255,183,77,0.12) 0%, transparent 70%);
+  border-radius: 50%;
+  filter: blur(50px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* 应用外壳 */
+.app-shell {
+  position: relative;
+  z-index: 1;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 16px;
+  min-height: 100vh;
+}
+
+/* ============================================================
+   页面切换导航（原型演示用）
+   ============================================================ */
+.proto-nav {
+  display: flex;
+  gap: 8px;
+  padding: 12px 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin-bottom: 16px;
+}
+.proto-nav::-webkit-scrollbar { display: none; }
+.proto-nav-btn {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  border: 1.5px solid var(--border-medium);
+  background: var(--surface);
+  color: var(--text-weak);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s var(--ease);
+  font-family: var(--font-sans);
+}
+.proto-nav-btn:hover { border-color: var(--brand); color: var(--brand); }
+.proto-nav-btn.active {
+  background: var(--brand);
+  color: white;
+  border-color: var(--brand);
+  box-shadow: var(--shadow-brand);
+}
+
+/* ============================================================
+   页面容器
+   ============================================================ */
+.page { display: none; animation: fadeUp 0.4s var(--ease); }
+.page.active { display: block; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   首页 — Home
+   ============================================================ */
+/* 搜索栏 */
+.home-search {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--surface-raised);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  margin-bottom: 20px;
+}
+.city-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: var(--bg-warm);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-strong);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.city-btn:hover { background: var(--brand-weak); color: var(--brand); }
+.city-btn i { font-size: 10px; color: var(--text-muted); }
+.search-field {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: var(--bg-warm);
+  border-radius: var(--radius-pill);
+  border: 1.5px solid transparent;
+  transition: border-color 0.2s;
+}
+.search-field:focus-within { border-color: var(--brand); }
+.search-field i { color: var(--text-muted); font-size: 14px; }
+.search-field input {
+  flex: 1;
+  border: none;
+  background: none;
+  outline: none;
+  font-size: 13px;
+  color: var(--text-strong);
+  font-family: var(--font-sans);
+}
+.search-field input::placeholder { color: var(--text-muted); }
+.avatar-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--bg-warm);
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.avatar-btn:hover { border-color: var(--brand); }
+.avatar-btn img { width: 100%; height: 100%; object-fit: cover; }
+
+/* 分类宫格 */
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  padding: 20px 16px;
+  background: var(--surface-raised);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 24px;
+}
+.cat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: transform 0.25s var(--ease-bounce);
+}
+.cat-item:hover { transform: translateY(-3px); }
+.cat-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  transition: transform 0.2s;
+}
+.cat-item:hover .cat-icon { transform: scale(1.08); }
+.cat-icon.food { background: linear-gradient(135deg, #FFF0E6, #FFE0CC); color: #FF6B35; }
+.cat-icon.ktv { background: linear-gradient(135deg, #F0E6FF, #E0CCFF); color: #8B5CF6; }
+.cat-icon.beauty { background: linear-gradient(135deg, #FFE6F0, #FFCCE0); color: #EC4899; }
+.cat-icon.spa { background: linear-gradient(135deg, #E6FFF0, #CCFFE0); color: #10B981; }
+.cat-icon.movie { background: linear-gradient(135deg, #E6F0FF, #CCE0FF); color: #3B82F6; }
+.cat-icon.sport { background: linear-gradient(135deg, #F0FFE6, #E0FFCC); color: #84CC16; }
+.cat-icon.education { background: linear-gradient(135deg, #FFF5E6, #FFEACC); color: #F59E0B; }
+.cat-icon.home { background: linear-gradient(135deg, #E6FFFA, #CCFFF5); color: #14B8A6; }
+.cat-name { font-size: 11px; color: var(--text-body); font-weight: 500; }
+
+/* 区块标题 */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding: 0 4px;
+}
+.section-title {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+.section-more {
+  font-size: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.section-more:hover { color: var(--brand); }
+
+/* 笔记瀑布流 */
+.blog-waterfall {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  padding-bottom: 100px;
+}
+.blog-card {
+  background: var(--surface-raised);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease);
+}
+.blog-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+.blog-card-img {
+  width: 100%;
+  aspect-ratio: 3/4;
+  overflow: hidden;
+  position: relative;
+}
+.blog-card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0;
+  transition: transform 0.4s var(--ease);
+}
+.blog-card:hover .blog-card-img img { transform: scale(1.03); }
+.blog-card-body { padding: 12px; }
+.blog-card-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-strong);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 39px;
+}
+.blog-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px 12px;
+}
+.blog-card-user {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.blog-card-user img {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.blog-card-user span {
+  font-size: 11px;
+  color: var(--text-weak);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 80px;
+}
+.blog-card-like {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.blog-card-like i { font-size: 13px; }
+.blog-card-like.liked { color: var(--brand); }
+
+/* ============================================================
+   店铺详情 — ShopDetail
+   ============================================================ */
+.shop-hero {
+  position: relative;
+  height: 220px;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+.shop-hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0;
+}
+.shop-hero-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 24px 20px 20px;
+  background: linear-gradient(transparent, rgba(0,0,0,0.6));
+}
+.shop-hero-name {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 6px;
+}
+.shop-hero-tags {
+  display: flex;
+  gap: 8px;
+}
+.shop-hero-tag {
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(255,255,255,0.2);
+  backdrop-filter: blur(10px);
+  font-size: 11px;
+  color: white;
+}
+
+.shop-info-card {
+  background: var(--surface-raised);
+  border-radius: var(--radius-xl);
+  padding: 20px;
+  box-shadow: var(--shadow-md);
+  margin-bottom: 16px;
+}
+.shop-rating-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.shop-score-badge {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--brand), var(--brand-strong));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 20px;
+  font-weight: 700;
+  font-family: var(--font-serif);
+  box-shadow: var(--shadow-brand);
+}
+.shop-rating-detail { flex: 1; }
+.shop-rating-stars {
+  display: flex;
+  gap: 2px;
+  color: #FFB800;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+.shop-rating-count { font-size: 12px; color: var(--text-muted); }
+
+.shop-info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border-light);
+}
+.shop-info-row i {
+  width: 20px;
+  text-align: center;
+  color: var(--brand);
+  font-size: 14px;
+  margin-top: 2px;
+}
+.shop-info-row span {
+  font-size: 13px;
+  color: var(--text-body);
+  line-height: 1.5;
+}
+
+/* 代金券 */
+.voucher-card {
+  background: var(--surface-raised);
+  border-radius: var(--radius-xl);
+  padding: 20px;
+  box-shadow: var(--shadow-md);
+  margin-bottom: 16px;
+}
+.voucher-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.voucher-badge {
+  padding: 3px 10px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, #FF6B35, #FF8F5E);
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+}
+.voucher-title { font-size: 15px; font-weight: 600; color: var(--text-strong); }
+
+.voucher-item {
+  display: flex;
+  align-items: center;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  background: var(--bg-warm);
+  margin-bottom: 10px;
+  transition: transform 0.2s;
+}
+.voucher-item:hover { transform: scale(1.01); }
+.voucher-price-col {
+  width: 80px;
+  text-align: center;
+  border-right: 1px dashed var(--border-medium);
+  padding-right: 14px;
+  margin-right: 14px;
+}
+.voucher-price-num {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--brand);
+}
+.voucher-price-num small { font-size: 13px; font-weight: 400; }
+.voucher-price-original {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+.voucher-info { flex: 1; }
+.voucher-info-title { font-size: 13px; color: var(--text-strong); margin-bottom: 4px; }
+.voucher-info-sub { font-size: 11px; color: var(--text-muted); }
+.voucher-buy-btn {
+  padding: 8px 18px;
+  border-radius: var(--radius-pill);
+  background: var(--brand);
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  box-shadow: var(--shadow-brand);
+  transition: all 0.2s;
+  font-family: var(--font-sans);
+}
+.voucher-buy-btn:hover { transform: scale(1.05); }
+
+/* ============================================================
+   个人中心 — Profile
+   ============================================================ */
+.profile-header-card {
+  background: var(--surface-raised);
+  border-radius: var(--radius-xl);
+  padding: 24px 20px;
+  box-shadow: var(--shadow-md);
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.profile-header-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: linear-gradient(135deg, var(--brand), #FF8F5E, #FFB347);
+  opacity: 0.12;
+}
+.profile-top {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+  z-index: 1;
+  margin-bottom: 16px;
+}
+.profile-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+.profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.profile-name {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-strong);
+  margin-bottom: 4px;
+}
+.profile-location {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text-weak);
+}
+.profile-location i { font-size: 11px; }
+.profile-bio {
+  font-size: 13px;
+  color: var(--text-weak);
+  line-height: 1.5;
+  position: relative;
+  z-index: 1;
+  padding: 12px 0;
+  border-top: 1px solid var(--border-light);
+}
+.profile-stats {
+  display: flex;
+  gap: 0;
+  position: relative;
+  z-index: 1;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-light);
+}
+.profile-stat {
+  flex: 1;
+  text-align: center;
+}
+.profile-stat-num {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+.profile-stat-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.profile-actions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  padding: 16px;
+  background: var(--surface-raised);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 20px;
+}
+.profile-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.profile-action-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: transform 0.2s var(--ease-bounce);
+}
+.profile-action:hover .profile-action-icon { transform: scale(1.1); }
+.profile-action-icon.orange { background: #FFF0E6; color: var(--brand); }
+.profile-action-icon.blue { background: #E6F0FF; color: #3B82F6; }
+.profile-action-icon.green { background: #E6FFF0; color: #10B981; }
+.profile-action-icon.purple { background: #F0E6FF; color: #8B5CF6; }
+.profile-action-label { font-size: 11px; color: var(--text-body); }
+
+/* ============================================================
+   登录页 — Login
+   ============================================================ */
+.login-hero {
+  text-align: center;
+  padding: 40px 0 32px;
+}
+.login-logo {
+  width: 72px;
+  height: 72px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, var(--brand), #FF8F5E);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  box-shadow: var(--shadow-brand);
+}
+.login-logo i { font-size: 32px; color: white; }
+.login-hero-title {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-strong);
+  margin-bottom: 6px;
+}
+.login-hero-sub { font-size: 13px; color: var(--text-muted); }
+
+.login-form-card {
+  background: var(--surface-raised);
+  border-radius: var(--radius-xl);
+  padding: 28px 24px;
+  box-shadow: var(--shadow-lg);
+  margin-bottom: 20px;
+}
+.login-field {
+  margin-bottom: 18px;
+}
+.login-field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-weak);
+  margin-bottom: 8px;
+}
+.login-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.5px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  color: var(--text-strong);
+  background: var(--surface);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  font-family: var(--font-sans);
+}
+.login-input:focus {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-weak);
+}
+.login-input::placeholder { color: var(--text-muted); }
+.login-code-row {
+  display: flex;
+  gap: 10px;
+}
+.login-code-row .login-input { flex: 1; }
+.login-code-btn {
+  flex-shrink: 0;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--brand);
+  background: var(--brand-weak);
+  color: var(--brand);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+  font-family: var(--font-sans);
+}
+.login-code-btn:hover { background: var(--brand); color: white; }
+
+.login-submit {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--brand), var(--brand-strong));
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--shadow-brand);
+  transition: all 0.25s;
+  font-family: var(--font-sans);
+  margin-top: 8px;
+}
+.login-submit:hover { transform: translateY(-2px); box-shadow: var(--shadow-float); }
+.login-submit:active { transform: translateY(0); }
+
+.login-footer {
+  text-align: center;
+  padding: 16px 0;
+}
+.login-footer a {
+  font-size: 13px;
+  color: var(--brand);
+  cursor: pointer;
+}
+.login-agreement {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 16px 0 0;
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+.login-agreement input[type="checkbox"] {
+  margin-top: 3px;
+  accent-color: var(--brand);
+}
+.login-agreement a { color: var(--brand); }
+
+/* ============================================================
+   底部导航
+   ============================================================ */
+.bottom-bar {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 420px;
+  width: calc(100% - 32px);
+  height: 64px;
+  background: rgba(255, 253, 249, 0.92);
+  backdrop-filter: blur(20px) saturate(1.2);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 -4px 20px rgba(45, 32, 25, 0.08), 0 0 0 1px var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 0 8px;
+}
+.bottom-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: color 0.2s;
+  padding: 8px 0;
+}
+.bottom-tab i { font-size: 20px; transition: transform 0.2s var(--ease-bounce); }
+.bottom-tab span { font-size: 10px; }
+.bottom-tab:hover { color: var(--text-body); }
+.bottom-tab:hover i { transform: translateY(-2px); }
+.bottom-tab.active { color: var(--brand); }
+.bottom-tab.active i { transform: scale(1.1); }
+
+.bottom-add {
+  width: 48px;
+  height: 36px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(135deg, var(--brand), var(--brand-strong));
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  box-shadow: var(--shadow-brand);
+  cursor: pointer;
+  transition: transform 0.2s var(--ease-bounce);
+}
+.bottom-add:hover { transform: scale(1.08); }
+
+/* ============================================================
+   通用组件
+   ============================================================ */
+.divider-line {
+  height: 1px;
+  background: var(--border-light);
+  margin: 12px 0;
+}
+
+/* 消息页 */
+.msg-card {
+  background: var(--surface-raised);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.msg-card:hover { transform: translateX(4px); }
+.msg-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.msg-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.msg-body { flex: 1; min-width: 0; }
+.msg-name { font-size: 14px; font-weight: 500; color: var(--text-strong); margin-bottom: 3px; }
+.msg-preview { font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.msg-time { font-size: 11px; color: var(--text-muted); flex-shrink: 0; }
+.msg-badge {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--brand);
+  color: white;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  <!-- 原型导航 -->
+  <div class="proto-nav">
+    <button class="proto-nav-btn active" onclick="showPage('home')">首页</button>
+    <button class="proto-nav-btn" onclick="showPage('shop')">店铺详情</button>
+    <button class="proto-nav-btn" onclick="showPage('login')">登录</button>
+    <button class="proto-nav-btn" onclick="showPage('profile')">个人中心</button>
+    <button class="proto-nav-btn" onclick="showPage('message')">消息</button>
+  </div>
+
+  <!-- ==================== 首页 ==================== -->
+  <div class="page active" id="page-home">
+    <!-- 搜索栏 -->
+    <div class="home-search">
+      <div class="city-btn">
+        杭州 <i class="fas fa-chevron-down"></i>
+      </div>
+      <div class="search-field">
+        <i class="fas fa-search"></i>
+        <input placeholder="搜索商户、美食、地点..." />
+      </div>
+      <div class="avatar-btn">
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23FFE0CC'/%3E%3Ccircle cx='50' cy='38' r='16' fill='%23FF6B35' opacity='0.6'/%3E%3Cellipse cx='50' cy='75' rx='24' ry='18' fill='%23FF6B35' opacity='0.4'/%3E%3C/svg%3E" alt="" />
+      </div>
+    </div>
+
+    <!-- 分类宫格 -->
+    <div class="category-grid">
+      <div class="cat-item">
+        <div class="cat-icon food"><i class="fas fa-utensils"></i></div>
+        <span class="cat-name">美食</span>
+      </div>
+      <div class="cat-item">
+        <div class="cat-icon ktv"><i class="fas fa-microphone"></i></div>
+        <span class="cat-name">KTV</span>
+      </div>
+      <div class="cat-item">
+        <div class="cat-icon beauty"><i class="fas fa-cut"></i></div>
+        <span class="cat-name">丽人</span>
+      </div>
+      <div class="cat-item">
+        <div class="cat-icon spa"><i class="fas fa-spa"></i></div>
+        <span class="cat-name">美容SPA</span>
+      </div>
+      <div class="cat-item">
+        <div class="cat-icon movie"><i class="fas fa-film"></i></div>
+        <span class="cat-name">电影</span>
+      </div>
+      <div class="cat-item">
+        <div class="cat-icon sport"><i class="fas fa-dumbbell"></i></div>
+        <span class="cat-name">运动健身</span>
+      </div>
+      <div class="cat-item">
+        <div class="cat-icon education"><i class="fas fa-graduation-cap"></i></div>
+        <span class="cat-name">亲子</span>
+      </div>
+      <div class="cat-item">
+        <div class="cat-icon home"><i class="fas fa-home"></i></div>
+        <span class="cat-name">家居</span>
+      </div>
+    </div>
+
+    <!-- 热门笔记 -->
+    <div class="section-header">
+      <span class="section-title">热门笔记</span>
+      <span class="section-more">查看全部 <i class="fas fa-chevron-right"></i></span>
+    </div>
+
+    <div class="blog-waterfall">
+      <div class="blog-card">
+        <div class="blog-card-img">
+          <img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&h=500&fit=crop" alt="" />
+        </div>
+        <div class="blog-card-body">
+          <div class="blog-card-title">杭州这家日料真的绝了，入口即化的三文鱼刺身</div>
+        </div>
+        <div class="blog-card-foot">
+          <div class="blog-card-user">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23E6F0FF'/%3E%3Ccircle cx='50' cy='40' r='14' fill='%233B82F6' opacity='0.5'/%3E%3Cellipse cx='50' cy='72' rx='20' ry='16' fill='%233B82F6' opacity='0.3'/%3E%3C/svg%3E" alt="" />
+            <span>小鱼儿</span>
+          </div>
+          <div class="blog-card-like liked"><i class="fas fa-heart"></i> 328</div>
+        </div>
+      </div>
+
+      <div class="blog-card">
+        <div class="blog-card-img">
+          <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=600&fit=crop" alt="" />
+        </div>
+        <div class="blog-card-body">
+          <div class="blog-card-title">藏在巷子里的宝藏咖啡馆，环境太出片了</div>
+        </div>
+        <div class="blog-card-foot">
+          <div class="blog-card-user">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23FFE6F0'/%3E%3Ccircle cx='50' cy='40' r='14' fill='%23EC4899' opacity='0.5'/%3E%3Cellipse cx='50' cy='72' rx='20' ry='16' fill='%23EC4899' opacity='0.3'/%3E%3C/svg%3E" alt="" />
+            <span>Mia</span>
+          </div>
+          <div class="blog-card-like"><i class="far fa-heart"></i> 156</div>
+        </div>
+      </div>
+
+      <div class="blog-card">
+        <div class="blog-card-img">
+          <img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&h=450&fit=crop" alt="" />
+        </div>
+        <div class="blog-card-body">
+          <div class="blog-card-title">人均80的法式大餐，周末约会首选</div>
+        </div>
+        <div class="blog-card-foot">
+          <div class="blog-card-user">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23E6FFF0'/%3E%3Ccircle cx='50' cy='40' r='14' fill='%2310B981' opacity='0.5'/%3E%3Cellipse cx='50' cy='72' rx='20' ry='16' fill='%2310B981' opacity='0.3'/%3E%3C/svg%3E" alt="" />
+            <span>吃货大王</span>
+          </div>
+          <div class="blog-card-like"><i class="far fa-heart"></i> 89</div>
+        </div>
+      </div>
+
+      <div class="blog-card">
+        <div class="blog-card-img">
+          <img src="https://images.unsplash.com/photo-1559339352-11d035aa65de?w=400&h=550&fit=crop" alt="" />
+        </div>
+        <div class="blog-card-body">
+          <div class="blog-card-title">深夜食堂｜一碗热腾腾的拉面治愈所有</div>
+        </div>
+        <div class="blog-card-foot">
+          <div class="blog-card-user">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23FFF0E6'/%3E%3Ccircle cx='50' cy='40' r='14' fill='%23FF6B35' opacity='0.5'/%3E%3Cellipse cx='50' cy='72' rx='20' ry='16' fill='%23FF6B35' opacity='0.3'/%3E%3C/svg%3E" alt="" />
+            <span>夜猫子</span>
+          </div>
+          <div class="blog-card-like liked"><i class="fas fa-heart"></i> 412</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 店铺详情 ==================== -->
+  <div class="page" id="page-shop">
+    <div class="shop-hero">
+      <img src="https://images.unsplash.com/photo-1552566626-52f8b828add9?w=800&h=440&fit=crop" alt="" />
+      <div class="shop-hero-overlay">
+        <div class="shop-hero-name">外婆家·西湖旗舰店</div>
+        <div class="shop-hero-tags">
+          <span class="shop-hero-tag"><i class="fas fa-utensils"></i> 浙菜</span>
+          <span class="shop-hero-tag"><i class="fas fa-coins"></i> 人均 ¥68</span>
+          <span class="shop-hero-tag"><i class="fas fa-clock"></i> 营业中</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="shop-info-card">
+      <div class="shop-rating-row">
+        <div class="shop-score-badge">4.8</div>
+        <div class="shop-rating-detail">
+          <div class="shop-rating-stars">
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star-half-alt"></i>
+          </div>
+          <div class="shop-rating-count">1,286 条评价</div>
+        </div>
+      </div>
+      <div class="shop-info-row">
+        <i class="fas fa-map-marker-alt"></i>
+        <span>杭州市西湖区南山路77号湖滨银泰in77 B区3楼</span>
+      </div>
+      <div class="shop-info-row">
+        <i class="fas fa-clock"></i>
+        <span>周一至周日 10:00-22:00</span>
+      </div>
+      <div class="shop-info-row">
+        <i class="fas fa-phone-alt"></i>
+        <span>0571-8888-6666</span>
+      </div>
+    </div>
+
+    <div class="voucher-card">
+      <div class="voucher-header">
+        <span class="voucher-badge">券</span>
+        <span class="voucher-title">优惠代金券</span>
+      </div>
+      <div class="voucher-item">
+        <div class="voucher-price-col">
+          <div class="voucher-price-num"><small>¥</small>58</div>
+          <div class="voucher-price-original">¥100</div>
+        </div>
+        <div class="voucher-info">
+          <div class="voucher-info-title">100元代金券</div>
+          <div class="voucher-info-sub">全场通用 · 5.8折</div>
+        </div>
+        <button class="voucher-buy-btn">抢购</button>
+      </div>
+      <div class="voucher-item">
+        <div class="voucher-price-col">
+          <div class="voucher-price-num"><small>¥</small>128</div>
+          <div class="voucher-price-original">¥200</div>
+        </div>
+        <div class="voucher-info">
+          <div class="voucher-info-title">200元代金券</div>
+          <div class="voucher-info-sub">全场通用 · 6.4折</div>
+        </div>
+        <button class="voucher-buy-btn">抢购</button>
+      </div>
+    </div>
+
+    <div class="section-header" style="margin-top: 8px;">
+      <span class="section-title">网友评价</span>
+      <span class="section-more">1286条 <i class="fas fa-chevron-right"></i></span>
+    </div>
+  </div>
+
+  <!-- ==================== 登录 ==================== -->
+  <div class="page" id="page-login">
+    <div class="login-hero">
+      <div class="login-logo"><i class="fas fa-fire"></i></div>
+      <div class="login-hero-title">黑马点评</div>
+      <div class="login-hero-sub">发现身边的好味道</div>
+    </div>
+
+    <div class="login-form-card">
+      <div class="login-field">
+        <label>手机号</label>
+        <input class="login-input" type="tel" placeholder="请输入手机号码" />
+      </div>
+      <div class="login-field">
+        <label>验证码</label>
+        <div class="login-code-row">
+          <input class="login-input" type="text" placeholder="请输入验证码" />
+          <button class="login-code-btn">获取验证码</button>
+        </div>
+      </div>
+      <button class="login-submit">登 录</button>
+      <div class="login-agreement">
+        <input type="checkbox" />
+        <span>我已阅读并同意 <a>《黑马点评用户服务协议》</a>、<a>《隐私政策》</a></span>
+      </div>
+    </div>
+
+    <div class="login-footer">
+      <a>密码登录</a>
+    </div>
+  </div>
+
+  <!-- ==================== 个人中心 ==================== -->
+  <div class="page" id="page-profile">
+    <div class="profile-header-card">
+      <div class="profile-top">
+        <div class="profile-avatar">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23FFE0CC'/%3E%3Ccircle cx='50' cy='38' r='16' fill='%23FF6B35' opacity='0.6'/%3E%3Cellipse cx='50' cy='75' rx='24' ry='18' fill='%23FF6B35' opacity='0.4'/%3E%3C/svg%3E" alt="" />
+        </div>
+        <div>
+          <div class="profile-name">小明同学</div>
+          <div class="profile-location"><i class="fas fa-map-pin"></i> 杭州</div>
+        </div>
+      </div>
+      <div class="profile-bio">探索城市美食，记录生活美好瞬间 ✨</div>
+      <div class="profile-stats">
+        <div class="profile-stat">
+          <div class="profile-stat-num">28</div>
+          <div class="profile-stat-label">笔记</div>
+        </div>
+        <div class="profile-stat">
+          <div class="profile-stat-num">156</div>
+          <div class="profile-stat-label">粉丝</div>
+        </div>
+        <div class="profile-stat">
+          <div class="profile-stat-num">42</div>
+          <div class="profile-stat-label">关注</div>
+        </div>
+        <div class="profile-stat">
+          <div class="profile-stat-num">892</div>
+          <div class="profile-stat-label">获赞</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="profile-actions">
+      <div class="profile-action">
+        <div class="profile-action-icon orange"><i class="fas fa-file-alt"></i></div>
+        <span class="profile-action-label">我的笔记</span>
+      </div>
+      <div class="profile-action">
+        <div class="profile-action-icon blue"><i class="fas fa-star"></i></div>
+        <span class="profile-action-label">我的收藏</span>
+      </div>
+      <div class="profile-action">
+        <div class="profile-action-icon green"><i class="fas fa-receipt"></i></div>
+        <span class="profile-action-label">订单</span>
+      </div>
+      <div class="profile-action">
+        <div class="profile-action-icon purple"><i class="fas fa-cog"></i></div>
+        <span class="profile-action-label">设置</span>
+      </div>
+    </div>
+
+    <div class="section-header">
+      <span class="section-title">我的笔记</span>
+    </div>
+
+    <div class="blog-waterfall" style="padding-bottom: 100px;">
+      <div class="blog-card">
+        <div class="blog-card-img">
+          <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=500&fit=crop" alt="" />
+        </div>
+        <div class="blog-card-body">
+          <div class="blog-card-title">周末brunch好去处，brunch控必打卡</div>
+        </div>
+        <div class="blog-card-foot">
+          <div class="blog-card-like liked"><i class="fas fa-heart"></i> 67</div>
+        </div>
+      </div>
+      <div class="blog-card">
+        <div class="blog-card-img">
+          <img src="https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=400&h=400&fit=crop" alt="" />
+        </div>
+        <div class="blog-card-body">
+          <div class="blog-card-title">自制甜品记录｜抹茶千层蛋糕</div>
+        </div>
+        <div class="blog-card-foot">
+          <div class="blog-card-like"><i class="far fa-heart"></i> 34</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 消息 ==================== -->
+  <div class="page" id="page-message">
+    <div class="section-header">
+      <span class="section-title">消息中心</span>
+    </div>
+
+    <div class="msg-card">
+      <div class="msg-avatar">
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23E6F0FF'/%3E%3Ccircle cx='50' cy='40' r='14' fill='%233B82F6' opacity='0.5'/%3E%3Cellipse cx='50' cy='72' rx='20' ry='16' fill='%233B82F6' opacity='0.3'/%3E%3C/svg%3E" alt="" />
+      </div>
+      <div class="msg-body">
+        <div class="msg-name">小鱼儿</div>
+        <div class="msg-preview">这家店真的太好吃了，下次一起去！</div>
+      </div>
+      <div class="msg-time">刚刚</div>
+      <div class="msg-badge">2</div>
+    </div>
+
+    <div class="msg-card">
+      <div class="msg-avatar">
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23FFE6F0'/%3E%3Ccircle cx='50' cy='40' r='14' fill='%23EC4899' opacity='0.5'/%3E%3Cellipse cx='50' cy='72' rx='20' ry='16' fill='%23EC4899' opacity='0.3'/%3E%3C/svg%3E" alt="" />
+      </div>
+      <div class="msg-body">
+        <div class="msg-name">Mia</div>
+        <div class="msg-preview">关注了你</div>
+      </div>
+      <div class="msg-time">3分钟前</div>
+    </div>
+
+    <div class="msg-card">
+      <div class="msg-avatar">
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23E6FFF0'/%3E%3Ccircle cx='50' cy='40' r='14' fill='%2310B981' opacity='0.5'/%3E%3Cellipse cx='50' cy='72' rx='20' ry='16' fill='%2310B981' opacity='0.3'/%3E%3C/svg%3E" alt="" />
+      </div>
+      <div class="msg-body">
+        <div class="msg-name">吃货大王</div>
+        <div class="msg-preview">赞了你的笔记「杭州这家日料真的绝了」</div>
+      </div>
+      <div class="msg-time">1小时前</div>
+    </div>
+
+    <div class="msg-card">
+      <div class="msg-avatar">
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23FFF0E6'/%3E%3Ccircle cx='50' cy='40' r='14' fill='%23FF6B35' opacity='0.5'/%3E%3Cellipse cx='50' cy='72' rx='20' ry='16' fill='%23FF6B35' opacity='0.3'/%3E%3C/svg%3E" alt="" />
+      </div>
+      <div class="msg-body">
+        <div class="msg-name">夜猫子</div>
+        <div class="msg-preview">评论了你的笔记：看着就好吃！</div>
+      </div>
+      <div class="msg-time">昨天</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- 底部导航 -->
+<div class="bottom-bar">
+  <div class="bottom-tab active" onclick="showPage('home')">
+    <i class="fas fa-home"></i>
+    <span>首页</span>
+  </div>
+  <div class="bottom-tab">
+    <i class="fas fa-map-marked-alt"></i>
+    <span>地图</span>
+  </div>
+  <div class="bottom-add"><i class="fas fa-plus"></i></div>
+  <div class="bottom-tab">
+    <i class="fas fa-comment-dots"></i>
+    <span>消息</span>
+  </div>
+  <div class="bottom-tab" onclick="showPage('profile')">
+    <i class="fas fa-user"></i>
+    <span>我的</span>
+  </div>
+</div>
+
+<script>
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.proto-nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  event.target.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>

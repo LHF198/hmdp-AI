@@ -160,16 +160,16 @@
 }
 
 .blog-box {
-  /* 两列栅格：卡片撑满列宽，不再限制 max-width 导致居中留白 */
+  /* 两列栏格：卡片撞满列宽，不再限制 max-width 导致居中留白 */
   width: 100%;
   margin: 5px 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.32); /* 提升不透明度，卡片边界更清晰 */
   -webkit-backdrop-filter: var(--blur-item);
   backdrop-filter: var(--blur-item);
-  border: 1px solid var(--border-2);
+  border: 1px solid var(--border-3); /* 使用更强的边框提升卡片辨识度 */
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-2);
   cursor: pointer;
@@ -218,7 +218,7 @@
   max-height: 40px;
   overflow: hidden;
   color: var(--text-strong);
-  font-size: 13px;
+  font-size: 14px; /* 13→14 提升可读性 */
   line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -269,14 +269,14 @@
   font-size: 12px;
 }
 
-/* ---------- 瀑布流骨架屏（首次加载占位，避免空白闪烁） ---------- */
+/* ---------- 瀑布流骨架屏（首次加载占位，shimmer 扫光效果） ---------- */
 .blog-skeleton {
   width: 100%;
   margin: 5px 0;
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-2);
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.25);
 }
 
 .blog-skeleton-img {
@@ -297,17 +297,23 @@
 
 .blog-skeleton-img,
 .blog-skeleton-line {
-  background: rgba(31, 45, 61, 0.07);
-  animation: skeleton-pulse 1.2s ease-in-out infinite;
+  background: rgba(255, 255, 255, 0.35);
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.5) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
 }
 
-@keyframes skeleton-pulse {
-  0%,
-  100% {
-    opacity: 1;
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
   }
-  50% {
-    opacity: 0.45;
+  100% {
+    background-position: -200% 0;
   }
 }
 

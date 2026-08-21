@@ -256,7 +256,7 @@ function queryBlogsOfFollow(clear) {
       blogs2.value = clear ? list : blogs2.value.concat(list)
       params.value = rest
     })
-    .catch((e) => console.log(e))
+    .catch((err) => ElMessage.error(err))
 }
 
 function signFlagKey() {
@@ -289,7 +289,7 @@ function querySignCount(justSigned) {
         ElMessage.success('签到成功，本月已连续签到' + signCount.value + '天')
       }
     })
-    .catch((e) => console.log(e))
+    .catch((err) => ElMessage.error(err))
 }
 
 function logout() {
