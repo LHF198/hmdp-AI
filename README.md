@@ -162,10 +162,7 @@ src/main/resources/
 ### AI 助手 `/api/ai`
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| POST | `/api/ai/chat` | 非流式问答（JSON） |
-| POST | `/api/ai/chat/stream` | 流式问答（SSE） |
 | GET | `/api/ai/chat/stream` | 流式问答（纯文本流，逐字渲染） |
-| DELETE | `/api/ai/conversation/{id}` | 清空会话记忆 |
 | GET | `/api/ai/health` | 健康检查 |
 
 ### 关注 `/follow`

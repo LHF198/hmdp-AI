@@ -192,7 +192,7 @@
   position: relative; /* 相对定位，为绝对定位的子元素提供定位上下文 */
   width: 80px; /* 宽度80像素 */
   height: 80px; /* 高度80像素 */
-  border-radius: 12px; /* 圆角半径12像素 */
+  border-radius: var(--radius-sm); /* 圆角半径12像素 */
   overflow: hidden; /* 隐藏溢出内容，保持圆角效果 */
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* 阴影：水平0 垂直4 模糊12 黑色透明度10% */
 }

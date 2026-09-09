@@ -1,14 +1,11 @@
 package com.hmdp.controller;
 
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.hmdp.dto.Result;
+import com.hmdp.service.IMessageService;
 import com.hmdp.utils.UserHolder;
 
 import jakarta.annotation.Resource;
@@ -22,7 +19,7 @@ import jakarta.annotation.Resource;
 public class MessageController {
 
     @Resource
-    private JdbcTemplate jdbcTemplate;
+    private IMessageService messageService;
 
     /**
      * 我的笔记收到的评论
@@ -30,20 +27,7 @@ public class MessageController {
      */
     @GetMapping("/comments")
     public Result comments() {
-        Long userId = UserHolder.getUser().getId();
-        String sql = """
-                SELECT c.id, c.user_id, c.content, c.create_time,
-                       u.nick_name AS user_nick_name, u.icon AS user_icon,
-                       b.id AS blog_id, b.title AS blog_title, b.images AS blog_images
-                FROM tb_blog_comments c
-                JOIN tb_blog b ON b.id = c.blog_id
-                JOIN tb_user u ON u.id = c.user_id
-                WHERE b.user_id = ?
-                ORDER BY c.create_time DESC
-                LIMIT 50
-                """;
-        List<Map<String, Object>> list = jdbcTemplate.queryForList(sql, userId);
-        return Result.ok(list);
+        return messageService.commentsToMe(UserHolder.getUser().getId());
     }
 
     /**
@@ -52,17 +36,6 @@ public class MessageController {
      */
     @GetMapping("/follows")
     public Result follows() {
-        Long userId = UserHolder.getUser().getId();
-        String sql = """
-                SELECT f.id, f.user_id, f.create_time,
-                       u.nick_name AS user_nick_name, u.icon AS user_icon
-                FROM tb_follow f
-                JOIN tb_user u ON u.id = f.user_id
-                WHERE f.follow_user_id = ?
-                ORDER BY f.create_time DESC
-                LIMIT 50
-                """;
-        List<Map<String, Object>> list = jdbcTemplate.queryForList(sql, userId);
-        return Result.ok(list);
+        return messageService.followers(UserHolder.getUser().getId());
     }
 }

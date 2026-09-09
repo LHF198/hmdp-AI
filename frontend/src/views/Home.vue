@@ -115,6 +115,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { shopApi } from '@/api/shop'
 import { blogApi } from '@/api/blog'
+import { useCityStore } from '@/stores/city'
 // 副作用导入：cities.js 以 ES 模块形式导出全国省→市数据
 import { CITY_DATA } from '@/utils/cities'
 import LikeIcon from '@/components/LikeIcon.vue'
@@ -129,7 +130,8 @@ const loading = ref(true) // 首次加载：展示骨架屏
 const loadingMore = ref(false) // 触底加载下一页：尾巴展示“正在加载”
 const hasMore = ref(true) // 是否还有下一页（后端返回空页即到底）
 const searchKey = ref('')
-const city = ref(localStorage.getItem('hmdp_city') || '杭州')
+const cityStore = useCityStore()
+const city = computed(() => cityStore.city || '杭州')
 const hotCities = ['北京', '上海', '广州', '深圳', '杭州', '成都', '南京', '武汉', '西安', '重庆']
 const cityPopVisible = ref(false)
 const provinces = ref([])
@@ -159,9 +161,8 @@ function queryTypes() {
 }
 
 function pickCity(c) {
-  // 切换城市并持久化，供店铺列表/地图/发笔记等页面联动
-  city.value = c
-  localStorage.setItem('hmdp_city', c)
+  // 切换城市并持久化（经 city store 写 localStorage），供店铺列表/地图/发笔记等页面联动
+  cityStore.setCity(c)
   cityPopVisible.value = false
   ElMessage.success(c === '全部' ? '已切换到全部城市' : '已切换到' + c)
 }

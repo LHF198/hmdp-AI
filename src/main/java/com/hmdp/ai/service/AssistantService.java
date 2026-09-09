@@ -1,7 +1,6 @@
 package com.hmdp.ai.service;
 
 import com.hmdp.ai.dto.ChatRequest;
-import com.hmdp.ai.dto.ChatResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
@@ -13,7 +12,7 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 
 /**
- * 问答服务：单轮 / 多轮（会话记忆由 MessageChatMemoryAdvisor 自动维护）/ 流式（SSE）三种模式
+ * 问答服务：多轮（会话记忆由 MessageChatMemoryAdvisor 自动维护）流式问答
  */
 @Slf4j
 @Service
@@ -35,19 +34,6 @@ public class AssistantService {
     public AssistantService(ChatClient chatClient, ChatMemory chatMemory) {
         this.chatClient = chatClient;
         this.chatMemory = chatMemory;
-    }
-
-    /**
-     * 非流式问答：自动维护会话上下文
-     */
-    public ChatResponse chat(ChatRequest request) {
-        String conversationId = resolveConversationId(request);
-        String answer = chatClient.prompt()
-                .advisors(a -> a.param(CONVERSATION_ID_KEY, conversationId))
-                .user(request.getMessage())
-                .call()
-                .content();
-        return ChatResponse.of(conversationId, answer);
     }
 
     /**

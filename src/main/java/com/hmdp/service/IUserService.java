@@ -3,9 +3,8 @@ package com.hmdp.service;
 import com.baomidou.mybatisplus.spring.service.IService;
 import com.hmdp.dto.LoginFormDTO;
 import com.hmdp.dto.Result;
+import com.hmdp.dto.UserInfoUpdateDTO;
 import com.hmdp.entity.User;
-
-import jakarta.servlet.http.HttpSession;
 
 /**
  * <p>
@@ -17,9 +16,9 @@ import jakarta.servlet.http.HttpSession;
  */
 public interface IUserService extends IService<User> {
 
-    Result sendCode(String phone, HttpSession session);
+    Result sendCode(String phone);
 
-    Result login(LoginFormDTO loginForm, HttpSession session);
+    Result login(LoginFormDTO loginForm);
 
     Result sign();
 
@@ -43,5 +42,15 @@ public interface IUserService extends IService<User> {
      * @return 操作结果
      */
     Result setPassword(String oldPassword, String newPassword);
+
+    /**
+     * 修改当前登录用户的个人资料（事务：tb_user 昵称/头像 + tb_user_info 资料两表一致落库，
+     * 并同步 Redis 登录态保证 /user/me 立即生效）
+     *
+     * @param userId 当前登录用户id（强制绑定，防止越权修改）
+     * @param dto    待修改的资料字段
+     * @param token  登录 token（用于同步 Redis 登录态，可为空）
+     */
+    Result updateUserInfo(Long userId, UserInfoUpdateDTO dto, String token);
 
 }

@@ -1,6 +1,7 @@
 package com.hmdp.service;
 
 import com.baomidou.mybatisplus.spring.service.IService;
+import com.hmdp.dto.CommentAddDTO;
 import com.hmdp.dto.Result;
 import com.hmdp.entity.Blog;
 
@@ -52,5 +53,23 @@ public interface IBlogService extends IService<Blog> {
      * 笔记评论数 -count（删除评论后同步，GREATEST 保底防止负数）
      */
     void decrCommentCount(Long blogId, long count);
+
+    /**
+     * 发布评论/回复（事务：评论落库 + 笔记评论数同步）
+     *
+     * @param blogId 笔记id
+     * @param userId 评论人id
+     * @param dto    评论体（content 已校验非空；parentId/answerId 为空按一级评论处理）
+     * @return 评论id
+     */
+    Result addComment(Long blogId, Long userId, CommentAddDTO dto);
+
+    /**
+     * 删除评论（事务：级联删除回复 + 笔记评论数同步；仅评论作者本人可删）
+     *
+     * @param commentId 评论id
+     * @param userId    当前登录用户id
+     */
+    Result deleteComment(Long commentId, Long userId);
 
 }

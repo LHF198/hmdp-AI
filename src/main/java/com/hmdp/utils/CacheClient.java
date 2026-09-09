@@ -145,7 +145,8 @@ public class CacheClient {
                     // 重建缓存
                     this.setWithLogicalExpire(key, newR, time, unit);
                 } catch (Exception e) {
-                    throw new RuntimeException(e);
+                    // 重建失败仅记录日志：缓存仍保留旧数据，锁在 finally 中释放，下次过期读会重试重建
+                    log.error("缓存重建失败: key={}", key, e);
                 } finally {
                     // 释放锁
                     unlock(lockKey, lockValue);

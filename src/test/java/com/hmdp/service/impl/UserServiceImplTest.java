@@ -98,7 +98,7 @@ class UserServiceImplTest {
 
     @Test
     void login_验证码与密码都为空时提示() {
-        Result r = userService.login(form(null, null), null);
+        Result r = userService.login(form(null, null));
 
         assertEquals("请输入验证码或密码", r.getErrorMsg());
     }
@@ -108,7 +108,7 @@ class UserServiceImplTest {
         when(valueOperations.get("login:code:" + PHONE)).thenReturn("123456");
         when(queryChain.one()).thenReturn(newUser(1L, PHONE, ""));
 
-        Result r = userService.login(form("123456", null), null);
+        Result r = userService.login(form("123456", null));
 
         assertTrue(r.getSuccess());
         assertTrue(r.getData() instanceof String);
@@ -123,7 +123,7 @@ class UserServiceImplTest {
     void login_验证码错误时拒绝() {
         when(valueOperations.get("login:code:" + PHONE)).thenReturn("123456");
 
-        Result r = userService.login(form("999999", null), null);
+        Result r = userService.login(form("999999", null));
 
         assertEquals("验证码错误", r.getErrorMsg());
     }
@@ -135,7 +135,7 @@ class UserServiceImplTest {
         String encoded = PasswordEncoder.encode("abc12345");
         when(queryChain.one()).thenReturn(newUser(1L, PHONE, encoded));
 
-        Result r = userService.login(form(null, "abc12345"), null);
+        Result r = userService.login(form(null, "abc12345"));
 
         assertTrue(r.getSuccess());
         assertTrue(r.getData() instanceof String);
@@ -149,7 +149,7 @@ class UserServiceImplTest {
         when(queryChain.one()).thenReturn(newUser(1L, PHONE, encoded));
         when(valueOperations.increment(FAIL_KEY)).thenReturn(1L);
 
-        Result r = userService.login(form(null, "wrong-pass"), null);
+        Result r = userService.login(form(null, "wrong-pass"));
 
         assertEquals("密码错误，还可尝试 4 次", r.getErrorMsg());
         // 首次失败设置窗口过期时间
@@ -160,7 +160,7 @@ class UserServiceImplTest {
     void login_连续失败达上限后锁定() {
         when(valueOperations.get(FAIL_KEY)).thenReturn("5");
 
-        Result r = userService.login(form(null, "abc12345"), null);
+        Result r = userService.login(form(null, "abc12345"));
 
         assertEquals("密码错误次数过多，请 10 分钟后再试，或使用验证码登录", r.getErrorMsg());
         // 锁定期内不再查询用户/校验密码
@@ -169,7 +169,7 @@ class UserServiceImplTest {
 
     @Test
     void login_用户未注册时拒绝密码登录() {
-        Result r = userService.login(form(null, "abc12345"), null);
+        Result r = userService.login(form(null, "abc12345"));
 
         assertEquals("该手机号未注册，请使用验证码登录", r.getErrorMsg());
     }
@@ -178,7 +178,7 @@ class UserServiceImplTest {
     void login_用户未设置密码时引导验证码登录() {
         when(queryChain.one()).thenReturn(newUser(1L, PHONE, ""));
 
-        Result r = userService.login(form(null, "abc12345"), null);
+        Result r = userService.login(form(null, "abc12345"));
 
         assertEquals("该账号尚未设置密码，请先用验证码登录后在「我的-修改密码」中设置", r.getErrorMsg());
     }

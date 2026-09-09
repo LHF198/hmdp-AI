@@ -12,11 +12,13 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
 import com.hmdp.dto.LoginFormDTO;
 import com.hmdp.dto.Result;
 import com.hmdp.dto.UserDTO;
+import com.hmdp.dto.UserInfoUpdateDTO;
 import com.hmdp.entity.User;
 import com.hmdp.entity.UserInfo;
 import com.hmdp.mapper.UserMapper;
@@ -41,7 +43,6 @@ import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import jakarta.annotation.Resource;
-import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -70,7 +71,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     private boolean echoCode;
 
     @Override
-    public Result sendCode(String phone, HttpSession session) {
+    public Result sendCode(String phone) {
         // 1.校验手机号
         if (RegexUtils.isPhoneInvalid(phone)) {
             // 2.如果不符合，返回错误信息
@@ -99,7 +100,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     private static final int MAX_PASSWORD_FAIL_TIMES = 5;
 
     @Override
-    public Result login(LoginFormDTO loginForm, HttpSession session) {
+    public Result login(LoginFormDTO loginForm) {
         // 1.校验手机号
         String phone = loginForm.getPhone();
         if (RegexUtils.isPhoneInvalid(phone)) {
@@ -227,7 +228,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
                 return Result.fail("原密码错误");
             }
         }
-        // 4.更新密码（MD5 + 随机盐，见 PasswordEncoder）
+        // 4.更新密码（BCrypt 哈希，旧 salt@md5hex 格式由 PasswordEncoder.matches 兼容校验）
         boolean isSuccess = lambdaUpdate()
                 .set(User::getPassword, PasswordEncoder.encode(newPassword))
                 .eq(User::getId, userId)
@@ -331,5 +332,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
                 stringRedisTemplate.opsForHash().put(LOGIN_USER_KEY + token, "icon", icon);
             }
         }
+    }
+
+    @Override
+    @Transactional
+    public Result updateUserInfo(Long userId, UserInfoUpdateDTO dto, String token) {
+        // 1.修改昵称、头像（tb_user表），并同步Redis登录态，保证 /user/me 立即生效
+        updateProfile(userId, dto.getNickName(), dto.getIcon(), token);
+        // 2.修改个人资料（tb_user_info表），强制绑定当前登录用户，防止越权修改
+        UserInfo info = BeanUtil.toBean(dto, UserInfo.class);
+        info.setUserId(userId);
+        // saveOrUpdate：没有记录则新增，有记录则更新；失败抛异常回滚两表写入
+        boolean success = userInfoService.saveOrUpdate(info);
+        if (!success) {
+            log.error("个人资料更新失败: userId={}, info={}", userId, info);
+            throw new RuntimeException("更新失败");
+        }
+        return Result.ok();
     }
 }

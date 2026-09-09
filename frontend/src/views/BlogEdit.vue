@@ -104,11 +104,13 @@ import { ElMessage } from 'element-plus'
 import { blogApi } from '@/api/blog'
 import { shopApi } from '@/api/shop'
 import { userApi } from '@/api/user'
+import { useCityStore } from '@/stores/city'
 import AiLauncher from '@/components/AiLauncher.vue'
 // 副作用导入：cities.js 以 ES 模块形式导出全国省→市数据
 import { CITY_DATA } from '@/utils/cities'
 
 const router = useRouter()
+const cityStore = useCityStore()
 
 const fileList = ref([])
 const params = ref({})
@@ -122,7 +124,7 @@ const fileInput = ref(null)
 
 onMounted(() => {
   // 读取主页选择的城市
-  const c = localStorage.getItem('hmdp_city')
+  const c = cityStore.city
   if (c && c !== '全部') {
     city.value = c
   }

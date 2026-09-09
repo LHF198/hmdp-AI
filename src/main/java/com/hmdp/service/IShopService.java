@@ -19,4 +19,19 @@ public interface IShopService extends IService<Shop> {
     Result update(Shop shop);
 
     Result queryShopByType(Integer typeId, Integer current, Double x, Double y, String city, String sortBy, Boolean isAsc);
+
+    /**
+     * 全部城市列表（主页地区选择器用，Redis 缓存 24h：常用城市保底 + DB 去重并集）
+     */
+    Result queryCities();
+
+    /**
+     * 地图页：返回全部商铺（含经纬度），供前端按类型过滤并投影渲染
+     */
+    Result queryAllForMap();
+
+    /**
+     * 根据商铺名称关键字分页查询商铺信息（排序字段白名单校验，防 SQL 注入）
+     */
+    Result queryShopByName(String name, Integer current, String city, String sortBy, Boolean isAsc);
 }

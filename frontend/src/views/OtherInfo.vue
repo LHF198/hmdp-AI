@@ -82,21 +82,12 @@ const commonFollows = ref([]) // 共同关注
 
 onMounted(() => {
   queryUser()
-  queryLoginUser()
 })
 
 function queryBlogs() {
   blogApi
     .ofUser({ id: user.value.id, current: 1 })
     .then(({ data }) => (blogs.value = data))
-    .catch((err) => ElMessage.error(err))
-}
-
-function queryLoginUser() {
-  // 查询当前登录用户信息
-  userApi
-    .me()
-    .then(({ data }) => {})
     .catch((err) => ElMessage.error(err))
 }
 
@@ -137,6 +128,8 @@ function queryUserInfo() {
 }
 
 function isFollowed() {
+  // 关注状态接口需登录：未登录跳过，避免 401 全局跳登录
+  if (!sessionStorage.getItem('token')) return
   followApi
     .orNot(user.value.id)
     .then(({ data }) => (followed.value = data))
@@ -144,6 +137,8 @@ function isFollowed() {
 }
 
 function queryCommonFollow() {
+  // 共同关注接口需登录：未登录跳过，避免 401 全局跳登录
+  if (!sessionStorage.getItem('token')) return
   followApi
     .common(user.value.id)
     .then(({ data }) => (commonFollows.value = data))
@@ -153,6 +148,12 @@ function queryCommonFollow() {
 }
 
 function follow() {
+  if (!sessionStorage.getItem('token')) {
+    ElMessage.error('请先登录')
+    sessionStorage.setItem('login_from', location.pathname + location.search)
+    setTimeout(() => router.push('/login'), 200)
+    return
+  }
   followApi
     .follow(user.value.id, !followed.value)
     .then(() => {

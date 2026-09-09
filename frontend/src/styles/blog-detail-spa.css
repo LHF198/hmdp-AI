@@ -30,7 +30,7 @@
   border-radius: 5vw;
   text-align: center;
   background-color: rgba(0, 0, 0, 0.5);
-  color: #fff;
+  color: var(--text-on-dark);
   font-size: 14px;
 }
 
@@ -138,7 +138,7 @@
 .blog-detail-page .shop-basic {
   margin: 15px 16px;
   width: auto;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   gap: 12px;
@@ -295,7 +295,7 @@
   font-size: 13px;
   color: var(--brand);
   border: 1px solid var(--brand);
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   padding: 3px 12px;
   cursor: pointer;
   background: rgba(255, 255, 255, 0.9);
@@ -381,7 +381,7 @@
   align-items: center;
   gap: 8px;
   background: rgba(0, 0, 0, 0.04);
-  border-radius: 24px;
+  border-radius: var(--radius-xl);
   padding: 4px 6px 4px 14px;
   transition: background 0.2s ease, box-shadow 0.2s ease;
 }
@@ -410,7 +410,7 @@
   border-radius: 50%;
   border: none;
   background: rgba(0, 0, 0, 0.12);
-  color: #fff;
+  color: var(--text-on-dark);
   display: flex;
   align-items: center;
   justify-content: center;

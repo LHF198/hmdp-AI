@@ -75,74 +75,15 @@
     </div>
 
     <!-- 代金券卡片 -->
-    <div class="shop-voucher" v-if="vouchers.length > 0">
-      <div class="voucher-header">
-        <span class="voucher-icon">券</span>
-        <span class="voucher-title-text">代金券</span>
-      </div>
-      <!-- 未到结束时间的代金券列表（Vue 3 中 v-if 优先于 v-for，不能同元素使用，提前 computed 过滤） -->
-      <div class="voucher-box" v-for="v in activeVouchers" :key="v.id">
-        <div class="voucher-circle">
-          <div class="voucher-b"></div>
-          <div class="voucher-b"></div>
-          <div class="voucher-b"></div>
-        </div>
-        <div class="voucher-left">
-          <div class="voucher-title">{{ v.title }}</div>
-          <div class="voucher-subtitle">{{ v.subTitle }}</div>
-          <div class="voucher-price">
-            <div>￥{{ formatPrice(v.payValue) }}</div>
-            <span>{{ ((v.payValue * 10) / v.actualValue).toFixed(1) }}折</span>
-          </div>
-        </div>
-        <div class="voucher-right">
-          <!-- 秒杀类型代金券 -->
-          <div v-if="v.type" class="seckill-box">
-            <div
-              class="voucher-btn"
-              :class="{ 'disable-btn': isNotBegin(v) || v.stock < 1 || seckilling }"
-              @click="seckill(v)"
-            >
-              {{ seckilling ? '抢购中...' : '限时抢购' }}
-            </div>
-            <div class="seckill-stock">剩余 <span>{{ v.stock }}</span> 张</div>
-            <div class="seckill-time">{{ countdownText(v) }}</div>
-          </div>
-          <!-- 普通代金券 -->
-          <div class="voucher-btn" v-else>抢购</div>
-        </div>
-      </div>
-    </div>
+    <ShopVoucherCard
+      :vouchers="vouchers"
+      :seckilling="seckilling"
+      :now-ts="nowTs"
+      @seckill="seckill"
+    />
 
     <!-- 评论卡片：店铺评价功能尚未开放，聚合展示大家的探店笔记作为真实评价内容 -->
-    <div class="shop-comments">
-      <div class="comments-head">
-        <div>网友评价</div>
-        <span v-if="shopBlogs.length > 0" class="comments-sub">来自探店笔记</span>
-      </div>
-      <div class="shop-blog-strip" v-if="shopBlogs.length > 0">
-        <div
-          class="shop-blog-card"
-          v-for="b in shopBlogs"
-          :key="b.id"
-          @click="router.push('/blog/' + b.id)"
-        >
-          <div class="shop-blog-img">
-            <img :src="b.img" alt="" loading="lazy" />
-          </div>
-          <div class="shop-blog-title">{{ b.title }}</div>
-          <div class="shop-blog-foot">
-            <img class="shop-blog-avatar" :src="b.icon || '/imgs/icons/default-icon.png'" alt="" />
-            <span class="shop-blog-name">{{ b.name }}</span>
-            <span class="shop-blog-liked">
-              <LikeIcon :active="b.isLike" />
-              {{ b.liked }}
-            </span>
-          </div>
-        </div>
-      </div>
-      <EmptyState v-else size="compact" text="暂无评价，来做第一个探店笔记吧" />
-    </div>
+    <ShopBlogStrip :blogs="shopBlogs" @open="toBlogDetail" />
 
     <div class="copyright">copyright ©{{ year }} hmdp.com</div>
     </template>
@@ -162,39 +103,7 @@
     </el-dialog>
 
     <!-- 我的秒杀订单弹窗 -->
-    <el-dialog title="我的秒杀订单" v-model="ordersVisible" width="90%" append-to-body>
-      <EmptyState v-if="orders.length === 0" size="compact" text="暂无订单" />
-      <div
-        v-for="o in orders"
-        :key="o.id"
-        class="order-item"
-      >
-        <div class="order-title">
-          {{ o.voucherTitle || '代金券 ' + o.voucherId }}
-        </div>
-        <div class="order-meta">
-          订单号：{{ o.id }}
-          <span v-if="o.payValue"> | ￥{{ formatPrice(o.payValue) }}</span>
-          | {{ orderStatus(o.status) }}
-        </div>
-        <div class="order-time">
-          下单时间：{{ formatTime(o.createTime) }}
-        </div>
-        <div class="order-actions">
-          <el-button
-            v-if="o.status === ORDER_STATUS.UNPAID"
-            size="small"
-            type="danger"
-            round
-            @click="payOrder(o)"
-          >模拟支付</el-button>
-          <span
-            v-if="o.status === ORDER_STATUS.PAID || o.status === ORDER_STATUS.USED"
-            class="order-code"
-          >核销码：{{ o.id }}</span>
-        </div>
-      </div>
-    </el-dialog>
+    <SeckillOrdersDialog v-model="ordersVisible" :orders="orders" @pay="payOrder" />
 
     <AiLauncher />
   </div>
@@ -203,17 +112,18 @@
 <script setup>
 // 店铺详情页：展示店铺信息、代金券与秒杀倒计时，支持限时抢购、查看我的秒杀订单；
 // 路由参数 id 驱动数据加载（旧 MPA 页面 shop-detail.html 的 SPA 迁移版）
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { shopApi } from '@/api/shop'
 import { blogApi } from '@/api/blog'
 import { voucherApi } from '@/api/voucher'
-import { ORDER_STATUS, ORDER_STATUS_TEXT } from '@/utils/order-status'
 import { INFO_ICON_COLOR, RATE_TEXT_COLOR } from '@/utils/colors'
 import { useUserStore } from '@/stores/user'
 import AiLauncher from '@/components/AiLauncher.vue'
-import LikeIcon from '@/components/LikeIcon.vue'
+import ShopVoucherCard from '@/components/shop/ShopVoucherCard.vue'
+import ShopBlogStrip from '@/components/shop/ShopBlogStrip.vue'
+import SeckillOrdersDialog from '@/components/shop/SeckillOrdersDialog.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -231,9 +141,6 @@ const nowTs = ref(Date.now()) // 当前时间戳，每秒刷新，驱动秒杀�
 const seckilling = ref(false) // 秒杀请求在途标记：防快速连点重复下单
 
 let timer = null
-
-// 代金券列表（过滤已结束的秒杀券；isEnd 内部依赖 nowTs，computed 会随倒计时刷新）
-const activeVouchers = computed(() => vouchers.value.filter((v) => !isEnd(v)))
 
 onMounted(() => {
   const shopId = route.params.id
@@ -345,82 +252,9 @@ function queryShopBlogs(shopId) {
     })
 }
 
-// 价格格式化：分 → 元（迁移自旧 common.js util.formatPrice）
-function formatPrice(val) {
-  if (typeof val === 'string') {
-    if (isNaN(val)) return null
-    const index = val.lastIndexOf('.')
-    let p = ''
-    if (index < 0) {
-      p = val + '00'
-    } else if (index === val.length - 2) {
-      p = val.replace('.', '') + '0'
-    } else {
-      p = val.replace('.', '')
-    }
-    return parseInt(p)
-  } else if (typeof val === 'number') {
-    if (!val) return null
-    const s = val + ''
-    if (s.length === 1) return '0.0' + val
-    if (s.length === 2) return '0.' + val
-    const i = s.indexOf('.')
-    if (i < 0) return s.substring(0, s.length - 2) + '.' + s.substring(s.length - 2)
-    const num = s.substring(0, i) + s.substring(i + 1)
-    if (i === 1) return '0.0' + num
-    if (i === 2) return '0.' + num
-    if (i > 2) return num.substring(0, i - 2) + '.' + num.substring(i - 2)
-  }
-}
-
-function formatTime(t) {
-  // 兼容 LocalDateTime 数组 [y,m,d,h,mi,s] 与字符串
-  if (!t) return ''
-  if (Array.isArray(t)) {
-    const p = (n) => (n < 10 ? '0' + n : '' + n)
-    return `${t[0]}-${p(t[1])}-${p(t[2])} ${p(t[3] || 0)}:${p(t[4] || 0)}`
-  }
-  return String(t).replace('T', ' ').split('.')[0].substring(0, 16)
-}
-
-function formatMinutes(m) {
-  if (m < 10) m = '0' + m
-  return m
-}
-
-function isNotBegin(v) {
-  return new Date(v.beginTime).getTime() > nowTs.value
-}
-
-function isEnd(v) {
-  return new Date(v.endTime).getTime() < nowTs.value
-}
-
-function countdownText(v) {
-  // 秒杀倒计时：未开始显示距开始，进行中显示距结束
-  const begin = new Date(v.beginTime).getTime()
-  const end = new Date(v.endTime).getTime()
-  if (nowTs.value < begin) {
-    return '距开始 ' + countdownHms(begin - nowTs.value)
-  }
-  if (nowTs.value < end) {
-    return '距结束 ' + countdownHms(end - nowTs.value)
-  }
-  const b = new Date(v.beginTime)
-  const e = new Date(v.endTime)
-  return (
-    b.getMonth() + 1 + '月' + b.getDate() + '日 ' + b.getHours() + ':' + formatMinutes(b.getMinutes()) +
-    ' ~ ' + e.getHours() + ':' + formatMinutes(e.getMinutes())
-  )
-}
-
-function countdownHms(ms) {
-  let s = Math.max(0, Math.floor(ms / 1000))
-  const h = Math.floor(s / 3600)
-  const m = Math.floor((s % 3600) / 60)
-  const sec = s % 60
-  const pad = (n) => (n < 10 ? '0' + n : '' + n)
-  return pad(h) + ':' + pad(m) + ':' + pad(sec)
+function toBlogDetail(b) {
+  // 点击探店笔记卡片，跳转笔记详情页
+  router.push('/blog/' + b.id)
 }
 
 function showOrders() {
@@ -439,10 +273,6 @@ function showOrders() {
       ordersVisible.value = true
     })
     .catch((err) => ElMessage.error(err))
-}
-
-function orderStatus(s) {
-  return ORDER_STATUS_TEXT[s] || '未知'
 }
 
 function payOrder(o) {
@@ -496,6 +326,14 @@ function seckill(v) {
     .finally(() => {
       seckilling.value = false
     })
+}
+
+function isNotBegin(v) {
+  return new Date(v.beginTime).getTime() > nowTs.value
+}
+
+function isEnd(v) {
+  return new Date(v.endTime).getTime() < nowTs.value
 }
 </script>
 

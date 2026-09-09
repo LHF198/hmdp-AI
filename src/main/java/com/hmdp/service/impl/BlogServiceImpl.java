@@ -20,6 +20,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
+import com.hmdp.dto.CommentAddDTO;
 import com.hmdp.dto.Result;
 import com.hmdp.dto.ScrollResult;
 import com.hmdp.dto.UserDTO;
@@ -27,6 +28,7 @@ import com.hmdp.entity.Blog;
 import com.hmdp.entity.BlogComments;
 import com.hmdp.entity.Follow;
 import com.hmdp.entity.User;
+import com.hmdp.enums.CommentStatusEnum;
 import com.hmdp.mapper.BlogMapper;
 import com.hmdp.service.IBlogCommentsService;
 import com.hmdp.service.IBlogService;
@@ -455,5 +457,52 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
                 .setSql("comments=GREATEST(comments-" + count + ",0)")
                 .eq(Blog::getId, blogId)
                 .update();
+    }
+
+    @Override
+    @Transactional
+    public Result addComment(Long blogId, Long userId, CommentAddDTO dto) {
+        // 校验笔记存在
+        if (getById(blogId) == null) {
+            return Result.fail("笔记不存在");
+        }
+        BlogComments comment = new BlogComments();
+        comment.setBlogId(blogId);
+        comment.setUserId(userId);
+        comment.setContent(dto.getContent().trim());
+        comment.setParentId(dto.getParentId() == null ? 0L : dto.getParentId());
+        comment.setAnswerId(dto.getAnswerId() == null ? 0L : dto.getAnswerId());
+        comment.setLiked(0);
+        comment.setStatus(CommentStatusEnum.NORMAL.getCode());
+        boolean isSuccess = blogCommentsService.save(comment);
+        if (!isSuccess) {
+            return Result.fail("评论失败");
+        }
+        // 同步笔记评论数（与点赞计数同样的 DB 计数模式，同一事务内落库）
+        incrCommentCount(blogId);
+        return Result.ok(comment.getId());
+    }
+
+    @Override
+    @Transactional
+    public Result deleteComment(Long commentId, Long userId) {
+        BlogComments comment = blogCommentsService.getById(commentId);
+        if (comment == null) {
+            return Result.fail("评论不存在");
+        }
+        if (!comment.getUserId().equals(userId)) {
+            return Result.fail("只能删除自己的评论");
+        }
+        // 统计将删除的条数（评论本身 + 其下回复），用于同步笔记评论数
+        long replyCount = blogCommentsService.count(new LambdaQueryWrapper<BlogComments>()
+                .eq(BlogComments::getParentId, commentId));
+        // 删除评论本身及其下的所有回复
+        blogCommentsService.remove(new LambdaQueryWrapper<BlogComments>()
+                .eq(BlogComments::getId, commentId)
+                .or()
+                .eq(BlogComments::getParentId, commentId));
+        // 同步笔记评论数（GREATEST 保底防止负数）
+        decrCommentCount(comment.getBlogId(), 1 + replyCount);
+        return Result.ok();
     }
 }

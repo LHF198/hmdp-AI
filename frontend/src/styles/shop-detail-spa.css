@@ -83,7 +83,7 @@
   width: 100%;
   background: linear-gradient(135deg, #fff9f0 0%, #fff5e6 100%);
   padding: 10px 12px;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   gap: 8px;
 }
 
@@ -266,7 +266,7 @@
 .shop-detail-page .voucher-box {
   background: linear-gradient(135deg, #fff8f8 0%, #fff5f5 100%);
   border: 1px solid #ffe8e8;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -424,7 +424,7 @@
 .shop-detail-page .comment-tags div {
   border: 1px solid #d9d9d9;
   background: #fafafa;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   text-align: center;
   color: #666;
   padding: 6px 12px;

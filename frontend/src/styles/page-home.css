@@ -276,7 +276,7 @@
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-2);
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.25);
+  background: var(--surface-1);
 }
 
 .blog-skeleton-img {
@@ -297,7 +297,7 @@
 
 .blog-skeleton-img,
 .blog-skeleton-line {
-  background: rgba(255, 255, 255, 0.35);
+  background: var(--surface-3);
   background-image: linear-gradient(
     90deg,
     rgba(255, 255, 255, 0) 0%,

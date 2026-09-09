@@ -1,6 +1,7 @@
 package com.hmdp.service.impl;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -33,6 +34,7 @@ import static com.hmdp.utils.RedisConstants.SHOP_GEO_KEY;
 import com.hmdp.utils.SystemConstants;
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -154,6 +156,69 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
             }
         }
         log.error("删除缓存失败，已重试 3 次仍失败: key={}", key);
+    }
+
+    /**
+     * 城市列表缓存 key，TTL 24 小时
+     */
+    private static final String CACHE_CITIES_KEY = "cache:cities";
+    private static final long CACHE_CITIES_TTL = 24;
+
+    @Override
+    public Result queryCities() {
+        // 1.优先从 Redis 缓存读取（城市列表极低频变更，TTL 24h）
+        String cached = stringRedisTemplate.opsForValue().get(CACHE_CITIES_KEY);
+        if (StrUtil.isNotBlank(cached)) {
+            return Result.ok(JSONUtil.toList(cached, String.class));
+        }
+        // 2.缓存未命中：常用城市保底 + DB 去重并集
+        List<String> cities = new ArrayList<>(Arrays.asList(
+                "杭州", "上海", "北京", "广州", "深圳", "成都", "南京", "武汉"));
+        query()
+                .select("DISTINCT city")
+                .list()
+                .stream()
+                .map(Shop::getCity)
+                .filter(StrUtil::isNotBlank)
+                .forEach(c -> {
+                    if (!cities.contains(c)) {
+                        cities.add(c);
+                    }
+                });
+        // 3.写入缓存（24 小时过期）
+        try {
+            stringRedisTemplate.opsForValue().set(
+                    CACHE_CITIES_KEY, JSONUtil.toJsonStr(cities), CACHE_CITIES_TTL, TimeUnit.HOURS);
+        } catch (Exception e) {
+            // Redis 写入失败不影响本次返回
+            log.warn("城市列表缓存写入失败", e);
+        }
+        return Result.ok(cities);
+    }
+
+    @Override
+    public Result queryAllForMap() {
+        List<Shop> shops = query().select("id", "name", "type_id", "city", "area", "address", "x", "y", "avg_price", "sold", "comments", "score").list();
+        return Result.ok(shops);
+    }
+
+    @Override
+    public Result queryShopByName(String name, Integer current, String city, String sortBy, Boolean isAsc) {
+        // 仅允许白名单排序字段，避免 SQL 注入
+        SFunction<Shop, ?> column = null;
+        if ("comments".equals(sortBy)) {
+            column = Shop::getComments;
+        } else if ("score".equals(sortBy)) {
+            column = Shop::getScore;
+        }
+        // 根据名称关键字分页查询
+        Page<Shop> page = lambdaQuery()
+                .like(StrUtil.isNotBlank(name), Shop::getName, name)
+                .eq(StrUtil.isNotBlank(city), Shop::getCity, city)
+                .orderBy(column != null, !Boolean.FALSE.equals(isAsc), column)
+                .page(new Page<>(current, SystemConstants.MAX_PAGE_SIZE));
+        // 返回数据
+        return Result.ok(page.getRecords());
     }
 
     @Override

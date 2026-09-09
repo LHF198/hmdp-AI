@@ -289,9 +289,9 @@ body .el-dialog__title {
 body .el-skeleton__item {
   background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.35) 25%,
+    var(--surface-3) 25%,
     rgba(255, 255, 255, 0.55) 37%,
-    rgba(255, 255, 255, 0.35) 63%
+    var(--surface-3) 63%
   );
   border-radius: var(--radius-md);
 }

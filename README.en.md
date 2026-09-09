@@ -163,10 +163,7 @@ src/main/resources/
 ### AI Assistant `/api/ai`
 | Method | Path | Description |
 |------|------|------|
-| POST | `/api/ai/chat` | Non-streaming Q&A (JSON) |
-| POST | `/api/ai/chat/stream` | Streaming Q&A (SSE) |
 | GET | `/api/ai/chat/stream` | Streaming Q&A (plain-text stream, character-by-character rendering) |
-| DELETE | `/api/ai/conversation/{id}` | Clear conversation memory |
 | GET | `/api/ai/health` | Health check |
 
 ### Follow `/follow`

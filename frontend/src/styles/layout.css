@@ -247,7 +247,7 @@
     box-shadow: var(--shadow-brand);
   }
   50% {
-    box-shadow: 0 6px 14px rgba(255, 102, 51, 0.28),
+    box-shadow: var(--shadow-brand),
                 0 0 0 6px rgba(255, 102, 51, 0.12);
   }
 }

@@ -6,6 +6,8 @@ import java.util.List;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
@@ -102,12 +104,26 @@ public class VoucherServiceImpl extends ServiceImpl<VoucherMapper, Voucher> impl
         seckillVoucher.setBeginTime(voucher.getBeginTime());
         seckillVoucher.setEndTime(voucher.getEndTime());
         seckillVoucherService.save(seckillVoucher);
-        // 保存秒杀库存到Redis中
-        stringRedisTemplate.opsForValue().set(SECKILL_STOCK_KEY + voucher.getId(), voucher.getStock().toString());
-        // 保存秒杀时间窗口到Redis中（供 Lua 脚本校验开抢时间）
-        stringRedisTemplate.opsForValue().set(SECKILL_BEGIN_KEY + voucher.getId(),
-                String.valueOf(voucher.getBeginTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()));
-        stringRedisTemplate.opsForValue().set(SECKILL_END_KEY + voucher.getId(),
-                String.valueOf(voucher.getEndTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()));
+        // Redis 写延后到事务提交后执行：避免"写 Redis-提交"窗口内 DB 回滚导致缓存脏数据（与 ShopServiceImpl.update 同一范式）
+        Runnable afterCommitTask = () -> {
+            // 保存秒杀库存到Redis中
+            stringRedisTemplate.opsForValue().set(SECKILL_STOCK_KEY + voucher.getId(), voucher.getStock().toString());
+            // 保存秒杀时间窗口到Redis中（供 Lua 脚本校验开抢时间）
+            stringRedisTemplate.opsForValue().set(SECKILL_BEGIN_KEY + voucher.getId(),
+                    String.valueOf(voucher.getBeginTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()));
+            stringRedisTemplate.opsForValue().set(SECKILL_END_KEY + voucher.getId(),
+                    String.valueOf(voucher.getEndTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()));
+        };
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    afterCommitTask.run();
+                }
+            });
+        } else {
+            // 无事务上下文（如测试直调）时同步执行
+            afterCommitTask.run();
+        }
     }
 }

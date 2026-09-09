@@ -4,7 +4,6 @@ import { defineStore } from 'pinia'
 export const useUserStore = defineStore('user', {
   state: () => ({
     token: sessionStorage.getItem('token') || '',
-    userInfo: null,
   }),
   getters: {
     isLoggedIn: (s) => !!s.token,
@@ -20,7 +19,6 @@ export const useUserStore = defineStore('user', {
     },
     logout() {
       this.setToken('')
-      this.userInfo = null
     },
   },
 })

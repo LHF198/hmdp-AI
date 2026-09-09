@@ -101,12 +101,14 @@ import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { shopApi } from '@/api/shop'
+import { useCityStore } from '@/stores/city'
 import AiLauncher from '@/components/AiLauncher.vue'
 import EmptyState from '@/components/EmptyState.vue'
 import { RATE_TEXT_COLOR } from '@/utils/colors'
 
 const route = useRoute()
 const router = useRouter()
+const cityStore = useCityStore()
 
 const shops = ref([]) // 商店列表
 const loaded = ref(false) // 首次查询是否完成（用于空态展示）
@@ -163,7 +165,7 @@ function loadFromQuery() {
     typeName.value = (route.query.name || '').toString()
   }
   // 读取主页选择的城市
-  const city = localStorage.getItem('hmdp_city')
+  const city = cityStore.city
   if (city && city !== '全部') {
     params.value.city = city
   }

@@ -1,8 +1,6 @@
 package com.hmdp.controller;
 
 
-import java.util.Map;
-
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,8 +13,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.hmdp.annotation.Anonymous;
 import com.hmdp.dto.LoginFormDTO;
+import com.hmdp.dto.PasswordUpdateDTO;
 import com.hmdp.dto.Result;
 import com.hmdp.dto.UserDTO;
+import com.hmdp.dto.UserInfoUpdateDTO;
 import com.hmdp.entity.User;
 import com.hmdp.entity.UserInfo;
 import com.hmdp.service.IUserInfoService;
@@ -28,7 +28,6 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 
@@ -58,9 +57,9 @@ public class UserController {
      */
     @Anonymous
     @PostMapping("code")
-    public Result sendCode(@RequestParam("phone") String phone, HttpSession session) {
+    public Result sendCode(@RequestParam("phone") String phone) {
         // 发送短信验证码并保存验证码
-        return userService.sendCode(phone, session);
+        return userService.sendCode(phone);
     }
 
     /**
@@ -69,9 +68,9 @@ public class UserController {
      */
     @Anonymous
     @PostMapping("/login")
-    public Result login(@Valid @RequestBody LoginFormDTO loginForm, HttpSession session){
+    public Result login(@Valid @RequestBody LoginFormDTO loginForm){
         // 实现登录功能
-        return userService.login(loginForm, session);
+        return userService.login(loginForm);
     }
 
     /**
@@ -85,7 +84,7 @@ public class UserController {
         // 2.删除Redis中的token对应的用户信息
         if (StrUtil.isNotBlank(token)) {
             stringRedisTemplate.delete(LOGIN_USER_KEY + token);
-            log.info("用户登出: token={}", token);
+            log.info("用户登出: token={}***", StrUtil.subPre(token, 8));
         }
         return Result.ok();
     }
@@ -113,51 +112,22 @@ public class UserController {
 
     /**
      * 设置/修改当前登录用户的密码（需登录；已有密码时必须携带原密码）
-     * @param body { oldPassword?, newPassword }
+     * @param dto { oldPassword?, newPassword }
      */
     @PutMapping("/password")
-    public Result updatePassword(@RequestBody Map<String, Object> body) {
-        Object oldPassword = body.get("oldPassword");
-        Object newPassword = body.get("newPassword");
-        return userService.setPassword(
-                oldPassword == null ? null : oldPassword.toString(),
-                newPassword == null ? null : newPassword.toString());
+    public Result updatePassword(@Valid @RequestBody PasswordUpdateDTO dto) {
+        return userService.setPassword(dto.getOldPassword(), dto.getNewPassword());
     }
 
     /**
      * 修改当前登录用户的个人资料
-     * @param body 待修改的资料，支持昵称、城市、介绍、性别、生日
+     * @param dto 待修改的资料，支持昵称、城市、介绍、性别、生日
      */
     @PutMapping("/info")
-    public Result updateUserInfo(@RequestBody Map<String, Object> body, HttpServletRequest request){
+    public Result updateUserInfo(@Valid @RequestBody UserInfoUpdateDTO dto, HttpServletRequest request){
         Long userId = UserHolder.getUser().getId();
-        // 1.修改昵称、头像（tb_user表），并同步Redis登录态，保证 /user/me 立即生效
         String token = request.getHeader("authorization");
-        Object nickName = body.get("nickName");
-        Object icon = body.get("icon");
-        userService.updateProfile(userId,
-                nickName == null ? null : nickName.toString(),
-                icon == null ? null : icon.toString(),
-                token);
-        // 2.修改个人资料（tb_user_info表），强制绑定当前登录用户，防止越权修改
-        UserInfo info = BeanUtil.toBean(body, UserInfo.class);
-        info.setUserId(userId);
-        // 不允许通过该接口修改的字段置空
-        info.setFans(null);
-        info.setFollowee(null);
-        info.setCredits(null);
-        info.setLevel(null);
-        // saveOrUpdate：没有记录则新增，有记录则更新
-        try {
-            boolean success = userInfoService.saveOrUpdate(info);
-            if (!success) {
-                log.error("个人资料更新失败: userId={}, info={}", userId, info);
-            }
-            return success ? Result.ok() : Result.fail("更新失败");
-        } catch (Exception e) {
-            log.error("个人资料更新异常: userId={}", userId, e);
-            return Result.fail("更新失败: " + e.getMessage());
-        }
+        return userService.updateUserInfo(userId, dto, token);
     }
 
     @GetMapping("/{id}")

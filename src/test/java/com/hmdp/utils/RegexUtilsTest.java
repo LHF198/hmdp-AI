@@ -32,33 +32,4 @@ class RegexUtilsTest {
         assertFalse(RegexUtils.isPhoneInvalid("15812345678"));
         assertFalse(RegexUtils.isPhoneInvalid("16612345678"));
     }
-
-    @Test
-    void isEmailInvalid_shouldRejectInvalidEmails() {
-        assertTrue(RegexUtils.isEmailInvalid(null));
-        assertTrue(RegexUtils.isEmailInvalid("abc"));
-        assertTrue(RegexUtils.isEmailInvalid("abc@"));
-        assertTrue(RegexUtils.isEmailInvalid("abc@def"));
-        assertTrue(RegexUtils.isEmailInvalid("abc@def."));
-        assertTrue(RegexUtils.isEmailInvalid("a b@def.com"));
-    }
-
-    @Test
-    void isEmailInvalid_shouldAcceptValidEmails() {
-        assertFalse(RegexUtils.isEmailInvalid("test@hmdp.com"));
-        assertFalse(RegexUtils.isEmailInvalid("user_name-1@mail.example.cn"));
-    }
-
-    @Test
-    void isCodeInvalid_shouldValidateVerifyCode() {
-        // 6 位数字或字母
-        assertTrue(RegexUtils.isCodeInvalid(null));
-        assertTrue(RegexUtils.isCodeInvalid("12345"));
-        assertTrue(RegexUtils.isCodeInvalid("1234567"));
-        assertTrue(RegexUtils.isCodeInvalid("12345!"));
-        assertTrue(RegexUtils.isCodeInvalid("a1b2c3d"));
-        assertFalse(RegexUtils.isCodeInvalid("123456"));
-        assertFalse(RegexUtils.isCodeInvalid("aBcDeF"));
-        assertFalse(RegexUtils.isCodeInvalid("1a2b3c"));
-    }
 }

@@ -7,7 +7,6 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.hmdp.enums.OrderStatusEnum;
-import com.hmdp.enums.PayTypeEnum;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -47,8 +46,6 @@ public class VoucherOrder implements Serializable {
 
     /**
      * 支付方式：1 余额支付、2 支付宝、3 微信
-     *
-     * @see PayTypeEnum
      */
     private Integer payType;
 

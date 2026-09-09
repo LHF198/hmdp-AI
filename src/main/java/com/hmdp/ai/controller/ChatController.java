@@ -2,36 +2,27 @@ package com.hmdp.ai.controller;
 
 import java.util.Map;
 
-import org.springframework.http.MediaType;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.hmdp.annotation.Anonymous;
 import com.hmdp.ai.dto.ChatRequest;
-import com.hmdp.ai.dto.ChatResponse;
 import com.hmdp.ai.service.AssistantService;
 import com.hmdp.dto.Result;
+import com.hmdp.annotation.Anonymous;
 
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import reactor.core.publisher.Flux;
+
+import org.springframework.validation.annotation.Validated;
 
 /**
  * 智能问答接口
  *
  * <pre>
- *  POST /api/ai/chat            非流式问答（JSON）
- *  POST /api/ai/chat/stream     流式问答（SSE，适合 fetch + ReadableStream）
- *  GET  /api/ai/chat/stream     流式问答（text/html 纯文本流，兼容参考项目前端逐字渲染）
- *  DELETE /api/ai/conversation/{id}  清空会话记忆
+ *  GET  /api/ai/chat/stream     流式问答（text/html 纯文本流，前端 fetch + ReadableStream 逐字渲染）
  *  GET  /api/ai/health          健康检查
  * </pre>
  */
@@ -48,23 +39,7 @@ public class ChatController {
     }
 
     /**
-     * 非流式问答
-     */
-    @PostMapping("/chat")
-    public ChatResponse chat(@Valid @RequestBody ChatRequest request) {
-        return assistantService.chat(request);
-    }
-
-    /**
-     * 流式问答（SSE）：用于前端 fetch + ReadableStream 消费
-     */
-    @PostMapping(value = "/chat/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<String> chatStream(@Valid @RequestBody ChatRequest request) {
-        return assistantService.chatStream(request);
-    }
-
-    /**
-     * 流式问答（纯文本流）：与参考项目 GET /chat 语义一致， 复用参考项目前端 ai-assistant.js 的逐字渲染逻辑
+     * 流式问答（纯文本流）：前端逐字渲染，conversationId 由前端生成并带回以维持会话记忆
      */
     @GetMapping(value = "/chat/stream", produces = "text/html;charset=utf-8")
     public Flux<String> chatStreamGet(
@@ -76,15 +51,6 @@ public class ChatController {
         request.setMessage(message);
         request.setConversationId(conversationId);
         return assistantService.chatStream(request);
-    }
-
-    /**
-     * 清空会话记忆，开启全新对话
-     */
-    @DeleteMapping("/conversation/{conversationId}")
-    public Result clearConversation(@PathVariable @Size(max = 64, message = "会话ID过长") String conversationId) {
-        assistantService.clearConversation(conversationId);
-        return Result.ok(conversationId);
     }
 
     /**
