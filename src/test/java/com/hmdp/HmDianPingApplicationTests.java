@@ -63,7 +63,8 @@ class HmDianPingApplicationTests {
     @Test
     void testSaveShop() throws InterruptedException {
         Shop shop = shopService.getById(1L);
-        cacheClient.setWithLogicalExpire(CACHE_SHOP_KEY + 1L, shop, 10L, TimeUnit.SECONDS);
+        // 使用 test: 前缀隔离，避免污染生产 cache:shop:1（逻辑过期包装格式与互斥锁模式读取不兼容）
+        cacheClient.setWithLogicalExpire("test:" + CACHE_SHOP_KEY + 1L, shop, 10L, TimeUnit.SECONDS);
     }
 
     @Test

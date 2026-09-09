@@ -131,6 +131,8 @@ cacheClient.queryWithLogicalExpiration("cache:shop:" + id, Shop.class, () -> get
 | PowerShell mysql | 必须长参数 `mysql --user=root --password=1234`，短参数 `-u` 被路径转换 |
 | redis-cli 通配符 | 先设 `$env:MSYS_NO_PATHCONV = 1`，否则 `*` 被转为路径 |
 | 中文路径 .ps1 | 必须用 `pwsh`，不能用 `powershell.exe` |
+| macOS 前端 nginx | 无 `nginx.exe`，用 Homebrew nginx 指定 prefix 启动：`nginx -p "$PWD/frontend/" -c conf/nginx.conf`（相对路径 `html/dist` 依赖 prefix） |
+| macOS 端口共存 | 本机 Homebrew nginx（苍穹外卖）占 8080/8081 时：后端 `mvn spring-boot:run -Dspring-boot.run.arguments=--server.port=8083`，前端用 `frontend/conf/nginx.local.conf`（8082→8083，由主配置 sed 生成，已 gitignore） |
 | Spring AI base-url | 不能含 `/v1` 后缀，否则 404 |
 | Lombok + Maven | `pom.xml` 需显式配 `annotationProcessorPaths` |
 | `#app` + fixed | `backdrop-filter` 创建包含块，fixed 被劫持 → 用 Teleport 到 body |
