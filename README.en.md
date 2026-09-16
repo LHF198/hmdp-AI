@@ -222,10 +222,20 @@ mvn spring-boot:run
 
 The service runs at `http://localhost:8081` by default.
 
+> **macOS port conflict**: if a local Homebrew nginx (or another service) already occupies 8081, start on a different port:
+>
+> ```bash
+> mvn spring-boot:run -Dspring-boot.run.arguments=--server.port=8083
+> ```
+
 To enable the AI Shop Assistant, set the API key first (DashScope / any OpenAI-compatible service):
 
 ```powershell
-setx AI_API_KEY "sk-xxxx"
+setx AI_API_KEY "sk-xxxx"          :: Windows
+```
+
+```bash
+export AI_API_KEY="sk-xxxx"        # macOS / Linux
 ```
 
 If the variable is not set, the application still starts normally (the AI module falls back automatically and the Q&A endpoints return a "not configured" message; all other features keep working). After `setx`, restart your terminal/IDE for the environment variable to take effect.
@@ -235,13 +245,30 @@ If the variable is not set, the application still starts normally (the AI module
 The frontend is a Vue 3 SPA (source in `frontend/src`); the build output goes to `frontend/html/dist/app`. nginx serves the SPA at the root path (legacy MPA pages remain in the dist root for easy rollback):
 
 ```powershell
+# Windows
 cd frontend
 npm install        # first run only
 npm run build      # build the SPA to html/dist/app
 .\nginx.exe -c conf\nginx.conf
 ```
 
+```bash
+# macOS (Homebrew nginx; -p prefix is required since html/dist is a relative path)
+cd frontend
+npm install
+npm run build
+nginx -p "$PWD/" -c conf/nginx.conf
+```
+
 Open `http://localhost:8080` in a browser (nginx proxies `/api` to the backend on 8081; `/api/ai` keeps its prefix and disables buffering to support streaming output).
+
+> **macOS port coexistence**: if a local Homebrew nginx already occupies 8080/8081 (e.g. running another project alongside), hmdp can coexist on 8082/8083 — start the backend with `--server.port=8083` as above, and start the frontend nginx with the local config:
+>
+> ```bash
+> nginx -p "$PWD/frontend/" -c conf/nginx.local.conf   # listens on 8082, proxies /api to 8083
+> ```
+>
+> Then open `http://localhost:8082`. (`nginx.local.conf` is generated from the main config with adjusted ports, for local development only; it is gitignored.)
 
 **5. API testing**
 
@@ -256,6 +283,9 @@ http://localhost:8081/shop/1
 MIT License
 
 ## Changelog
+
+### 2026-09
+- **macOS dev environment support**: added macOS startup instructions (Homebrew nginx with `-p` prefix) and the `nginx.local.conf` port-coexistence setup (hmdp uses 8082/8083 when local 8080/8081 are taken)
 
 ### 2026-08
 - **L2 SPA Refactoring Complete**: Frontend migrated from legacy MPA to Vue 3 SPA (Vite build + nginx deployment), with legacy MPA pages preserved for rollback

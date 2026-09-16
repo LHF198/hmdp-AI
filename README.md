@@ -221,10 +221,20 @@ mvn spring-boot:run
 
 服务默认运行在 `http://localhost:8081`。
 
+> **macOS 端口冲突**：若本机 Homebrew nginx（或其他服务）已占用 8081，改用其他端口启动：
+>
+> ```bash
+> mvn spring-boot:run -Dspring-boot.run.arguments=--server.port=8083
+> ```
+
 若需启用 AI 探店助手，先设置环境变量（DashScope / OpenAI 兼容服务的 Key）：
 
 ```powershell
-setx AI_API_KEY "sk-xxxx"
+setx AI_API_KEY "sk-xxxx"          :: Windows
+```
+
+```bash
+export AI_API_KEY="sk-xxxx"        # macOS / Linux
 ```
 
 未设置该变量时应用仍可正常启动（AI 模块自动降级，问答接口返回"未配置"提示，不影响其他功能）；设置后需重启终端/IDE 使环境变量生效。
@@ -234,13 +244,30 @@ setx AI_API_KEY "sk-xxxx"
 前端为 Vue 3 SPA（源码在 `frontend/src`），构建产物输出到 `frontend/html/dist/app`，nginx 根路径直入 SPA（旧 MPA 页面保留在 dist 根目录，可随时回滚）：
 
 ```powershell
+# Windows
 cd frontend
 npm install        # 首次需安装依赖
 npm run build      # 构建 SPA 到 html/dist/app
 .\nginx.exe -c conf\nginx.conf
 ```
 
+```bash
+# macOS（Homebrew nginx，需指定 prefix，相对路径 html/dist 依赖它）
+cd frontend
+npm install
+npm run build
+nginx -p "$PWD/" -c conf/nginx.conf
+```
+
 浏览器访问 `http://localhost:8080`（nginx 将 `/api` 代理至后端 8081，`/api/ai` 保留前缀并关闭缓冲以支持流式输出）。
+
+> **macOS 端口共存**：若本机 Homebrew nginx 已占用 8080/8081（例如同时运行其他项目），hmdp 可改用 8082/8083 共存——后端按上文以 `--server.port=8083` 启动，前端 nginx 改用本地配置：
+>
+> ```bash
+> nginx -p "$PWD/frontend/" -c conf/nginx.local.conf   # 监听 8082，/api 代理至 8083
+> ```
+>
+> 此时浏览器访问 `http://localhost:8082`。（`nginx.local.conf` 由主配置调整端口生成，仅用于本机开发，不入库。）
 
 **5. 接口测试**
 
@@ -255,6 +282,9 @@ http://localhost:8081/shop/1
 MIT License
 
 ## 更新日志
+
+### 2026-09
+- **macOS 开发环境支持**：补充 macOS 启动说明（Homebrew nginx 指定 prefix 启动），新增 `nginx.local.conf` 端口共存方案（本机 8080/8081 被占用时，hmdp 使用 8082/8083）
 
 ### 2026-08
 - **L2 SPA 重构完成**：前端从旧 MPA 迁移至 Vue 3 SPA（Vite 构建 + nginx 部署），保留旧 MPA 页面支持回滚
