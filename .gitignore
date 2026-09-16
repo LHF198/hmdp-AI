@@ -49,10 +49,10 @@ icon_backup/
 frontend/backup-pre-upgrade/
 
 # ==================== Agent 资产 ====================
-# 入库：rules/ hooks/ docs/ — 项目级 Agent 配置与文档
-# 忽略：better-harness/ repowiki/ — Agent 本地生成的临时产物
-.qoder/better-harness/
-.qoder/repowiki/
+# 入库：.agents/（rules/ docs/）— 项目级 Agent 规范与文档
+# 忽略：各工具本地生成的临时产物
+.agents/better-harness/
+.agents/repowiki/
 
 # 本地共存配置（macOS 与苍穹外卖 nginx 并存时使用，不提交）
 frontend/conf/nginx.local.conf

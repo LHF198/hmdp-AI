@@ -48,7 +48,7 @@ cd frontend && .\nginx.exe
 
 ## 3. 后端架构
 
-> 编码规范详见 `.qoder/rules/java-backend.md`，核心子系统实现详见 `.qoder/docs/backend-architecture.md`
+> 编码规范详见 `.agents/rules/java-backend.md`，核心子系统实现详见 `.agents/docs/backend-architecture.md`
 
 | 子系统 | 关键实现 |
 |---|---|
@@ -69,7 +69,7 @@ cacheClient.queryWithLogicalExpiration("cache:shop:" + id, Shop.class, () -> get
 
 ## 4. 前端架构
 
-> 编码规范详见 `.qoder/rules/frontend-vue.md`，CSS 架构详见 `.qoder/docs/frontend-css-architecture.md`
+> 编码规范详见 `.agents/rules/frontend-vue.md`，CSS 架构详见 `.agents/docs/frontend-css-architecture.md`
 
 - **路由**：`frontend/src/router/index.js`，懒加载，401 驱动登录（无 `beforeEach` 守卫）
 - **API 层**：`frontend/src/api/` 按业务域拆分（`http.js` 统一封装 + `blog.js` / `shop.js` / `user.js` / `follow.js` / `message.js` / `voucher.js`）
@@ -115,16 +115,18 @@ cacheClient.queryWithLogicalExpiration("cache:shop:" + id, Shop.class, () -> get
    - 后端直测 `http://localhost:8081/shop/1`
    - 日志：`logs/backend.log`（运行日志）、`logs/backend_err.log`（错误日志）
 
-### Harness 自动验证
+### 编辑后验证
 
-编辑后自动触发（`.qoder/hooks/post-edit-validation.json`）：
-- Java 修改 → `mvn test`（120s）
-- Vue/JS/CSS 修改 → `vite build`（60s）
-- YAML 修改 → `mvn compile`（120s）
+通用脚本 `scripts/validate_edit.sh <变更文件的相对路径>`，按文件类型分发：
+- Java 修改 → `mvn test -Dtest=<类名>*`
+- Vue/JS 修改 → `vite build`
+- YAML 修改 → `mvn compile`
+
+可接入任意支持"编辑后钩子"的 AI 工具，也可手动执行。
 
 ## 7. 环境陷阱（踩坑记录）
 
-> 完整详解见 `.qoder/docs/env-pitfalls.md`，以下为高频陷阱摘要：
+> 完整详解见 `.agents/docs/env-pitfalls.md`，以下为高频陷阱摘要：
 
 | 陷阱 | 要点 |
 |---|---|
@@ -140,16 +142,16 @@ cacheClient.queryWithLogicalExpiration("cache:shop:" + id, Shop.class, () -> get
 | 未登录发鉴权请求 | 401 拦截会全局跳登录 → 先检查 sessionStorage token |
 | 瀑布流图片比例 | 测容器 `offsetWidth` 设精确高度，移除 `.blog-list` 固定高度 |
 
-## 8. Harness 资产索引
+## 8. Agent 资产索引
 
 | 类型 | 路径 | 说明 |
 |---|---|---|
-| Rule | `.qoder/rules/java-backend.md` | Java 后端编码约定 |
-| Rule | `.qoder/rules/frontend-vue.md` | 前端 Vue 编码约定 |
-| Hook | `.qoder/hooks/post-edit-validation.json` | 编辑后自动验证 |
-| Doc | `.qoder/docs/env-pitfalls.md` | 环境陷阱详解 |
-| Doc | `.qoder/docs/backend-architecture.md` | 后端核心子系统实现 |
-| Doc | `.qoder/docs/frontend-css-architecture.md` | 前端 CSS 架构详情 |
+| Rule | `.agents/rules/java-backend.md` | Java 后端编码约定 |
+| Rule | `.agents/rules/frontend-vue.md` | 前端 Vue 编码约定 |
+| Script | `scripts/validate_edit.sh` | 编辑后验证（可接入任意工具的钩子） |
+| Doc | `.agents/docs/env-pitfalls.md` | 环境陷阱详解 |
+| Doc | `.agents/docs/backend-architecture.md` | 后端核心子系统实现 |
+| Doc | `.agents/docs/frontend-css-architecture.md` | 前端 CSS 架构详情 |
 
 ## 9. 文档导航
 

@@ -1,6 +1,6 @@
 # 后端架构详情
 
-> 本文件从 AGENTS.md 拆分，包含后端核心子系统的实现要点。编码规范详见 `.qoder/rules/java-backend.md`。
+> 本文件从 AGENTS.md 拆分，包含后端核心子系统的实现要点。编码规范详见 `.agents/rules/java-backend.md`。
 
 ## 核心子系统
 

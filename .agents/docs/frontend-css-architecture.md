@@ -1,6 +1,6 @@
 # 前端 CSS 架构详情
 
-> 本文件从 AGENTS.md 拆分。CSS 编码约定详见 `.qoder/rules/frontend-vue.md`。
+> 本文件从 AGENTS.md 拆分。CSS 编码约定详见 `.agents/rules/frontend-vue.md`。
 
 ## 样式分层体系
 
