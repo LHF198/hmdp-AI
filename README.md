@@ -192,6 +192,17 @@ src/main/resources/
 
 **环境要求**：JDK 17+ · MySQL 5.7+（建议 8.0）· Redis 6.0+
 
+**可选：启动本地 pgvector 环境**
+
+```bash
+docker compose -f docker-compose.pgvector.yml up -d
+```
+
+容器启动后使用 `localhost:5432/hmdp_vector`，账号 `hmdp`，默认本地密码
+`hmdp_dev_password`，可通过 `HMDP_PG_PASSWORD` 覆盖。该环境仅用于后续接入
+pgvector，不影响当前默认的 SimpleVectorStore 和业务 MySQL。完整实施边界和
+交付要求见 [docs/pgvector-handoff.md](docs/pgvector-handoff.md)。
+
 **1. 初始化数据库**（脚本已包含自动建库）
 
 ```bash
@@ -226,6 +237,21 @@ mvn spring-boot:run
 > ```bash
 > mvn spring-boot:run -Dspring-boot.run.arguments=--server.port=8083
 > ```
+
+若本机同时运行其他项目并占用 8080/8081，推荐使用仓库内脚本隔离启动：
+
+```bash
+# 终端 1：后端监听 8083
+scripts/start_backend_local.sh
+
+# 终端 2：前端 Vite 监听 8082，并把 /api 代理到 8083
+scripts/start_frontend_local.sh
+```
+
+浏览器访问 `http://localhost:8082`。本地端口与代理目标由
+`frontend/.env.local` 配置，开发环境 Redis 默认使用 DB 1，避免与其他项目共用
+DB 0 时发生 key 冲突。`.env.local` 不入库，新环境可复制
+`frontend/.env.local.example` 生成。
 
 若需启用 AI 探店助手，先设置环境变量（DashScope / OpenAI 兼容服务的 Key）：
 

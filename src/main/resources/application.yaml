@@ -4,7 +4,8 @@
 # 环境变量注入要求（均通过 Windows 用户级环境变量注入，setx 后需重启终端/IDE）：
 #   AI_API_KEY    AI 模型服务密钥（未设置时应用以降级模式启动，AI 问答接口返回配置提示）
 server:
-  port: 8081
+  # 本机与苍穹项目共存时可通过 SERVER_PORT=8083 覆盖
+  port: ${SERVER_PORT:8081}
 
 spring:
   application:

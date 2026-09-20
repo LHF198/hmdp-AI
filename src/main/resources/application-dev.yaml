@@ -16,7 +16,8 @@ spring:
       host: 127.0.0.1
       port: 6379
       # password: 123456
-      database: 0
+      # 与共享 Redis 的其他项目隔离，避免 DB 0 中的 key 冲突
+      database: ${HMDP_REDIS_DATABASE:1}
       lettuce:
         pool:
           max-active: 10

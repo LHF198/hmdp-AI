@@ -1,0 +1,22 @@
+services:
+  pgvector:
+    image: pgvector/pgvector:pg17
+    container_name: hmdp-pgvector
+    environment:
+      POSTGRES_DB: hmdp_vector
+      POSTGRES_USER: hmdp
+      POSTGRES_PASSWORD: ${HMDP_PG_PASSWORD:-hmdp_dev_password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - hmdp_pgvector_data:/var/lib/postgresql/data
+      - ./docker/pgvector/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hmdp -d hmdp_vector"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  hmdp_pgvector_data:
