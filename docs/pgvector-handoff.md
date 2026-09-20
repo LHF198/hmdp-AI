@@ -29,14 +29,12 @@ Spring Boot、JDK 或 Spring AI。
   - pgvector：5432
 - 开发环境 Redis：DB 1
 
-## 当前阻塞项
+## 当前环境状态
 
-`pgvector/pgvector:pg17` 镜像尚未完整拉取。此前拉取因 Docker Hub
-速度过慢而中止，已下载的镜像层仍保留在 Docker 本地缓存中。
+`pgvector/pgvector:pg17` 镜像已拉取，容器已经启动并通过健康检查，
+`vector` 扩展版本为 `0.8.6`，监听 `localhost:5432`。
 
-不要执行 `docker system prune`，否则会丢失已下载的缓存层。
-
-网络恢复后先执行：
+复现或重新启动环境：
 
 ```bash
 docker compose -f docker-compose.pgvector.yml up -d
@@ -101,7 +99,7 @@ docker compose -f docker-compose.pgvector.yml exec pgvector \
 
 ## 推荐实施顺序
 
-1. 拉取并启动 pgvector，验证扩展和基础 SQL。
+1. 验证现有 pgvector 容器、扩展和基础 SQL。
 2. 抽象文档入库流程，确保 SimpleVectorStore 行为不回归。
 3. 创建独立 PostgreSQL DataSource 和显式 `PGVectorStore` Bean。
 4. 增加 pgvector 模式配置和条件装配。
