@@ -8,10 +8,10 @@ alwaysApply: false
 
 ## 技术栈
 
-- Spring Boot 3.5.16 + JDK 17
-- MyBatis-Plus 3.5.17（`mybatis-plus-spring-boot3-starter`）
-- Redis（Lettuce 连接池） + Redisson 3.52.0（分布式锁）
-- Spring AI 1.1.8（AI 模块，独立子包 `com.hmdp.ai`）
+- Spring Boot 4.1.1 + JDK 17
+- MyBatis-Plus 3.5.17（`mybatis-plus-spring-boot4-starter`）
+- Redis（Lettuce 连接池） + Redisson 4.7.0（分布式锁）
+- Spring AI 2.0.1（AI 模块，独立子包 `com.hmdp.ai`）
 - Hutool 5.8.47（字符串用 `StrUtil`，日期用 `DateUtil`，Bean 拷贝用 `BeanUtil`）
 - Lombok（`@Data` + `@EqualsAndHashCode(callSuper = false)` + `@Accessors(chain = true)`）
 

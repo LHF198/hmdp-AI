@@ -5,14 +5,14 @@
 将当前基于 `SimpleVectorStore` 的 RAG 知识库升级为可选的 pgvector 存储，
 保留现有开发和降级路径，并通过可复现测试验证检索功能。
 
-本任务只处理向量存储接入，不迁移业务 MySQL，不引入 Milvus，不升级
-Spring Boot、JDK 或 Spring AI。
+本任务只处理向量存储接入，不迁移业务 MySQL，不引入 Milvus。
+（Spring Boot / Spring AI 已另行升级至 4.1.1 / 2.0.1，本任务无需再处理版本升级）
 
 ## 当前技术基线
 
-- Spring Boot 3.5.16
+- Spring Boot 4.1.1
 - JDK 17
-- Spring AI 1.1.8
+- Spring AI 2.0.1
 - 业务数据库：MySQL 8.4
 - 缓存：Redis 8.x，开发环境使用 DB 1
 - 当前向量存储：`SimpleVectorStore`

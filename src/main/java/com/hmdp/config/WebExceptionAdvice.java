@@ -122,8 +122,7 @@ public class WebExceptionAdvice {
      */
     @ExceptionHandler(HandlerMethodValidationException.class)
     public Result handleMethodValidation(HandlerMethodValidationException e) {
-        String msg = e.getAllValidationResults().stream()
-                .flatMap(r -> r.getResolvableErrors().stream())
+        String msg = e.getAllErrors().stream()
                 .map(MessageSourceResolvable::getDefaultMessage)
                 .filter(Objects::nonNull)
                 .findFirst()

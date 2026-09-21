@@ -21,7 +21,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * RedisChatMemory 单元测试：验证 JSON 序列化/反序列化与 Lua 脚本调用参数 （不依赖真实 Redis，使用 Mockito 模拟
@@ -88,7 +88,7 @@ class RedisChatMemoryTest {
         when(template.opsForValue()).thenReturn(mock(ValueOperations.class));
         RedisChatMemory memory = newMemory(template);
 
-        // ToolResponseMessage 构造器在 Spring AI 1.1+ 中为 protected，改用 mock 模拟工具消息（仅验证过滤行为）
+        // ToolResponseMessage 构造器非 public，改用 mock 模拟工具消息（仅验证过滤行为）
         Message toolMessage = mock(Message.class);
         when(toolMessage.getMessageType()).thenReturn(MessageType.TOOL);
         memory.add("s1", List.of(

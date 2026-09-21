@@ -19,11 +19,6 @@ import java.util.regex.Pattern;
 public class AssistantService {
 
     /**
-     * 会话 ID 的 advisor 参数键（Spring AI 1.0.0 中为内联字符串，未暴露公开常量）
-     */
-    private static final String CONVERSATION_ID_KEY = "chat_memory_conversation_id";
-
-    /**
      * 会话 ID 规则：8~64 位，仅允许字母、数字、连字符（前端会话 ID 为毫秒时间戳，属合法输入）
      */
     private static final Pattern CONVERSATION_ID_PATTERN = Pattern.compile("[A-Za-z0-9-]{8,64}");
@@ -43,7 +38,7 @@ public class AssistantService {
     public Flux<String> chatStream(ChatRequest request) {
         String conversationId = resolveConversationId(request);
         return chatClient.prompt()
-                .advisors(a -> a.param(CONVERSATION_ID_KEY, conversationId))
+                .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, conversationId))
                 .user(request.getMessage())
                 .stream()
                 .content()

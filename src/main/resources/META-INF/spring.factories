@@ -1,1 +1,1 @@
-org.springframework.boot.env.EnvironmentPostProcessor=com.hmdp.ai.config.AiFallbackEnvironmentPostProcessor
+org.springframework.boot.EnvironmentPostProcessor=com.hmdp.ai.config.AiFallbackEnvironmentPostProcessor

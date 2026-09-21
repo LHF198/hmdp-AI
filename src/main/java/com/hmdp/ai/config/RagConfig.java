@@ -80,7 +80,7 @@ public class RagConfig {
         if (!documents.isEmpty()) {
             try {
                 // 切分后向量化入库
-                store.add(new TokenTextSplitter().split(documents));
+                store.add(TokenTextSplitter.builder().build().split(documents));
                 snapshotRepository.save(store);
                 log.info("知识库向量化完成并已持久化");
             } catch (Exception e) {

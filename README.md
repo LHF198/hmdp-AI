@@ -7,10 +7,10 @@
 
 | 层次 | 技术 | 说明 |
 |------|------|------|
-| 后端框架 | Spring Boot 3.5.16（JDK 17） | REST API |
+| 后端框架 | Spring Boot 4.1.1（JDK 17） | REST API |
 | 数据库 | MySQL 5.7+/8.0 + MyBatis-Plus 3.5.17 | 持久化存储 & ORM |
-| 缓存 | Redis 7.2.15 + Lettuce + Redisson 3.52.0 | 多级缓存 / 分布式锁 / GEO / BitMap / Stream |
-| AI | Spring AI 1.1.8 | 智能问答 / RAG / 会话记忆 / 工具调用 |
+| 缓存 | Redis 7.2.15 + Lettuce + Redisson 4.7.0 | 多级缓存 / 分布式锁 / GEO / BitMap / Stream |
+| AI | Spring AI 2.0.1 | 智能问答 / RAG / 会话记忆 / 工具调用 |
 | 前端 | Vue 3.5 + Vite 7 + Element Plus 2.14 + Pinia 3 + Vue Router 5 | SPA（nginx 静态部署 + 反向代理 8080） |
 | 工具库 | Hutool 5.8.47, Lombok | 通用工具 & 代码简化 |
 | 脚本 | Lua | 秒杀原子操作 & 分布式锁释放 |

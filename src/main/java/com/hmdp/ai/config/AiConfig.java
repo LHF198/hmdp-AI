@@ -50,7 +50,7 @@ public class AiConfig {
      */
     @Bean
     public ChatMemory chatMemory(StringRedisTemplate stringRedisTemplate,
-            com.fasterxml.jackson.databind.ObjectMapper objectMapper,
+            tools.jackson.databind.ObjectMapper objectMapper,
             @Value("${app.ai.memory.type:redis}") String memoryType,
             @Value("${app.ai.memory.ttl-days:1}") long ttlDays) {
         if ("memory".equalsIgnoreCase(memoryType)) {

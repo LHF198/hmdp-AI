@@ -1,12 +1,12 @@
 # hmdp — Agent 导航文件
 
-> 黑马点评：餐饮商铺评价平台。Spring Boot 3.5.16 + Vue 3.5.41 SPA 全栈。
+> 黑马点评：餐饮商铺评价平台。Spring Boot 4.1.1 + Vue 3.5.41 SPA 全栈。
 
 ## 1. 项目概述
 
 本地生活服务点评平台（商铺评价 + 笔记分享 + 优惠券秒杀 + AI 探店助手）。
 
-- **后端**：`src/main/java/com/hmdp/` — Spring Boot 3.5.16 + MyBatis-Plus 3.5.17 + Redis 7.2.15 + Spring AI 1.1.8
+- **后端**：`src/main/java/com/hmdp/` — Spring Boot 4.1.1 + MyBatis-Plus 3.5.17 + Redis 7.2.15 + Spring AI 2.0.1
 - **前端**：`frontend/src/` — Vue 3.5.41 + Vite 7.3.6 + Element Plus 2.14.4 + Pinia 3.0.4 + Vue Router 5.2.0
 - **测试**：`src/test/java/com/hmdp/`
 - **配置**：`src/main/resources/`
@@ -90,7 +90,7 @@ cacheClient.queryWithLogicalExpiration("cache:shop:" + id, Shop.class, () -> get
 
 ### ⚠️ 先确认再改
 
-- 修改 `application.yaml` 中的 AI 配置：确认 `base-url` 不含 `/v1` 后缀
+- 修改 `application.yaml` 中的 AI 配置：确认 `base-url` 含 `/v1` 后缀（Spring AI 2.0 起 openai-java SDK 不再自动拼接）
 - 修改 CSS 层叠顺序：确认不会引入新的优先级冲突
 - 新增 Redis key：确认命名遵循 `业务:子业务:id` 格式
 
@@ -135,7 +135,7 @@ cacheClient.queryWithLogicalExpiration("cache:shop:" + id, Shop.class, () -> get
 | 中文路径 .ps1 | 必须用 `pwsh`，不能用 `powershell.exe` |
 | macOS 前端 nginx | 无 `nginx.exe`，用 Homebrew nginx 指定 prefix 启动：`nginx -p "$PWD/frontend/" -c conf/nginx.conf`（相对路径 `html/dist` 依赖 prefix） |
 | macOS 端口共存 | 本机 Homebrew nginx（苍穹外卖）占 8080/8081 时：后端 `mvn spring-boot:run -Dspring-boot.run.arguments=--server.port=8083`，前端用 `frontend/conf/nginx.local.conf`（8082→8083，由主配置 sed 生成，已 gitignore） |
-| Spring AI base-url | 不能含 `/v1` 后缀，否则 404 |
+| Spring AI base-url | Spring AI 2.0 起改用官方 openai-java SDK，base-url 按原样使用，**必须含 `/v1` 后缀**，否则 404（1.x 时代规则相反） |
 | Lombok + Maven | `pom.xml` 需显式配 `annotationProcessorPaths` |
 | `#app` + fixed | `backdrop-filter` 创建包含块，fixed 被劫持 → 用 Teleport 到 body |
 | EP 按需样式覆盖 | 用 `body .el-button` 高特异性选择器，不能依赖加载顺序 |

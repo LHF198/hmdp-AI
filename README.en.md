@@ -8,10 +8,10 @@ A local life services review platform built with Spring Boot, covering core busi
 
 | Layer | Technology | Description |
 |------|------|------|
-| Backend framework | Spring Boot 3.5.16 (JDK 17) | REST API |
+| Backend framework | Spring Boot 4.1.1 (JDK 17) | REST API |
 | Database | MySQL 5.7+/8.0 + MyBatis-Plus 3.5.17 | Persistence & ORM |
-| Cache | Redis 7.2.15 + Lettuce + Redisson 3.52.0 | Multi-level cache / distributed locks / GEO / BitMap / Stream |
-| AI | Spring AI 1.1.8 | Intelligent Q&A / RAG / chat memory / tool calling |
+| Cache | Redis 7.2.15 + Lettuce + Redisson 4.7.0 | Multi-level cache / distributed locks / GEO / BitMap / Stream |
+| AI | Spring AI 2.0.1 | Intelligent Q&A / RAG / chat memory / tool calling |
 | Frontend | Vue 3.5 + Vite 7 + Element Plus 2.14 + Pinia 3 + Vue Router 5 | SPA (nginx static hosting + reverse proxy on 8080) |
 | Utilities | Hutool 5.8.47, Lombok | Common utilities & code simplification |
 | Scripts | Lua | Atomic seckill operations & distributed lock release |

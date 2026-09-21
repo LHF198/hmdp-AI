@@ -5,8 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.boot.EnvironmentPostProcessor;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.env.EnvironmentPostProcessor;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.util.StringUtils;
@@ -14,8 +14,8 @@ import org.springframework.util.StringUtils;
 /**
  * AI 密钥缺失时的降级处理（环境准备阶段执行）：
  * <p>
- * Spring AI 1.0.0 的 OpenAI 自动配置在 api-key 为空时强校验并中止启动 （"OpenAI API key must be
- * set"）。当 AI_API_KEY 未注入时，本处理器：
+ * Spring AI 的 OpenAI 自动配置在 api-key 为空时强校验并中止启动 （Spring AI 2.0 报错 "At least one
+ * credential source must be specified"）。当 AI_API_KEY 未注入时，本处理器：
  * <ul>
  * <li>通过 spring.autoconfigure.exclude 排除全部 OpenAI 自动配置 （chat / embedding /
  * image / audio / moderation），保证应用可启动；</li>
@@ -34,7 +34,7 @@ public class AiFallbackEnvironmentPostProcessor implements EnvironmentPostProces
     public static final String FALLBACK_ENABLED = "ai.fallback.enabled";
 
     /**
-     * 无密钥时排除的 OpenAI 自动配置（Spring AI 1.0 对空 key 强校验，逐个覆盖 spring.ai.model.* 易遗漏）
+     * 无密钥时排除的 OpenAI 自动配置（对空 key 强校验，逐个覆盖 spring.ai.model.* 易遗漏）
      */
     private static final List<String> EXCLUDED_OPENAI_AUTO_CONFIGS = List.of(
             "org.springframework.ai.model.openai.autoconfigure.OpenAiChatAutoConfiguration",
