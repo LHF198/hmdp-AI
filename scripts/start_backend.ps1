@@ -5,11 +5,11 @@ $err = Join-Path $PSScriptRoot '..\logs\backend_err.log'
 $java = 'C:\Users\26821\dev\jdk-17.0.20+8\bin\java.exe'
 
 # ============================================================
-# AI_API_KEY check: the backend reads the key from the env var
-# (never hardcoded in application.yaml). Warn early if missing.
+# AI key check: the backend reads AI_API_KEY first, then falls back to API_KEY
+# (never hardcoded in application.yaml). Warn early if both are missing.
 # ============================================================
-if (-not $env:AI_API_KEY) {
-    Write-Host "[WARN] AI_API_KEY env var not set in this session - AI assistant will be unavailable"
+if (-not $env:AI_API_KEY -and -not $env:API_KEY) {
+    Write-Host "[WARN] Neither AI_API_KEY nor API_KEY is set in this session - AI assistant will be unavailable"
     Write-Host "       Run: setx AI_API_KEY \"sk-...\"  then reopen the terminal/IDE"
 }
 

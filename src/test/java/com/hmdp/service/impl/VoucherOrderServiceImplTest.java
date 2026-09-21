@@ -72,7 +72,8 @@ class VoucherOrderServiceImplTest {
         Result r = service.seckillVoucher(100L);
 
         assertTrue(r.getSuccess());
-        assertEquals(123L, r.getData());
+        // 订单 ID 以字符串返回，避免 19 位雪花号经 JSON number 传输时丢失 JS 精度
+        assertEquals("123", r.getData());
     }
 
     @Test

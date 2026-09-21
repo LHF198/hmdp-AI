@@ -238,6 +238,8 @@ setx AI_API_KEY "sk-xxxx"          :: Windows
 export AI_API_KEY="sk-xxxx"        # macOS / Linux
 ```
 
+The backend also accepts the generic `API_KEY` variable (`AI_API_KEY` takes precedence); it only falls back when neither is set.
+
 If the variable is not set, the application still starts normally (the AI module falls back automatically and the Q&A endpoints return a "not configured" message; all other features keep working). After `setx`, restart your terminal/IDE for the environment variable to take effect.
 
 **4. Start the frontend (optional)**

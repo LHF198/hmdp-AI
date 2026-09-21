@@ -54,7 +54,7 @@
       <div class="blog-detail-title" v-if="blog.title">{{ blog.title }}</div>
 
       <!-- 笔记正文：插值渲染（v-html 渲染用户输入存在存储型 XSS 风险，已移除；pre-wrap 保留换行） -->
-      <div class="blog-text">{{ blog.content }}</div>
+      <div class="blog-text">{{ formatContent(blog.content) }}</div>
 
       <!-- 关联店铺卡片 -->
       <BlogShopCard :shop="shop" @open="toShopDetail" />
@@ -108,6 +108,11 @@ import defaultIcon from '../../html/hmdp/imgs/icons/default-icon.png'
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
+
+// 历史笔记正文用 <br/> 表示换行：仅在纯文本层面归一化为换行符，不解析 HTML，保持 XSS 安全
+function formatContent(content) {
+  return (content || '').replace(/<br\s*\/?>/gi, '\n')
+}
 
 const blog = ref({})
 const shop = ref({})

@@ -82,4 +82,4 @@ Long result = redisTemplate.execute(
 | `web/` | IP 限流拦截器（每 IP 每分钟 30 次） |
 
 - 使用 Spring AI OpenAI Starter（兼容阿里云百炼 DashScope）
-- 环境变量 `AI_API_KEY` 未设置时降级启动，AI 接口返回提示
+- 环境变量优先读取 `AI_API_KEY`，兼容通用 `API_KEY`；两者都未设置时降级启动，AI 接口返回提示

@@ -2,7 +2,8 @@
 # 环境隔离：默认激活 dev（本地开箱即用），生产环境启动时显式指定
 #   --spring.profiles.active=prod
 # 环境变量注入要求（均通过 Windows 用户级环境变量注入，setx 后需重启终端/IDE）：
-#   AI_API_KEY    AI 模型服务密钥（未设置时应用以降级模式启动，AI 问答接口返回配置提示）
+#   AI_API_KEY / API_KEY  AI 模型服务密钥（优先 AI_API_KEY，兼容通用 API_KEY；
+#                         未设置时应用以降级模式启动，AI 问答接口返回配置提示）
 server:
   # 本机与苍穹项目共存时可通过 SERVER_PORT=8083 覆盖
   port: ${SERVER_PORT:8081}
@@ -26,10 +27,11 @@ spring:
       # ============ 模型服务配置 ============
       # 默认：阿里云百炼 DashScope（兼容 OpenAI 协议），对话 + 知识库嵌入一体
       # 注册地址：https://bailian.console.aliyun.com
-      # 密钥通过环境变量 AI_API_KEY 注入（setx AI_API_KEY "sk-..."），禁止在配置文件中明文写入
+      # 密钥通过环境变量注入：优先 AI_API_KEY，其次兼容通用 API_KEY（部分 macOS 环境只导出 API_KEY），
+      # 禁止在配置文件中明文写入
       # 未设置时由 AiFallbackEnvironmentPostProcessor 禁用 OpenAI 自动配置（对空 key 强校验），
       # 应用降级启动，AI 问答接口返回"未配置"提示
-      api-key: ${AI_API_KEY:}
+      api-key: ${AI_API_KEY:${API_KEY:}}
       # 注意：Spring AI 2.0 改用官方 openai-java SDK，base-url 按原样使用（不再自动拼接 /v1），
       # 因此必须包含 /v1 后缀，否则请求 /compatible-mode/chat/completions 导致 404
       base-url: https://dashscope.aliyuncs.com/compatible-mode/v1

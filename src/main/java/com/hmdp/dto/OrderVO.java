@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 import com.hmdp.enums.OrderStatusEnum;
 
 import lombok.Data;
+import tools.jackson.databind.annotation.JsonSerialize;
+import tools.jackson.databind.ser.std.ToStringSerializer;
 
 /**
  * 秒杀订单展示对象，包含代金券信息
@@ -13,8 +15,9 @@ import lombok.Data;
 public class OrderVO {
 
     /**
-     * 订单id
+     * 订单id（19 位雪花号，超 JS 安全整数范围，序列化为字符串避免前端精度丢失）
      */
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
 
     /**

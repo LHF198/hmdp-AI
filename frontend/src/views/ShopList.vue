@@ -149,6 +149,11 @@ watch(
 )
 
 function loadFromQuery() {
+  // 无分类且无关键词（如直接访问 /shops）时回首页重新选择，避免发起缺少 typeId 的无效请求
+  if (!route.query.type && !route.query.search) {
+    router.replace('/')
+    return
+  }
   // 重置分页与排序状态
   params.value.current = 1
   params.value.sortBy = ''

@@ -6,7 +6,7 @@
         <el-icon :size="22"><ArrowLeft /></el-icon>
       </div>
       <div class="header-title"></div>
-      <div class="header-share header-order-btn" @click="showOrders">
+      <div class="header-share header-order-btn" v-if="!loadError" @click="showOrders">
         订单
       </div>
       <div class="header-share" title="复制店铺链接分享" @click="share">...</div>
@@ -220,7 +220,7 @@ function queryShopById(shopId) {
     .catch((err) => {
       console.error('加载店铺信息失败:', err)
       loadError.value = true
-      ElMessage.error('加载店铺信息失败，请稍后重试')
+      ElMessage.error(err || '加载店铺信息失败，请稍后重试')
     })
 }
 

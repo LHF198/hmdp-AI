@@ -393,7 +393,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         if (r == SeckillConstants.SECKILL_ENDED) {
             return Result.fail("秒杀已经结束");
         }
-        // 3.返回订单id
-        return Result.ok(orderId);
+        // 3.返回订单id（字符串，避免 19 位雪花号在 JSON number 传输中被 JS 截断精度）
+        return Result.ok(Long.toString(orderId));
     }
 }

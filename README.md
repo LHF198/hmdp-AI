@@ -263,6 +263,8 @@ setx AI_API_KEY "sk-xxxx"          :: Windows
 export AI_API_KEY="sk-xxxx"        # macOS / Linux
 ```
 
+后端同时兼容通用变量名 `API_KEY`（优先读取 `AI_API_KEY`）；两者都未设置时才降级。
+
 未设置该变量时应用仍可正常启动（AI 模块自动降级，问答接口返回"未配置"提示，不影响其他功能）；设置后需重启终端/IDE 使环境变量生效。
 
 **4. 启动前端（可选）**

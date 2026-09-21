@@ -66,7 +66,7 @@
     </div>
     <div class="type-list">
       <div class="type-box" v-for="t in types" :key="t.id" @click="toShopList(t.id, t.name)">
-        <div class="type-view"><img :src="t.icon" alt="" /></div>
+        <div class="type-view"><img :src="typeIcon(t.icon)" alt="" /></div>
         <div class="type-text">{{ t.name }}</div>
       </div>
     </div>
@@ -121,6 +121,11 @@ import { CITY_DATA } from '@/utils/cities'
 import LikeIcon from '@/components/LikeIcon.vue'
 
 const router = useRouter()
+
+// tb_shop_type.icon 存的是 "/types/x.png"，静态资源实际位于 /imgs/types/ 下
+function typeIcon(icon) {
+  return icon && icon.startsWith('/types/') ? '/imgs' + icon : icon
+}
 
 const types = ref([]) // 类型列表
 const blogs = ref([]) // 笔记列表

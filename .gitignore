@@ -57,6 +57,8 @@ frontend/backup-pre-upgrade/
 # 忽略：各工具本地生成的临时产物
 .agents/better-harness/
 .agents/repowiki/
+.playwright-cli/
+output/playwright/
 
 # 本地共存配置（macOS 与苍穹外卖 nginx 并存时使用，不提交）
 frontend/conf/nginx.local.conf
